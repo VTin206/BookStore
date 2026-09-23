@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Link, Route, Routes } from 'react-router-dom'
+import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import { api, Book, Category } from './api'
 
 function Layout({ children }: { children: React.ReactNode }) {
-  return <><header><div className="brand">Book Store</div><nav><Link to="/">Sách</Link><Link to="/categories">Danh mục</Link></nav></header><main>{children}</main></>
+  return <><header><div className="brand">Book Store</div><nav><Link to="/">Sách</Link><Link to="/categories">Danh mục</Link><Link to="/login">Đăng nhập</Link></nav></header><main>{children}</main></>
 }
+
+function Login() { const navigate=useNavigate(); const [form,setForm]=useState({username:'',password:''}); const submit=async(e:FormEvent)=>{e.preventDefault();const r=await api.post('/auth/login',form);localStorage.setItem('token',r.data.token);navigate('/')}; return <section className="panel narrow"><p className="eyebrow">TÀI KHOẢN</p><h1>Đăng nhập</h1><form className="login-form" onSubmit={submit}><input placeholder="Username" required value={form.username} onChange={e=>setForm({...form,username:e.target.value})}/><input placeholder="Mật khẩu" type="password" required value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/><button>Đăng nhập</button></form></section> }
 
 function Books() {
   const [books, setBooks] = useState<Book[]>([]); const [categories, setCategories] = useState<Category[]>([])
@@ -23,4 +25,4 @@ function Categories() {
   return <><div className="page-title"><div><p className="eyebrow">DANH MỤC</p><h1>Phân loại sách</h1></div></div><section className="panel narrow"><form className="inline-form" onSubmit={submit}><input placeholder="Tên danh mục mới" required value={name} onChange={e => setName(e.target.value)}/><button>Thêm</button></form><ul className="categories">{items.map(c => <li key={c.id}>{c.name}</li>)}</ul></section></>
 }
 
-export default function App() { return <Layout><Routes><Route path="/" element={<Books/>}/><Route path="/categories" element={<Categories/>}/></Routes></Layout> }
+export default function App() { return <Layout><Routes><Route path="/" element={<Books/>}/><Route path="/categories" element={<Categories/>}/><Route path="/login" element={<Login/>}/></Routes></Layout> }

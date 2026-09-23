@@ -1,0 +1,3 @@
+package com.bookstore.cart.controller;
+import com.bookstore.cart.dto.CartItemRequest; import com.bookstore.cart.entity.Cart; import com.bookstore.cart.service.CartService; import jakarta.validation.Valid; import org.springframework.security.core.Authentication; import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/cart") public class CartController { private final CartService service; public CartController(CartService s){service=s;} @GetMapping public Cart get(Authentication a){return service.get(a.getName());} @PostMapping("/items") public Cart add(Authentication a,@Valid @RequestBody CartItemRequest r){return service.add(a.getName(),r);} @DeleteMapping("/items/{id}") public void remove(@PathVariable Long id){service.remove(id);} }
