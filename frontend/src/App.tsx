@@ -1,31 +1,176 @@
-import { FormEvent, useEffect, useState } from 'react'
-import { Link, Route, Routes, useNavigate } from 'react-router-dom'
-import { api, Book, Category } from './api'
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ToastProvider } from './context/ToastContext';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 
-function Layout({ children }: { children: React.ReactNode }) {
-  return <><header><div className="brand">Book Store</div><nav><Link to="/">Sách</Link><Link to="/categories">Danh mục</Link><Link to="/cart">Giỏ hàng</Link><Link to="/orders">Đơn hàng</Link><Link to="/login">Đăng nhập</Link></nav></header><main>{children}</main></>
+// Layouts
+import { CustomerLayout } from './layouts/CustomerLayout';
+import { AdminLayout } from './layouts/AdminLayout';
+
+// Customer Pages
+import { HomePage } from './pages/customer/HomePage';
+import { BookListPage } from './pages/customer/BookListPage';
+import { BookDetailPage } from './pages/customer/BookDetailPage';
+import { CartPage } from './pages/customer/CartPage';
+import { CheckoutPage } from './pages/customer/CheckoutPage';
+import { OrderSuccessPage } from './pages/customer/OrderSuccessPage';
+import { OrderHistoryPage } from './pages/customer/OrderHistoryPage';
+import { ProfilePage } from './pages/customer/ProfilePage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+
+// Admin Pages
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminBooksPage } from './pages/admin/AdminBooksPage';
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
+import { AdminAuthorsPublishersPage } from './pages/admin/AdminAuthorsPublishersPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Routes>
+            {/* Customer Facing Routes */}
+            <Route
+              path="/"
+              element={
+                <CustomerLayout>
+                  <HomePage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/books"
+              element={
+                <CustomerLayout>
+                  <BookListPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/books/:id"
+              element={
+                <CustomerLayout>
+                  <BookDetailPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <CustomerLayout>
+                  <CartPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <CustomerLayout>
+                  <CheckoutPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/order-success/:id"
+              element={
+                <CustomerLayout>
+                  <OrderSuccessPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <CustomerLayout>
+                  <OrderHistoryPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <CustomerLayout>
+                  <ProfilePage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <CustomerLayout>
+                  <LoginPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <CustomerLayout>
+                  <RegisterPage />
+                </CustomerLayout>
+              }
+            />
+
+            {/* Admin Portal Routes */}
+            <Route
+              path="/admin"
+              element={
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/books"
+              element={
+                <AdminLayout>
+                  <AdminBooksPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/categories"
+              element={
+                <AdminLayout>
+                  <AdminCategoriesPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <AdminLayout>
+                  <AdminOrdersPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/authors"
+              element={
+                <AdminLayout>
+                  <AdminAuthorsPublishersPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminLayout>
+                  <AdminUsersPage />
+                </AdminLayout>
+              }
+            />
+
+            {/* Fallback to Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </ToastProvider>
+  );
 }
-
-function Cart(){const [cart,setCart]=useState<any>({items:[]});const load=()=>api.get('/cart').then(r=>setCart(r.data));useEffect(()=>{load()},[]);const checkout=async()=>{if(!cart.items.length)return;await api.post('/orders',{customerName:'Customer',customerEmail:'customer@example.com',items:cart.items.map((i:any)=>({bookId:i.book.id,quantity:i.quantity}))});alert('Đặt hàng thành công');setCart({items:[]})};return <><div className="page-title"><div><p className="eyebrow">SHOPPING CART</p><h1>Giỏ hàng</h1></div></div><section className="panel">{cart.items.map((i:any)=><div className="cart-row" key={i.id}><strong>{i.book.title}</strong><span>{i.quantity} × {Number(i.book.price).toLocaleString('vi-VN')} ₫</span><button className="danger" onClick={async()=>{await api.delete('/cart/items/'+i.id);load()}}>Xóa</button></div>)}{!cart.items.length&&<p className="empty">Giỏ hàng đang trống.</p>}<button onClick={checkout}>Thanh toán</button></section></>}
-function Orders(){const [orders,setOrders]=useState<any[]>([]);useEffect(()=>{api.get('/orders').then(r=>setOrders(r.data))},[]);return <><div className="page-title"><div><p className="eyebrow">PURCHASES</p><h1>Lịch sử đơn hàng</h1></div></div><section className="panel"><table><thead><tr><th>Mã đơn</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>{orders.map(o=><tr key={o.id}><td>#{o.id}</td><td>{Number(o.totalAmount).toLocaleString('vi-VN')} ₫</td><td>{o.status}</td></tr>)}</tbody></table></section></>}
-
-function Login() { const navigate=useNavigate(); const [form,setForm]=useState({username:'',password:''}); const submit=async(e:FormEvent)=>{e.preventDefault();const r=await api.post('/auth/login',form);localStorage.setItem('token',r.data.token);navigate('/')}; return <section className="panel narrow"><p className="eyebrow">TÀI KHOẢN</p><h1>Đăng nhập</h1><form className="login-form" onSubmit={submit}><input placeholder="Username" required value={form.username} onChange={e=>setForm({...form,username:e.target.value})}/><input placeholder="Mật khẩu" type="password" required value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/><button>Đăng nhập</button></form></section> }
-
-function Books() {
-  const [books, setBooks] = useState<Book[]>([]); const [categories, setCategories] = useState<Category[]>([])
-  const [form, setForm] = useState({ title: '', author: '', price: '', stock: '', categoryId: '' })
-  const load = () => api.get<Book[]>('/books').then(r => setBooks(r.data))
-  useEffect(() => { load(); api.get<Category[]>('/categories').then(r => setCategories(r.data)) }, [])
-  const submit = async (e: FormEvent) => { e.preventDefault(); await api.post('/books', { ...form, price: Number(form.price), stock: Number(form.stock), categoryId: form.categoryId ? Number(form.categoryId) : null }); setForm({ title: '', author: '', price: '', stock: '', categoryId: '' }); load() }
-  const remove = async (id: number) => { await api.delete(`/books/${id}`); load() }
-  return <><div className="page-title"><div><p className="eyebrow">QUẢN LÝ KHO</p><h1>Danh sách sách</h1></div><span className="count">{books.length} sản phẩm</span></div><section className="panel"><h2>Thêm sách mới</h2><form onSubmit={submit} className="form-grid"><input placeholder="Tên sách" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}/><input placeholder="Tác giả" required value={form.author} onChange={e => setForm({ ...form, author: e.target.value })}/><input placeholder="Giá (VNĐ)" required type="number" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}/><input placeholder="Tồn kho" required type="number" min="0" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })}/><select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })}><option value="">Chọn danh mục</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><button>Thêm sách</button></form></section><section className="panel"><table><thead><tr><th>Tên sách</th><th>Tác giả</th><th>Danh mục</th><th>Giá</th><th>Tồn kho</th><th></th></tr></thead><tbody>{books.map(b => <tr key={b.id}><td><strong>{b.title}</strong></td><td>{b.author}</td><td>{b.category?.name || '—'}</td><td>{Number(b.price).toLocaleString('vi-VN')} ₫</td><td><span className={b.stock < 5 ? 'low' : 'stock'}>{b.stock}</span></td><td><button className="danger" onClick={() => remove(b.id)}>Xóa</button></td></tr>)}{!books.length && <tr><td colSpan={6} className="empty">Chưa có sách nào.</td></tr>}</tbody></table></section></>
-}
-
-function Categories() {
-  const [items, setItems] = useState<Category[]>([]); const [name, setName] = useState('')
-  const load = () => api.get<Category[]>('/categories').then(r => setItems(r.data)); useEffect(() => { load() }, [])
-  const submit = async (e: FormEvent) => { e.preventDefault(); await api.post('/categories', { name }); setName(''); load() }
-  return <><div className="page-title"><div><p className="eyebrow">DANH MỤC</p><h1>Phân loại sách</h1></div></div><section className="panel narrow"><form className="inline-form" onSubmit={submit}><input placeholder="Tên danh mục mới" required value={name} onChange={e => setName(e.target.value)}/><button>Thêm</button></form><ul className="categories">{items.map(c => <li key={c.id}>{c.name}</li>)}</ul></section></>
-}
-
-export default function App() { return <Layout><Routes><Route path="/" element={<Books/>}/><Route path="/categories" element={<Categories/>}/><Route path="/login" element={<Login/>}/><Route path="/cart" element={<Cart/>}/><Route path="/orders" element={<Orders/>}/></Routes></Layout> }

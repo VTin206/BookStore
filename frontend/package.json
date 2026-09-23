@@ -3,7 +3,23 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "tsc --noEmit && vite build", "preview": "vite preview" },
-  "dependencies": { "@vitejs/plugin-react": "latest", "axios": "latest", "react": "latest", "react-dom": "latest", "react-router-dom": "latest" },
-  "devDependencies": { "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "vite": "latest" }
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "axios": "latest",
+    "lucide-react": "^1.47.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
 }
