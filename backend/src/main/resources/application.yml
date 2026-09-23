@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/book_store}
+    username: ${DB_USERNAME:bookstore}
+    password: ${DB_PASSWORD:bookstore}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  flyway.enabled: true
+server.port: 8080

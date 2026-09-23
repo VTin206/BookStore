@@ -1,0 +1,3 @@
+package com.bookstore.category.controller;
+import com.bookstore.category.dto.CategoryRequest; import com.bookstore.category.entity.Category; import com.bookstore.category.repository.CategoryRepository; import jakarta.validation.Valid; import lombok.RequiredArgsConstructor; import org.springframework.web.bind.annotation.*; import java.util.List;
+@RestController @RequestMapping("/api/categories") public class CategoryController { private final CategoryRepository repo; public CategoryController(CategoryRepository repo){this.repo=repo;} @GetMapping public List<Category> all(){return repo.findAll();} @PostMapping public Category create(@Valid @RequestBody CategoryRequest r){var c=new Category();c.setName(r.name());return repo.save(c);} }
