@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -21,7 +21,7 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim() || !fullName.trim() || !email.trim()) {
-      error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
+      error('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ cÃ¡c trÆ°á»ng báº¯t buá»™c (*).');
       return;
     }
 
@@ -34,11 +34,11 @@ export const RegisterPage: React.FC = () => {
         email: email.trim(),
         phone: phone.trim() || undefined,
       });
-      success('Đăng ký tài khoản thành công! Bạn đã được tự động đăng nhập.');
+      success('ÄÄƒng kÃ½ tÃ i khoáº£n thÃ nh cÃ´ng! Báº¡n Ä‘Ã£ Ä‘Æ°á»£c tá»± Ä‘á»™ng Ä‘Äƒng nháº­p.');
       navigate('/');
     } catch (err: any) {
       console.error('Registration error', err);
-      const msg = err.response?.data?.message || 'Tên đăng nhập hoặc email đã tồn tại.';
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Dang ky that bai. Vui long thu lai.';
       error(msg);
     } finally {
       setIsLoading(false);
@@ -83,24 +83,24 @@ export const RegisterPage: React.FC = () => {
           >
             <BookOpen size={28} />
           </div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.4rem' }}>Đăng ký tài khoản</h1>
+          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.4rem' }}>ÄÄƒng kÃ½ tÃ i khoáº£n</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            Gia nhập cộng đồng người yêu sách tại BookStore
+            Gia nháº­p cá»™ng Ä‘á»“ng ngÆ°á»i yÃªu sÃ¡ch táº¡i BookStore
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="Họ và tên *"
-            placeholder="Ví dụ: Lê Minh Châu"
+            label="Há» vÃ  tÃªn *"
+            placeholder="VÃ­ dá»¥: LÃª Minh ChÃ¢u"
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
 
           <Input
-            label="Tên đăng nhập *"
-            placeholder="Ví dụ: minhchau99"
+            label="TÃªn Ä‘Äƒng nháº­p *"
+            placeholder="VÃ­ dá»¥: minhchau99"
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -116,7 +116,7 @@ export const RegisterPage: React.FC = () => {
           />
 
           <Input
-            label="Số điện thoại"
+            label="Sá»‘ Ä‘iá»‡n thoáº¡i"
             type="tel"
             placeholder="09xx xxx xxx"
             value={phone}
@@ -124,9 +124,9 @@ export const RegisterPage: React.FC = () => {
           />
 
           <Input
-            label="Mật khẩu *"
+            label="Máº­t kháº©u *"
             type="password"
-            placeholder="Tối thiểu 6 ký tự"
+            placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -141,7 +141,7 @@ export const RegisterPage: React.FC = () => {
               style={{ width: '100%', fontWeight: 700 }}
               leftIcon={<UserPlus size={18} />}
             >
-              Tạo tài khoản mới
+              Táº¡o tÃ i khoáº£n má»›i
             </Button>
           </div>
         </form>
@@ -156,12 +156,13 @@ export const RegisterPage: React.FC = () => {
             color: 'var(--text-secondary)',
           }}
         >
-          Đã có tài khoản?{' '}
+          ÄÃ£ cÃ³ tÃ i khoáº£n?{' '}
           <Link to="/login" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-            Đăng nhập ngay
+            ÄÄƒng nháº­p ngay
           </Link>
         </div>
       </div>
     </div>
   );
 };
+
