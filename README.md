@@ -1,4 +1,4 @@
-# Book Store MVP
+# Book Store Management System
 
 Monorepo quản lý bán sách tối giản.
 

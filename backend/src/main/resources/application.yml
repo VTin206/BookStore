@@ -8,3 +8,4 @@ spring:
     open-in-view: false
   flyway.enabled: true
 server.port: 8080
+app.jwt.secret: ${JWT_SECRET:book-store-dev-secret-key-32-characters}
