@@ -1,4 +1,4 @@
-package com.bookstore.category.entity;
+package com.bookstore.catalog.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,19 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "categories")
-public class Category {
+@Table(name = "authors")
+public class Author {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String name;
 
   @Column(columnDefinition = "TEXT")
-  private String description;
-
-  public Category() {}
+  private String biography;
 
   public Long getId() {
     return id;
@@ -34,11 +32,11 @@ public class Category {
     name = value;
   }
 
-  public String getDescription() {
-    return description;
+  public String getBiography() {
+    return biography;
   }
 
-  public void setDescription(String value) {
-    description = value;
+  public void setBiography(String value) {
+    biography = value;
   }
 }

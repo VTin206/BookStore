@@ -3,6 +3,4 @@ package com.bookstore.cart.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-public record CartItemRequest(
-    @NotNull Long bookId,
-    @NotNull @Positive Integer quantity) {}
+public record CartItemUpdateRequest(@NotNull @Positive Integer quantity) {}

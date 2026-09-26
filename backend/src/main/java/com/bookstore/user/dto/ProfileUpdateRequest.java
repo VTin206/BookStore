@@ -2,11 +2,9 @@ package com.bookstore.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
-public record RegisterRequest(
-    @NotBlank String username,
-    @Size(min = 6) String password,
+public record ProfileUpdateRequest(
     @NotBlank String fullName,
     @Email @NotBlank String email,
-    String phone) {}
+    String phone,
+    String address) {}
