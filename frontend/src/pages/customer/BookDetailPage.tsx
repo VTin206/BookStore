@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { bookService } from '../../services/bookService';
 import { reviewService } from '../../services/reviewService';
+import { userService } from '../../services/userService';
 import { Book, Review } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -23,6 +24,7 @@ import {
   Send,
   ChevronRight,
   User as UserIcon,
+  Heart,
 } from 'lucide-react';
 
 export const BookDetailPage: React.FC = () => {
@@ -43,6 +45,7 @@ export const BookDetailPage: React.FC = () => {
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState<string>('');
   const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -70,6 +73,16 @@ export const BookDetailPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
+  useEffect(() => {
+    if (!id || !isAuthenticated) {
+      setIsWishlisted(false);
+      return;
+    }
+    userService
+      .getWishlist()
+      .then((items) => setIsWishlisted(items.some((item) => item.book.id.toString() === id)))
+      .catch(() => setIsWishlisted(false));
+  }, [id, isAuthenticated]);
   if (isLoading) {
     return (
       <div className="container" style={{ padding: '3rem 1rem' }}>
@@ -105,6 +118,25 @@ export const BookDetailPage: React.FC = () => {
   const handleBuyNow = () => {
     addToCart(book, quantity);
     navigate('/cart');
+  };
+  const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    try {
+      if (isWishlisted) {
+        await userService.removeFromWishlist(book.id);
+        setIsWishlisted(false);
+        success('Đã xóa sách khỏi danh sách yêu thích.');
+      } else {
+        await userService.addToWishlist(book.id);
+        setIsWishlisted(true);
+        success('Đã thêm sách vào danh sách yêu thích.');
+      }
+    } catch {
+      error('Không thể cập nhật danh sách yêu thích.');
+    }
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -386,6 +418,13 @@ export const BookDetailPage: React.FC = () => {
                 style={{ flex: 1, minWidth: '180px', backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' }}
               >
                 Mua ngay
+              </Button>              <Button
+                variant="secondary"
+                size="lg"
+                onClick={handleToggleWishlist}
+                leftIcon={<Heart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />}
+              >
+                {isWishlisted ? 'Đã yêu thích' : 'Yêu thích'}
               </Button>
             </div>
           </div>

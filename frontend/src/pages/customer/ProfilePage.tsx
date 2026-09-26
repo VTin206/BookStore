@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { OrderHistoryPage } from './OrderHistoryPage';
+import { userService } from '../../services/userService';
+import { WishlistItem } from '../../types';
 import {
   User,
   MapPin,
@@ -17,45 +19,86 @@ import {
 
 export const ProfilePage: React.FC = () => {
   const { username, role, logout } = useAuth();
-  const { success } = useToast();
+  const { success, error } = useToast();
 
   const [activeTab, setActiveTab] = useState<'info' | 'address' | 'orders' | 'password' | 'wishlist'>('info');
 
   // Personal Info Form
-  const [fullName, setFullName] = useState<string>('Nguyễn Văn Bạn Đọc');
-  const [email, setEmail] = useState<string>(`${username || 'customer'}@example.com`);
-  const [phone, setPhone] = useState<string>('0912345678');
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
 
   // Address
-  const [address, setAddress] = useState<string>('Số 45, Đường Sách Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh');
+  const [address, setAddress] = useState<string>('');
 
   // Password
   const [currentPassword, setCurrentPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
 
-  const handleSaveInfo = (e: React.FormEvent) => {
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const [profile, wishlistItems] = await Promise.all([
+          userService.getMe(),
+          userService.getWishlist(),
+        ]);
+        setFullName(profile.fullName || '');
+        setEmail(profile.email || '');
+        setPhone(profile.phone || '');
+        setAddress(profile.address || '');
+        setWishlist(wishlistItems);
+      } catch {
+        error('Không thể tải thông tin tài khoản.');
+      }
+    };
+    loadProfile();
+  }, [error]);
+  const handleSaveInfo = async (e: React.FormEvent) => {
     e.preventDefault();
-    success('Đã cập nhật thông tin cá nhân thành công!');
+    try {
+      await userService.updateMe({ fullName, email, phone, address });
+      success('Đã cập nhật thông tin cá nhân thành công!');
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Không thể cập nhật thông tin cá nhân.');
+    }
   };
-
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    success('Đã lưu địa chỉ giao nhận mặc định!');
+    try {
+      await userService.updateMe({ fullName, email, phone, address });
+      success('Đã lưu địa chỉ giao nhận mặc định!');
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Không thể lưu địa chỉ.');
+    }
   };
-
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      alert('Mật khẩu xác nhận không trùng khớp.');
+      error('Mật khẩu xác nhận không trùng khớp.');
       return;
     }
-    success('Đã thay đổi mật khẩu thành công!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    try {
+      await userService.changePassword({ currentPassword, newPassword });
+      success('Đã thay đổi mật khẩu thành công!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Không thể thay đổi mật khẩu.');
+    }
   };
 
+  const handleRemoveWishlist = async (bookId: number) => {
+    try {
+      await userService.removeFromWishlist(bookId);
+      setWishlist((items) => items.filter((item) => item.book.id !== bookId));
+      success('Đã xóa sách khỏi danh sách yêu thích.');
+    } catch {
+      error('Không thể cập nhật danh sách yêu thích.');
+    }
+  };
   return (
     <div className="container" style={{ padding: '2.5rem 1rem 5rem' }}>
       <div style={{ marginBottom: '2.5rem' }}>
@@ -289,9 +332,35 @@ export const ProfilePage: React.FC = () => {
           {activeTab === 'wishlist' && (
             <div>
               <h2 style={{ fontSize: '1.3rem', marginBottom: '1rem' }}>Danh sách yêu thích</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                Bạn hiện chưa lưu cuốn sách nào vào danh sách yêu thích.
-              </p>
+              {wishlist.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  Bạn hiện chưa lưu cuốn sách nào vào danh sách yêu thích.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {wishlist.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        borderBottom: '1px solid var(--border)',
+                        paddingBottom: '0.75rem',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{item.book.title}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.book.author}</div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => handleRemoveWishlist(item.book.id)}>
+                        Xóa
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </main>

@@ -35,7 +35,7 @@ export const AdminDashboard: React.FC = () => {
       setIsLoading(true);
       const [booksData, ordersData, usersData] = await Promise.all([
         bookService.getAll().catch(() => []),
-        orderService.getAll().catch(() => []),
+        orderService.getAllAdmin().catch(() => []),
         userService.getAll().catch(() => []),
       ]);
       setBooks(booksData);
@@ -69,7 +69,7 @@ export const AdminDashboard: React.FC = () => {
       const createdCats: any[] = [];
       for (const catName of sampleCategories) {
         try {
-          const c = await categoryService.create(catName);
+          const c = await categoryService.create({ name: catName });
           createdCats.push(c);
         } catch {
           // might exist

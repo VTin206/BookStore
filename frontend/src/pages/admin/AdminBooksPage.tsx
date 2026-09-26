@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
-import { Book, Category, BookRequest } from '../../types';
+import { authorService } from '../../services/authorService';
+import { publisherService } from '../../services/publisherService';
+import { Author, Book, BookRequest, Category, Publisher } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import { getBookCover } from '../../utils/bookCovers';
 import { Button } from '../../components/ui/Button';
@@ -26,6 +28,8 @@ const ITEMS_PER_PAGE = 8;
 export const AdminBooksPage: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -40,6 +44,12 @@ export const AdminBooksPage: React.FC = () => {
     price: 0,
     stock: 0,
     categoryId: null,
+    authorId: null,
+    publisherId: null,
+    isbn: '',
+    description: '',
+    imageUrl: '',
+    publicationDate: '',
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -52,12 +62,16 @@ export const AdminBooksPage: React.FC = () => {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [booksData, catsData] = await Promise.all([
+      const [booksData, catsData, authorsData, publishersData] = await Promise.all([
         bookService.getAll(),
         categoryService.getAll(),
+        authorService.getAll(),
+        publisherService.getAll(),
       ]);
       setBooks(booksData);
       setCategories(catsData);
+      setAuthors(authorsData);
+      setPublishers(publishersData);
     } catch (err) {
       console.error('Failed to load books for admin', err);
     } finally {
@@ -71,7 +85,19 @@ export const AdminBooksPage: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingBook(null);
-    setForm({ title: '', author: '', price: 50000, stock: 10, categoryId: categories[0]?.id || null });
+    setForm({
+      title: '',
+      author: '',
+      price: 50000,
+      stock: 10,
+      categoryId: categories[0]?.id || null,
+      authorId: authors[0]?.id || null,
+      publisherId: null,
+      isbn: '',
+      description: '',
+      imageUrl: '',
+      publicationDate: '',
+    });
     setIsModalOpen(true);
   };
 
@@ -83,6 +109,12 @@ export const AdminBooksPage: React.FC = () => {
       price: Number(book.price),
       stock: book.stock,
       categoryId: book.category?.id || null,
+      authorId: book.authorId || null,
+      publisherId: book.publisherId || null,
+      isbn: book.isbn || '',
+      description: book.description || '',
+      imageUrl: book.imageUrl || '',
+      publicationDate: book.publicationDate || '',
     });
     setIsModalOpen(true);
   };
@@ -102,6 +134,12 @@ export const AdminBooksPage: React.FC = () => {
         price: Number(form.price),
         stock: Number(form.stock),
         categoryId: form.categoryId ? Number(form.categoryId) : null,
+        authorId: form.authorId ? Number(form.authorId) : null,
+        publisherId: form.publisherId ? Number(form.publisherId) : null,
+        isbn: form.isbn?.trim() || undefined,
+        description: form.description?.trim() || undefined,
+        imageUrl: form.imageUrl?.trim() || undefined,
+        publicationDate: form.publicationDate || undefined,
       };
 
       if (editingBook) {
@@ -366,7 +404,32 @@ export const AdminBooksPage: React.FC = () => {
             onChange={(e) => setForm({ ...form, author: e.target.value })}
           />
 
+
           <Select
+            label="Liên kết tác giả"
+            value={form.authorId || ''}
+            onChange={(e) => {
+              const authorId = e.target.value ? Number(e.target.value) : null;
+              const author = authors.find((item) => item.id === authorId);
+              setForm({
+                ...form,
+                authorId,
+                author: author?.name || form.author,
+              });
+            }}
+            options={authors.map((author) => ({ value: author.id, label: author.name }))}
+            placeholder="-- Chọn tác giả --"
+          />
+
+          <Select
+            label="Nhà xuất bản"
+            value={form.publisherId || ''}
+            onChange={(e) =>
+              setForm({ ...form, publisherId: e.target.value ? Number(e.target.value) : null })
+            }
+            options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
+            placeholder="-- Chọn nhà xuất bản --"
+          />          <Select
             label="Danh mục thể loại"
             value={form.categoryId || ''}
             onChange={(e) =>
@@ -397,6 +460,35 @@ export const AdminBooksPage: React.FC = () => {
             />
           </div>
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <Input
+              label="ISBN"
+              value={form.isbn || ''}
+              onChange={(e) => setForm({ ...form, isbn: e.target.value })}
+            />
+            <Input
+              label="Ngày xuất bản"
+              type="date"
+              value={form.publicationDate || ''}
+              onChange={(e) => setForm({ ...form, publicationDate: e.target.value })}
+            />
+          </div>
+
+          <Input
+            label="URL ảnh bìa"
+            value={form.imageUrl || ''}
+            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+          />
+
+          <div className="form-group">
+            <label className="form-label">Mô tả sách</label>
+            <textarea
+              className="form-textarea"
+              rows={4}
+              value={form.description || ''}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
           <div
             style={{
               display: 'flex',

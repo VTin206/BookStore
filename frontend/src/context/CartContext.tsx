@@ -105,6 +105,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    if (isAuthenticated && typeof cartItemId === 'number') {
+      try {
+        const remoteCart = await cartService.updateRemoteCart(cartItemId, quantity);
+        setItems(remoteCart.items);
+        cartService.setLocalCart(remoteCart.items);
+        return;
+      } catch {
+        // Fall back to local state if the remote cart is unavailable.
+      }
+    }
+
     setItems((prev) =>
       prev.map((item) => {
         if (item.id === cartItemId || item.book.id === cartItemId) {

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { orderService } from '../../services/orderService';
-import { Order } from '../../types';
+import { Order, OrderStatus } from '../../types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { TableSkeleton } from '../../components/ui/LoadingSkeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ShoppingBag, Eye, Calendar, Search } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -14,12 +15,14 @@ export const AdminOrdersPage: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const { success, error } = useToast();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
-        const data = await orderService.getAll();
+        const data = await orderService.getAllAdmin();
         setOrders(data);
       } catch (err) {
         console.error('Failed to load orders', err);
@@ -30,6 +33,26 @@ export const AdminOrdersPage: React.FC = () => {
     fetchOrders();
   }, []);
 
+  const handleUpdateStatus = async (status: OrderStatus) => {
+    if (!selectedOrder || status === selectedOrder.status) {
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+      const updatedOrder = await orderService.updateStatus(selectedOrder.id, status);
+      setOrders((current) =>
+        current.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)),
+      );
+      setSelectedOrder(updatedOrder);
+      success('Đã cập nhật trạng thái đơn hàng.');
+    } catch (err) {
+      console.error('Failed to update order status', err);
+      error('Không thể cập nhật trạng thái đơn hàng.');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const matchSearch =

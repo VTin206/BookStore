@@ -1,10 +1,9 @@
 import { apiClient } from './apiClient';
-import { Cart, CartItem, Book } from '../types';
+import { Cart, CartItem } from '../types';
 
 const LOCAL_CART_KEY = 'bookstore_guest_cart';
 
 export const cartService = {
-  // Local Cart Helpers (For guest or offline support)
   getLocalCart(): CartItem[] {
     try {
       const data = localStorage.getItem(LOCAL_CART_KEY);
@@ -18,7 +17,7 @@ export const cartService = {
     try {
       localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(items));
     } catch {
-      // storage full or disabled
+      // Storage can be disabled or full.
     }
   },
 
@@ -26,7 +25,6 @@ export const cartService = {
     localStorage.removeItem(LOCAL_CART_KEY);
   },
 
-  // Remote Cart API
   async getRemoteCart(): Promise<Cart> {
     const res = await apiClient.get<Cart>('/cart');
     return res.data;
@@ -37,7 +35,12 @@ export const cartService = {
     return res.data;
   },
 
-  async removeFromRemoteCart(cartItemId: number | string): Promise<void> {
+  async updateRemoteCart(cartItemId: number, quantity: number): Promise<Cart> {
+    const res = await apiClient.patch<Cart>(`/cart/items/${cartItemId}`, { quantity });
+    return res.data;
+  },
+
+  async removeFromRemoteCart(cartItemId: number): Promise<void> {
     await apiClient.delete(`/cart/items/${cartItemId}`);
   },
 };

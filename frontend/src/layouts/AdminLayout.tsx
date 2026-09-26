@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
@@ -20,7 +20,7 @@ import {
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { username, logout } = useAuth();
+  const { username, logout, isAuthenticated, isAdmin } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -37,6 +37,13 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     logout();
     navigate('/login');
   };
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9' }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { authorService } from '../../services/authorService';
 import { publisherService } from '../../services/publisherService';
 import { Author, Publisher } from '../../types';
@@ -6,39 +6,47 @@ import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { TableSkeleton } from '../../components/ui/LoadingSkeleton';
-import { Feather, Building, Plus } from 'lucide-react';
+import { Building, Edit2, Feather, Plus, Trash2 } from 'lucide-react';
+
+type DeleteTarget = {
+  type: 'author' | 'publisher';
+  id: number;
+  name: string;
+};
 
 export const AdminAuthorsPublishersPage: React.FC = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'authors' | 'publishers'>('authors');
-
-  // Modals
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [editingAuthor, setEditingAuthor] = useState<Author | null>(null);
   const [authorName, setAuthorName] = useState('');
   const [authorBio, setAuthorBio] = useState('');
-
-  const [isPubModalOpen, setIsPubModalOpen] = useState(false);
-  const [pubName, setPubName] = useState('');
-  const [pubAddress, setPubAddress] = useState('');
-  const [pubWebsite, setPubWebsite] = useState('');
-
+  const [isPublisherModalOpen, setIsPublisherModalOpen] = useState(false);
+  const [editingPublisher, setEditingPublisher] = useState<Publisher | null>(null);
+  const [publisherName, setPublisherName] = useState('');
+  const [publisherAddress, setPublisherAddress] = useState('');
+  const [publisherWebsite, setPublisherWebsite] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { success, error } = useToast();
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [authorsData, pubsData] = await Promise.all([
-        authorService.getAll().catch(() => []),
-        publisherService.getAll().catch(() => []),
+      const [authorsData, publishersData] = await Promise.all([
+        authorService.getAll(),
+        publisherService.getAll(),
       ]);
       setAuthors(authorsData);
-      setPublishers(pubsData);
+      setPublishers(publishersData);
     } catch (err) {
-      console.error('Failed to load authors/publishers', err);
+      console.error('Failed to load authors and publishers', err);
+      error('Không thể tải danh sách tác giả và nhà xuất bản.');
     } finally {
       setIsLoading(false);
     }
@@ -48,170 +56,166 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
     loadData();
   }, []);
 
-  const handleCreateAuthor = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const openCreateAuthor = () => {
+    setEditingAuthor(null);
+    setAuthorName('');
+    setAuthorBio('');
+    setIsAuthorModalOpen(true);
+  };
+
+  const openEditAuthor = (author: Author) => {
+    setEditingAuthor(author);
+    setAuthorName(author.name);
+    setAuthorBio(author.biography || '');
+    setIsAuthorModalOpen(true);
+  };
+
+  const openCreatePublisher = () => {
+    setEditingPublisher(null);
+    setPublisherName('');
+    setPublisherAddress('');
+    setPublisherWebsite('');
+    setIsPublisherModalOpen(true);
+  };
+
+  const openEditPublisher = (publisher: Publisher) => {
+    setEditingPublisher(publisher);
+    setPublisherName(publisher.name);
+    setPublisherAddress(publisher.address || '');
+    setPublisherWebsite(publisher.website || '');
+    setIsPublisherModalOpen(true);
+  };
+
+  const handleSaveAuthor = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!authorName.trim()) {
       error('Vui lòng nhập tên tác giả.');
       return;
     }
+
     try {
       setIsSubmitting(true);
-      await authorService.create({ name: authorName.trim(), biography: authorBio.trim() });
-      success(`Đã thêm tác giả "${authorName}"!`);
-      setAuthorName('');
-      setAuthorBio('');
+      const data = { name: authorName.trim(), biography: authorBio.trim() || undefined };
+      if (editingAuthor) {
+        await authorService.update(editingAuthor.id, data);
+        success('Đã cập nhật tác giả.');
+      } else {
+        await authorService.create(data);
+        success('Đã thêm tác giả.');
+      }
       setIsAuthorModalOpen(false);
-      loadData();
-    } catch {
-      error('Không thể thêm tác giả vào hệ thống.');
+      await loadData();
+    } catch (err) {
+      console.error('Failed to save author', err);
+      error('Không thể lưu tác giả.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCreatePublisher = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pubName.trim()) {
+  const handleSavePublisher = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!publisherName.trim()) {
       error('Vui lòng nhập tên nhà xuất bản.');
       return;
     }
+
     try {
       setIsSubmitting(true);
-      await publisherService.create({
-        name: pubName.trim(),
-        address: pubAddress.trim() || undefined,
-        website: pubWebsite.trim() || undefined,
-      });
-      success(`Đã thêm nhà xuất bản "${pubName}"!`);
-      setPubName('');
-      setPubAddress('');
-      setPubWebsite('');
-      setIsPubModalOpen(false);
-      loadData();
-    } catch {
-      error('Không thể thêm nhà xuất bản vào hệ thống.');
+      const data = {
+        name: publisherName.trim(),
+        address: publisherAddress.trim() || undefined,
+        website: publisherWebsite.trim() || undefined,
+      };
+      if (editingPublisher) {
+        await publisherService.update(editingPublisher.id, data);
+        success('Đã cập nhật nhà xuất bản.');
+      } else {
+        await publisherService.create(data);
+        success('Đã thêm nhà xuất bản.');
+      }
+      setIsPublisherModalOpen(false);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to save publisher', err);
+      error('Không thể lưu nhà xuất bản.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      if (deleteTarget.type === 'author') {
+        await authorService.delete(deleteTarget.id);
+      } else {
+        await publisherService.delete(deleteTarget.id);
+      }
+      success('Đã xóa thành công.');
+      setDeleteTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to delete catalog item', err);
+      error('Không thể xóa mục đang được sách sử dụng.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Tác giả & Nhà xuất bản</h1>
+          <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Tác giả và nhà xuất bản</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
-            Hồ sơ tác giả và đơn vị xuất bản phát hành sách
+            Quản lý thông tin dùng khi phát hành sách
           </p>
         </div>
-
-        <div>
-          {activeTab === 'authors' ? (
-            <Button
-              variant="primary"
-              onClick={() => setIsAuthorModalOpen(true)}
-              leftIcon={<Plus size={18} />}
-            >
-              Thêm tác giả
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              onClick={() => setIsPubModalOpen(true)}
-              leftIcon={<Plus size={18} />}
-            >
-              Thêm nhà xuất bản
-            </Button>
-          )}
-        </div>
+        <Button
+          variant="primary"
+          onClick={activeTab === 'authors' ? openCreateAuthor : openCreatePublisher}
+          leftIcon={<Plus size={18} />}
+        >
+          {activeTab === 'authors' ? 'Thêm tác giả' : 'Thêm nhà xuất bản'}
+        </Button>
       </div>
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          borderBottom: '1px solid var(--border)',
-          gap: '1rem',
-        }}
-      >
-        <button
-          onClick={() => setActiveTab('authors')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 16px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: activeTab === 'authors' ? 700 : 500,
-            color: activeTab === 'authors' ? 'var(--primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'authors' ? '2px solid var(--primary)' : 'none',
-          }}
-        >
-          <Feather size={18} /> Danh sách Tác giả ({authors.length})
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', gap: '1rem' }}>
+        <button className="tab-button" onClick={() => setActiveTab('authors')}>
+          <Feather size={18} /> Tác giả ({authors.length})
         </button>
-
-        <button
-          onClick={() => setActiveTab('publishers')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 16px',
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: activeTab === 'publishers' ? 700 : 500,
-            color: activeTab === 'publishers' ? 'var(--primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'publishers' ? '2px solid var(--primary)' : 'none',
-          }}
-        >
-          <Building size={18} /> Danh sách Nhà xuất bản ({publishers.length})
+        <button className="tab-button" onClick={() => setActiveTab('publishers')}>
+          <Building size={18} /> Nhà xuất bản ({publishers.length})
         </button>
       </div>
 
-      {/* Content */}
       {isLoading ? (
-        <div className="card">
-          <TableSkeleton rows={4} />
-        </div>
+        <div className="card"><TableSkeleton rows={4} /></div>
       ) : activeTab === 'authors' ? (
         <div className="table-container">
           <table className="table">
             <thead>
-              <tr>
-                <th style={{ width: '80px' }}>ID</th>
-                <th>Tên tác giả</th>
-                <th>Tiểu sử / Giới thiệu</th>
-              </tr>
+              <tr><th>ID</th><th>Tên tác giả</th><th>Tiểu sử</th><th>Thao tác</th></tr>
             </thead>
             <tbody>
-              {authors.length > 0 ? (
-                authors.map((a) => (
-                  <tr key={a.id}>
-                    <td>#{a.id}</td>
-                    <td><strong>{a.name}</strong></td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{a.biography || '—'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2.5rem' }}>
-                    Chưa có tác giả nào trong hệ thống.
+              {authors.map((author) => (
+                <tr key={author.id}>
+                  <td>#{author.id}</td>
+                  <td><strong>{author.name}</strong></td>
+                  <td>{author.biography || '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <Button variant="secondary" size="sm" onClick={() => openEditAuthor(author)} leftIcon={<Edit2 size={14} />}>Sửa</Button>
+                      <Button variant="danger" size="sm" onClick={() => setDeleteTarget({ type: 'author', id: author.id, name: author.name })} leftIcon={<Trash2 size={14} />}>Xóa</Button>
+                    </div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -219,113 +223,63 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
         <div className="table-container">
           <table className="table">
             <thead>
-              <tr>
-                <th style={{ width: '80px' }}>ID</th>
-                <th>Tên Nhà xuất bản</th>
-                <th>Địa chỉ</th>
-                <th>Website</th>
-              </tr>
+              <tr><th>ID</th><th>Nhà xuất bản</th><th>Địa chỉ</th><th>Website</th><th>Thao tác</th></tr>
             </thead>
             <tbody>
-              {publishers.length > 0 ? (
-                publishers.map((p) => (
-                  <tr key={p.id}>
-                    <td>#{p.id}</td>
-                    <td><strong>{p.name}</strong></td>
-                    <td>{p.address || '—'}</td>
-                    <td>
-                      {p.website ? (
-                        <a href={p.website} target="_blank" rel="noreferrer">
-                          {p.website}
-                        </a>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2.5rem' }}>
-                    Chưa có nhà xuất bản nào trong hệ thống.
+              {publishers.map((publisher) => (
+                <tr key={publisher.id}>
+                  <td>#{publisher.id}</td>
+                  <td><strong>{publisher.name}</strong></td>
+                  <td>{publisher.address || '—'}</td>
+                  <td>{publisher.website ? <a href={publisher.website} target="_blank" rel="noreferrer">{publisher.website}</a> : '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <Button variant="secondary" size="sm" onClick={() => openEditPublisher(publisher)} leftIcon={<Edit2 size={14} />}>Sửa</Button>
+                      <Button variant="danger" size="sm" onClick={() => setDeleteTarget({ type: 'publisher', id: publisher.id, name: publisher.name })} leftIcon={<Trash2 size={14} />}>Xóa</Button>
+                    </div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Add Author Modal */}
-      <Modal
-        isOpen={isAuthorModalOpen}
-        onClose={() => setIsAuthorModalOpen(false)}
-        title="Thêm tác giả mới"
-        maxWidth="460px"
-      >
-        <form onSubmit={handleCreateAuthor}>
-          <Input
-            label="Tên tác giả *"
-            required
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-          />
+      <Modal isOpen={isAuthorModalOpen} onClose={() => setIsAuthorModalOpen(false)} title={editingAuthor ? 'Sửa tác giả' : 'Thêm tác giả'} maxWidth="460px">
+        <form onSubmit={handleSaveAuthor}>
+          <Input label="Tên tác giả *" required value={authorName} onChange={(event) => setAuthorName(event.target.value)} />
           <div className="form-group">
-            <label className="form-label">Tiểu sử tác giả</label>
-            <textarea
-              className="form-textarea"
-              rows={3}
-              value={authorBio}
-              onChange={(e) => setAuthorBio(e.target.value)}
-              placeholder="Tóm tắt tiểu sử và sự nghiệp sáng tác..."
-            />
+            <label className="form-label">Tiểu sử</label>
+            <textarea className="form-textarea" rows={4} value={authorBio} onChange={(event) => setAuthorBio(event.target.value)} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <Button type="button" variant="ghost" onClick={() => setIsAuthorModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>
-              Lưu tác giả
-            </Button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <Button type="button" variant="ghost" onClick={() => setIsAuthorModalOpen(false)}>Hủy</Button>
+            <Button type="submit" variant="primary" isLoading={isSubmitting}>Lưu</Button>
           </div>
         </form>
       </Modal>
 
-      {/* Add Publisher Modal */}
-      <Modal
-        isOpen={isPubModalOpen}
-        onClose={() => setIsPubModalOpen(false)}
-        title="Thêm Nhà xuất bản mới"
-        maxWidth="460px"
-      >
-        <form onSubmit={handleCreatePublisher}>
-          <Input
-            label="Tên Nhà xuất bản *"
-            required
-            value={pubName}
-            onChange={(e) => setPubName(e.target.value)}
-          />
-          <Input
-            label="Địa chỉ trụ sở"
-            value={pubAddress}
-            onChange={(e) => setPubAddress(e.target.value)}
-          />
-          <Input
-            label="Website chính thức"
-            value={pubWebsite}
-            onChange={(e) => setPubWebsite(e.target.value)}
-            placeholder="https://..."
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <Button type="button" variant="ghost" onClick={() => setIsPubModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>
-              Lưu NXB
-            </Button>
+      <Modal isOpen={isPublisherModalOpen} onClose={() => setIsPublisherModalOpen(false)} title={editingPublisher ? 'Sửa nhà xuất bản' : 'Thêm nhà xuất bản'} maxWidth="460px">
+        <form onSubmit={handleSavePublisher}>
+          <Input label="Tên nhà xuất bản *" required value={publisherName} onChange={(event) => setPublisherName(event.target.value)} />
+          <Input label="Địa chỉ" value={publisherAddress} onChange={(event) => setPublisherAddress(event.target.value)} />
+          <Input label="Website" value={publisherWebsite} onChange={(event) => setPublisherWebsite(event.target.value)} placeholder="https://..." />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <Button type="button" variant="ghost" onClick={() => setIsPublisherModalOpen(false)}>Hủy</Button>
+            <Button type="submit" variant="primary" isLoading={isSubmitting}>Lưu</Button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Xác nhận xóa"
+        message={`Bạn có chắc muốn xóa "${deleteTarget?.name || ''}" không? Nếu đang được sách sử dụng, hệ thống sẽ từ chối.`}
+        confirmText="Xóa"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

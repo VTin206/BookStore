@@ -11,11 +11,14 @@ export interface Book {
   price: number;
   stock: number;
   category?: Category | null;
+  authorId?: number | null;
+  publisherId?: number | null;
   isbn?: string;
   description?: string;
   imageUrl?: string;
   rating?: number;
   reviewsCount?: number;
+  publicationDate?: string;
 }
 
 export interface BookRequest {
@@ -24,6 +27,12 @@ export interface BookRequest {
   price: number;
   stock: number;
   categoryId?: number | null;
+  authorId?: number | null;
+  publisherId?: number | null;
+  isbn?: string;
+  description?: string;
+  imageUrl?: string;
+  publicationDate?: string;
 }
 
 export interface Author {
@@ -58,13 +67,21 @@ export interface OrderItem {
   unitPrice?: number;
 }
 
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'PROCESSING'
+  | 'SHIPPING'
+  | 'DELIVERED'
+  | 'CANCELLED';
 
 export interface Order {
   id: number;
   customerName: string;
   customerEmail: string;
   totalAmount: number;
+  shippingFee?: number;
+  note?: string;
   status: OrderStatus | string;
   createdAt: string;
   shippingAddress?: string;
@@ -77,6 +94,9 @@ export interface CreateOrderRequest {
   customerEmail: string;
   shippingAddress?: string;
   phone?: string;
+  note?: string;
+  shippingFee: number;
+  paymentMethod: 'COD' | 'BANK' | 'CARD';
   items: { bookId: number; quantity: number }[];
 }
 
@@ -86,7 +106,14 @@ export interface User {
   fullName: string;
   email: string;
   phone?: string;
+  address?: string;
   role: 'CUSTOMER' | 'ADMIN' | string;
+  createdAt?: string;
+}
+
+export interface WishlistItem {
+  id: number;
+  book: Book;
   createdAt?: string;
 }
 

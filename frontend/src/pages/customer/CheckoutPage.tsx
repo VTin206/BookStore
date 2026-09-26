@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -36,6 +36,11 @@ export const CheckoutPage: React.FC = () => {
   const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
   const finalTotal = totalAmount + shippingFee;
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true, state: { from: '/checkout' } });
+    }
+  }, [isAuthenticated, navigate]);
   if (items.length === 0) {
     return (
       <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>
@@ -66,6 +71,9 @@ export const CheckoutPage: React.FC = () => {
         customerEmail: customerEmail.trim(),
         shippingAddress: address.trim(),
         phone: phone.trim(),
+        note: note.trim(),
+        shippingFee,
+        paymentMethod: paymentMethod.toUpperCase() as 'COD' | 'BANK' | 'CARD',
         items: items.map((i) => ({
           bookId: Number(i.book.id),
           quantity: i.quantity,
