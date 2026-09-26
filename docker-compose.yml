@@ -2,10 +2,42 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: book_store
-      POSTGRES_USER: bookstore
-      POSTGRES_PASSWORD: bookstore
-    ports: ["5432:5432"]
-    volumes: [bookstore-postgres:/var/lib/postgresql/data]
+      POSTGRES_DB: ${POSTGRES_DB:-book_store}
+      POSTGRES_USER: ${POSTGRES_USER:-bookstore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookstore}
+    ports:
+      - "5432:5432"
+    volumes:
+      - bookstore-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookstore} -d ${POSTGRES_DB:-book_store}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-book_store}
+      DB_USERNAME: ${POSTGRES_USER:-bookstore}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-bookstore}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
 volumes:
   bookstore-postgres:
