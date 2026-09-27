@@ -72,6 +72,13 @@ public class CartService {
     items.delete(item);
   }
 
+  @Transactional
+  public void clear(String username) {
+    var cart = get(username);
+    cart.getItems().clear();
+    carts.save(cart);
+  }
+
   private CartItem getOwnedItem(String username, Long itemId) {
     var item = items.findById(itemId).orElseThrow();
     if (!item.getCart().getUser().getUsername().equals(username)) {

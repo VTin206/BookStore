@@ -36,6 +36,7 @@ export const CartPage: React.FC = () => {
       setDiscountAmount(discount);
       success('Áp dụng thành công mã giảm giá 30%!');
     } else if (couponCode.trim()) {
+      setDiscountAmount(0);
       warning('Mã giảm giá không hợp lệ hoặc đã hết hạn.');
     }
   };
@@ -385,7 +386,7 @@ export const CartPage: React.FC = () => {
               variant="primary"
               size="lg"
               style={{ width: '100%', fontWeight: 700 }}
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate('/checkout', { state: { couponCode: couponCode.trim().toUpperCase() || undefined } })}
             >
               Tiến hành thanh toán <ArrowRight size={18} />
             </Button>

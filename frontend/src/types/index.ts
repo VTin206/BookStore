@@ -81,6 +81,8 @@ export interface Order {
   customerEmail: string;
   totalAmount: number;
   shippingFee?: number;
+  discountAmount?: number;
+  couponCode?: string;
   note?: string;
   status: OrderStatus | string;
   createdAt: string;
@@ -98,6 +100,7 @@ export interface CreateOrderRequest {
   shippingFee: number;
   paymentMethod: 'COD' | 'BANK' | 'CARD';
   items: { bookId: number; quantity: number }[];
+  couponCode?: string;
 }
 
 export interface User {

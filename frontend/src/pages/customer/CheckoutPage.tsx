@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -23,6 +23,8 @@ export const CheckoutPage: React.FC = () => {
   const { username, isAuthenticated } = useAuth();
   const { error, success } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const couponCode = (location.state as { couponCode?: string } | null)?.couponCode;
 
   // Form states
   const [customerName, setCustomerName] = useState<string>(username || '');
@@ -34,7 +36,8 @@ export const CheckoutPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
-  const finalTotal = totalAmount + shippingFee;
+  const discountAmount = couponCode === 'TRIAN30' ? Math.round(totalAmount * 0.3) : 0;
+  const finalTotal = totalAmount + shippingFee - discountAmount;
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -73,6 +76,7 @@ export const CheckoutPage: React.FC = () => {
         phone: phone.trim(),
         note: note.trim(),
         shippingFee,
+        couponCode,
         paymentMethod: paymentMethod.toUpperCase() as 'COD' | 'BANK' | 'CARD',
         items: items.map((i) => ({
           bookId: Number(i.book.id),
@@ -411,6 +415,12 @@ export const CheckoutPage: React.FC = () => {
                   {shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')} ₫`}
                 </span>
               </div>
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
+                  <span>Giảm giá khuyến mãi</span>
+                  <span style={{ fontWeight: 600 }}>-{discountAmount.toLocaleString('vi-VN')} ₫</span>
+                </div>
+              )}
               <div
                 style={{
                   display: 'flex',

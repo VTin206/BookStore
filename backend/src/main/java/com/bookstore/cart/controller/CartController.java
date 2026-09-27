@@ -39,4 +39,9 @@ public class CartController {
   public void remove(Authentication authentication, @PathVariable Long id) {
     service.remove(authentication.getName(), id);
   }
+
+  @DeleteMapping
+  public void clear(Authentication authentication) {
+    service.clear(authentication.getName());
+  }
 }

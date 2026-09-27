@@ -16,6 +16,7 @@ vi.mock('../services/cartService', () => ({
     addToRemoteCart: vi.fn(),
     updateRemoteCart: vi.fn(),
     removeFromRemoteCart: vi.fn(),
+    clearRemoteCart: vi.fn(),
   },
 }));
 

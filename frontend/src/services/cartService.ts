@@ -43,4 +43,8 @@ export const cartService = {
   async removeFromRemoteCart(cartItemId: number): Promise<void> {
     await apiClient.delete(`/cart/items/${cartItemId}`);
   },
+
+  async clearRemoteCart(): Promise<void> {
+    await apiClient.delete('/cart');
+  },
 };

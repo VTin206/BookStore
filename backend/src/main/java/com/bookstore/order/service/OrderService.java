@@ -11,11 +11,15 @@ import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.user.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
+  private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("250000");
+  private static final BigDecimal STANDARD_SHIPPING_FEE = new BigDecimal("30000");
+  private static final BigDecimal TRIAN30_RATE = new BigDecimal("0.30");
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
   private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "CARD");
@@ -53,9 +57,9 @@ public class OrderService {
     order.setShippingAddress(request.shippingAddress());
     order.setPhone(request.phone());
     order.setNote(request.note());
-    order.setShippingFee(request.shippingFee());
+    order.setCouponCode(normalizeCoupon(request.couponCode()));
 
-    var total = request.shippingFee();
+    var subtotal = BigDecimal.ZERO;
     for (var itemRequest : request.items()) {
       var book = books.findById(itemRequest.bookId()).orElseThrow();
       if (book.getStock() < itemRequest.quantity()) {
@@ -69,10 +73,14 @@ public class OrderService {
       item.setQuantity(itemRequest.quantity());
       item.setUnitPrice(book.getPrice());
       order.getItems().add(item);
-      total = total.add(book.getPrice().multiply(BigDecimal.valueOf(itemRequest.quantity())));
+      subtotal = subtotal.add(book.getPrice().multiply(BigDecimal.valueOf(itemRequest.quantity())));
     }
 
-    order.setTotalAmount(total);
+    var shippingFee = calculateShippingFee(subtotal);
+    var discountAmount = calculateDiscount(subtotal, order.getCouponCode());
+    order.setShippingFee(shippingFee);
+    order.setDiscountAmount(discountAmount);
+    order.setTotalAmount(subtotal.add(shippingFee).subtract(discountAmount));
     var saved = orders.save(order);
 
     var payment = new Payment();
@@ -89,6 +97,29 @@ public class OrderService {
               carts.save(cart);
             });
     return saved;
+  }
+
+  private BigDecimal calculateShippingFee(BigDecimal subtotal) {
+    return subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
+        ? BigDecimal.ZERO
+        : STANDARD_SHIPPING_FEE;
+  }
+
+  private BigDecimal calculateDiscount(BigDecimal subtotal, String couponCode) {
+    if (couponCode == null) {
+      return BigDecimal.ZERO;
+    }
+    if (!couponCode.equals("TRIAN30")) {
+      throw new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+    }
+    return subtotal.multiply(TRIAN30_RATE).setScale(0, RoundingMode.HALF_UP);
+  }
+
+  private String normalizeCoupon(String couponCode) {
+    if (couponCode == null || couponCode.isBlank()) {
+      return null;
+    }
+    return couponCode.trim().toUpperCase();
   }
 
   @Transactional(readOnly = true)

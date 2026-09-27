@@ -18,7 +18,20 @@ public record OrderRequest(
     String note,
     @NotNull @PositiveOrZero BigDecimal shippingFee,
     @NotBlank String paymentMethod,
-    @NotEmpty List<@Valid Item> items) {
+    @NotEmpty List<@Valid Item> items,
+    String couponCode) {
+
+  public OrderRequest(
+      String customerName,
+      String customerEmail,
+      String shippingAddress,
+      String phone,
+      String note,
+      BigDecimal shippingFee,
+      String paymentMethod,
+      List<@Valid Item> items) {
+    this(customerName, customerEmail, shippingAddress, phone, note, shippingFee, paymentMethod, items, null);
+  }
 
   public record Item(
       @NotNull Long bookId,

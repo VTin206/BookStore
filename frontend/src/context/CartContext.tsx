@@ -11,7 +11,7 @@ interface CartContextType {
   addToCart: (book: Book, quantity?: number) => Promise<void>;
   updateQuantity: (cartItemId: number | string, quantity: number) => Promise<void>;
   removeFromCart: (cartItemId: number | string) => Promise<void>;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -143,7 +143,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    if (isAuthenticated) {
+      try {
+        await cartService.clearRemoteCart();
+      } catch {
+        // Keep the local cart usable if the remote cart is unavailable.
+      }
+    }
     setItems([]);
     cartService.clearLocalCart();
   };

@@ -33,6 +33,12 @@ public class Order {
   @Column(name = "shipping_fee", nullable = false)
   private BigDecimal shippingFee = BigDecimal.ZERO;
 
+  @Column(name = "discount_amount", nullable = false)
+  private BigDecimal discountAmount = BigDecimal.ZERO;
+
+  @Column(name = "coupon_code")
+  private String couponCode;
+
   @Column(name = "total_amount", nullable = false)
   private BigDecimal totalAmount;
 
@@ -60,6 +66,10 @@ public class Order {
   public void setNote(String value) { note = value; }
   public BigDecimal getShippingFee() { return shippingFee; }
   public void setShippingFee(BigDecimal value) { shippingFee = value; }
+  public BigDecimal getDiscountAmount() { return discountAmount; }
+  public void setDiscountAmount(BigDecimal value) { discountAmount = value; }
+  public String getCouponCode() { return couponCode; }
+  public void setCouponCode(String value) { couponCode = value; }
   public BigDecimal getTotalAmount() { return totalAmount; }
   public void setTotalAmount(BigDecimal value) { totalAmount = value; }
   public String getStatus() { return status; }

@@ -63,8 +63,8 @@ class OrderServiceTest {
 
     var result = service.create("alice", request);
 
-    assertEquals(new BigDecimal("55"), result.getTotalAmount());
-    assertEquals(new BigDecimal("5"), result.getShippingFee());
+    assertEquals(new BigDecimal("30050"), result.getTotalAmount());
+    assertEquals(new BigDecimal("30000"), result.getShippingFee());
     assertEquals("Leave at door", result.getNote());
     assertEquals(1, result.getItems().size());
     assertEquals(2, result.getItems().get(0).getQuantity());
@@ -74,7 +74,7 @@ class OrderServiceTest {
     var paymentCaptor = ArgumentCaptor.forClass(Payment.class);
     verify(payments).save(paymentCaptor.capture());
     assertEquals(result, readField(paymentCaptor.getValue(), "order"));
-    assertEquals(new BigDecimal("55"), readField(paymentCaptor.getValue(), "amount"));
+    assertEquals(new BigDecimal("30050"), readField(paymentCaptor.getValue(), "amount"));
     assertEquals("BANK", readField(paymentCaptor.getValue(), "method"));
     assertEquals("PENDING", readField(paymentCaptor.getValue(), "status"));
   }
@@ -114,6 +114,34 @@ class OrderServiceTest {
 
     assertThrows(IllegalArgumentException.class, () -> service.create("alice", request));
     org.mockito.Mockito.verifyNoInteractions(orders, payments);
+  }
+
+  @Test
+  void createAppliesCouponAndIgnoresClientShippingFee() {
+    var user = new User();
+    var book = book(7L, "Book", 10, new BigDecimal("100000"));
+    when(users.findByUsername("alice")).thenReturn(Optional.of(user));
+    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(orders.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    var request =
+        new OrderRequest(
+            "Alice",
+            "alice@example.com",
+            "Address",
+            null,
+            null,
+            BigDecimal.ZERO,
+            "COD",
+            List.of(new OrderRequest.Item(7L, 2)),
+            " trian30 ");
+
+    var result = service.create("alice", request);
+
+    assertEquals(new BigDecimal("170000"), result.getTotalAmount());
+    assertEquals(new BigDecimal("60000"), result.getDiscountAmount());
+    assertEquals(new BigDecimal("30000"), result.getShippingFee());
+    assertEquals("TRIAN30", result.getCouponCode());
   }
 
   @Test

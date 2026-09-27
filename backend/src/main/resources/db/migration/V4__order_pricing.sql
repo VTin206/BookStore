@@ -1,0 +1,2 @@
+ALTER TABLE orders ADD COLUMN discount_amount NUMERIC(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50);
