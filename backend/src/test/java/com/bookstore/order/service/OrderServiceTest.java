@@ -161,6 +161,28 @@ class OrderServiceTest {
     assertThrows(IllegalArgumentException.class, () -> service.updateStatus(4L, "REFUNDED"));
   }
 
+  @Test
+  void cancelRestoresStockAndMarksPaymentCancelled() {
+    var order = new Order();
+    var book = book(7L, "Book", 3, BigDecimal.TEN);
+    var item = new com.bookstore.order.entity.OrderItem();
+    item.setBook(book);
+    item.setQuantity(2);
+    order.getItems().add(item);
+    when(orders.findById(4L)).thenReturn(Optional.of(order));
+    when(orders.save(order)).thenReturn(order);
+    var payment = new Payment();
+    when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
+    when(payments.save(payment)).thenReturn(payment);
+
+    service.updateStatus(4L, "cancelled");
+
+    assertEquals("CANCELLED", order.getStatus());
+    assertEquals(5, book.getStock());
+    assertEquals("CANCELLED", payment.getStatus());
+    org.junit.jupiter.api.Assertions.assertFalse(payment.isPaid());
+  }
+
   private static Book book(Long id, String title, int stock, BigDecimal price) {
     var book = new Book();
     setId(book, id);

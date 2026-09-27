@@ -2,7 +2,6 @@ package com.bookstore.order.controller;
 
 import com.bookstore.order.dto.OrderRequest;
 import com.bookstore.order.entity.Order;
-import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.service.OrderService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -14,16 +13,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/orders")
 public class OrderController {
   private final OrderService service;
-  private final OrderRepository repo;
 
-  public OrderController(OrderService service, OrderRepository repo) {
+  public OrderController(OrderService service) {
     this.service = service;
-    this.repo = repo;
   }
 
   @GetMapping
   public List<Order> all(Authentication authentication) {
-    return repo.findByUserUsername(authentication.getName());
+    return service.allForUser(authentication.getName());
   }
 
   @PostMapping

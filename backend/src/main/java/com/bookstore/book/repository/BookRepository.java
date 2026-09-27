@@ -28,7 +28,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
   @Query("""
       select b from Book b
       left join OrderItem oi on oi.book = b
-      group by b.id
+      group by b
       order by coalesce(sum(case when oi.order.status <> 'CANCELLED' then oi.quantity else 0 end), 0) desc,
                b.title asc
       """)

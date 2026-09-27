@@ -1,6 +1,8 @@
 package com.bookstore.common;
 
 import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,5 +22,21 @@ public class ApiExceptionHandler {
   @ExceptionHandler(java.util.NoSuchElementException.class)
   ResponseEntity<Map<String, String>> missing(java.util.NoSuchElementException exception) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Resource not found"));
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  ResponseEntity<Map<String, String>> validation(MethodArgumentNotValidException exception) {
+    var message =
+        exception.getBindingResult().getFieldErrors().stream()
+            .findFirst()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .orElse("Request validation failed");
+    return ResponseEntity.badRequest().body(Map.of("message", message));
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  ResponseEntity<Map<String, String>> conflict(DataIntegrityViolationException exception) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(Map.of("message", "Resource conflicts with existing data"));
   }
 }

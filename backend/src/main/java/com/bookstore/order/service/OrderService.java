@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,7 +62,11 @@ public class OrderService {
     order.setCouponCode(normalizeCoupon(request.couponCode()));
 
     var subtotal = BigDecimal.ZERO;
+    Set<Long> requestedBookIds = new HashSet<>();
     for (var itemRequest : request.items()) {
+      if (!requestedBookIds.add(itemRequest.bookId())) {
+        throw new IllegalArgumentException("Không được lặp sách trong đơn hàng");
+      }
       var book = books.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
       if (book.getStock() < itemRequest.quantity()) {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
@@ -125,6 +131,11 @@ public class OrderService {
   @Transactional(readOnly = true)
   public List<Order> allForAdmin() {
     return orders.findAll();
+  }
+
+  @Transactional(readOnly = true)
+  public List<Order> allForUser(String username) {
+    return orders.findByUserUsername(username);
   }
 
   @Transactional
