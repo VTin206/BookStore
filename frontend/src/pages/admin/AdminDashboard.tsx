@@ -2,12 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { bookService } from '../../services/bookService';
 import { orderService } from '../../services/orderService';
-import { categoryService } from '../../services/categoryService';
 import { userService } from '../../services/userService';
-import { useToast } from '../../context/ToastContext';
 import { Book, Order, User } from '../../types';
 import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
 import {
   DollarSign,
   ShoppingBag,
@@ -16,7 +13,6 @@ import {
   TrendingUp,
   AlertTriangle,
   ArrowUpRight,
-  Sparkles,
   Calendar,
   Eye,
 } from 'lucide-react';
@@ -26,10 +22,6 @@ export const AdminDashboard: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSeeding, setIsSeeding] = useState<boolean>(false);
-
-  const { success, error } = useToast();
-
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -84,103 +76,9 @@ export const AdminDashboard: React.FC = () => {
   }, [completedOrders]);
   const maxWeeklyRevenue = Math.max(...weeklyRevenue.map((item) => item.value), 1);
 
-  // Seed sample data helper
-  const handleSeedSampleData = async () => {
-    try {
-      setIsSeeding(true);
-      // 1. Create categories
-      const sampleCategories = ['Văn học', 'Kinh tế', 'Công nghệ', 'Kỹ năng sống', 'Tâm lý học'];
-      const createdCats: any[] = [];
-      for (const catName of sampleCategories) {
-        try {
-          const c = await categoryService.create({ name: catName });
-          createdCats.push(c);
-        } catch {
-          // might exist
-        }
-      }
-
-      // Re-fetch categories to get IDs
-      const allCats = await categoryService.getAll();
-      const findCatId = (name: string) => allCats.find((c) => c.name === name)?.id;
-
-      // 2. Create sample classic books
-      const sampleBooks = [
-        {
-          title: 'Nhà Giả Kim (The Alchemist)',
-          author: 'Paulo Coelho',
-          price: 79000,
-          stock: 45,
-          categoryId: findCatId('Văn học') || null,
-        },
-        {
-          title: 'Đắc Nhân Tâm (How to Win Friends)',
-          author: 'Dale Carnegie',
-          price: 86000,
-          stock: 60,
-          categoryId: findCatId('Kỹ năng sống') || null,
-        },
-        {
-          title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
-          author: 'Robert C. Martin',
-          price: 245000,
-          stock: 18,
-          categoryId: findCatId('Công nghệ') || null,
-        },
-        {
-          title: 'Atomic Habits - Thay Đổi Tí Hon Hiệu Quả Bất Ngờ',
-          author: 'James Clear',
-          price: 139000,
-          stock: 35,
-          categoryId: findCatId('Kỹ năng sống') || null,
-        },
-        {
-          title: 'Sapiens: Lược Sử Loài Người',
-          author: 'Yuval Noah Harari',
-          price: 185000,
-          stock: 22,
-          categoryId: findCatId('Tâm lý học') || null,
-        },
-        {
-          title: 'Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)',
-          author: 'Daniel Kahneman',
-          price: 168000,
-          stock: 8, // Low stock demo
-          categoryId: findCatId('Tâm lý học') || null,
-        },
-        {
-          title: 'Chiến Tranh Tiền Tệ',
-          author: 'Song Hongbing',
-          price: 125000,
-          stock: 25,
-          categoryId: findCatId('Kinh tế') || null,
-        },
-        {
-          title: 'Tuổi Trẻ Đáng Giá Bao Nhiêu?',
-          author: 'Rosie Nguyễn',
-          price: 72000,
-          stock: 4, // Low stock demo
-          categoryId: findCatId('Kỹ năng sống') || null,
-        },
-      ];
-
-      for (const b of sampleBooks) {
-        await bookService.create(b as any);
-      }
-
-      success('Đã nạp thành công 8 đầu sách kinh điển và 5 danh mục mẫu vào hệ thống!');
-      await loadData();
-    } catch (err) {
-      console.error('Seed data error', err);
-      error('Có lỗi xảy ra khi nạp dữ liệu mẫu.');
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Top Banner & Quick Seed Data Action */}
+      {/* Top Banner */}
       <div
         style={{
           display: 'flex',
@@ -203,15 +101,6 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSeedSampleData}
-            isLoading={isSeeding}
-            leftIcon={<Sparkles size={16} color="var(--accent)" />}
-          >
-            Nạp dữ liệu mẫu (Seed Data)
-          </Button>
           <Link to="/admin/books" className="btn btn-primary btn-sm">
             + Thêm sách mới
           </Link>

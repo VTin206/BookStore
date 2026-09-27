@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ExternalLink,
   ShieldAlert,
+  Ticket,
   Menu,
 } from 'lucide-react';
 
@@ -31,6 +32,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     { path: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
     { path: '/admin/authors', label: 'Tác giả & NXB', icon: Feather },
     { path: '/admin/users', label: 'Người dùng', icon: Users },
+    { path: '/admin/vouchers', label: 'Voucher', icon: Ticket },
   ];
 
   const handleLogout = () => {

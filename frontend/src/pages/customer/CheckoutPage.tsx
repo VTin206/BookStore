@@ -24,7 +24,8 @@ export const CheckoutPage: React.FC = () => {
   const { error, success } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const couponCode = (location.state as { couponCode?: string } | null)?.couponCode;
+  const checkoutState = location.state as { couponCode?: string; discountAmount?: number } | null;
+  const couponCode = checkoutState?.couponCode;
 
   // Form states
   const [customerName, setCustomerName] = useState<string>(username || '');
@@ -36,7 +37,7 @@ export const CheckoutPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
-  const discountAmount = couponCode === 'TRIAN30' ? Math.round(totalAmount * 0.3) : 0;
+  const discountAmount = checkoutState?.discountAmount || 0;
   const finalTotal = totalAmount + shippingFee - discountAmount;
 
   useEffect(() => {

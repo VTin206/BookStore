@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { getBookCover } from '../../utils/bookCovers';
+import { voucherService } from '../../services/voucherService';
 import { Button } from '../../components/ui/Button';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import {
@@ -386,7 +387,7 @@ export const CartPage: React.FC = () => {
               variant="primary"
               size="lg"
               style={{ width: '100%', fontWeight: 700 }}
-              onClick={() => navigate('/checkout', { state: { couponCode: couponCode.trim().toUpperCase() || undefined } })}
+              onClick={() => navigate('/checkout', { state: { couponCode: couponCode.trim().toUpperCase() || undefined, discountAmount } })}
             >
               Tiến hành thanh toán <ArrowRight size={18} />
             </Button>

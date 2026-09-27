@@ -27,6 +27,7 @@ import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminAuthorsPublishersPage } from './pages/admin/AdminAuthorsPublishersPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { AdminVouchersPage } from './pages/admin/AdminVouchersPage';
 
 export default function App() {
   return (
@@ -166,7 +167,14 @@ export default function App() {
               }
             />
 
-            {/* Fallback to Home */}
+            <Route
+              path="/admin/vouchers"
+              element={
+                <AdminLayout>
+                  <AdminVouchersPage />
+                </AdminLayout>
+              }
+            />            {/* Fallback to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </CartProvider>

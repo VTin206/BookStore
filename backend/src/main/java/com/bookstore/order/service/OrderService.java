@@ -9,6 +9,7 @@ import com.bookstore.order.entity.Payment;
 import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.user.repository.UserRepository;
+import com.bookstore.voucher.service.VoucherService;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class OrderService {
   private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("250000");
   private static final BigDecimal STANDARD_SHIPPING_FEE = new BigDecimal("30000");
-  private static final BigDecimal TRIAN30_RATE = new BigDecimal("0.30");
+
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
   private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "CARD");
@@ -31,18 +32,21 @@ public class OrderService {
   private final UserRepository users;
   private final CartRepository carts;
   private final PaymentRepository payments;
+  private final VoucherService vouchers;
 
   public OrderService(
       OrderRepository orders,
       BookRepository books,
       UserRepository users,
       CartRepository carts,
-      PaymentRepository payments) {
+      PaymentRepository payments,
+      VoucherService vouchers) {
     this.orders = orders;
     this.books = books;
     this.users = users;
     this.carts = carts;
     this.payments = payments;
+    this.vouchers = vouchers;
   }
 
   @Transactional
@@ -83,7 +87,7 @@ public class OrderService {
     }
 
     var shippingFee = calculateShippingFee(subtotal);
-    var discountAmount = calculateDiscount(subtotal, order.getCouponCode());
+    var discountAmount = vouchers != null ? vouchers.apply(order.getCouponCode(), subtotal) : legacyTestDiscount(order.getCouponCode(), subtotal);
     order.setShippingFee(shippingFee);
     order.setDiscountAmount(discountAmount);
     order.setTotalAmount(subtotal.add(shippingFee).subtract(discountAmount));
@@ -111,14 +115,10 @@ public class OrderService {
         : STANDARD_SHIPPING_FEE;
   }
 
-  private BigDecimal calculateDiscount(BigDecimal subtotal, String couponCode) {
-    if (couponCode == null) {
-      return BigDecimal.ZERO;
-    }
-    if (!couponCode.equals("TRIAN30")) {
-      throw new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn");
-    }
-    return subtotal.multiply(TRIAN30_RATE).setScale(0, RoundingMode.HALF_UP);
+  private BigDecimal legacyTestDiscount(String code, BigDecimal subtotal) {
+    if (code == null) return BigDecimal.ZERO;
+    if (!code.equals("TRIAN30")) throw new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn");
+    return subtotal.multiply(new BigDecimal("0.30")).setScale(0, RoundingMode.HALF_UP);
   }
 
   private String normalizeCoupon(String couponCode) {

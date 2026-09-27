@@ -4,6 +4,14 @@ export interface Category {
   description?: string;
 }
 
+
+export interface Voucher {
+  id: number; code: string; discountType: 'PERCENTAGE' | 'FIXED'; discountValue: number; minOrderAmount: number; expiresAt?: string; usageLimit?: number | null; usedCount: number; active: boolean; createdAt?: string;
+}
+
+export interface VoucherRequest {
+  code: string; discountType: 'PERCENTAGE' | 'FIXED'; discountValue: number; minOrderAmount: number; expiresAt?: string; usageLimit?: number | null; active: boolean;
+}
 export interface Book {
   id: number;
   title: string;
