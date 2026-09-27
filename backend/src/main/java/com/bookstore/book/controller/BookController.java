@@ -12,16 +12,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/books")
 public class BookController {
   private final BookService service;
-  private final com.bookstore.book.repository.BookRepository repo;
 
-  public BookController(BookService service, com.bookstore.book.repository.BookRepository repo) {
+  public BookController(BookService service) {
     this.service = service;
-    this.repo = repo;
   }
 
   @GetMapping
-  public List<Book> all(@RequestParam(required = false) String search) {
-    return search == null ? service.all() : repo.findByTitleContainingIgnoreCase(search);
+  public List<Book> all(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) String filter) {
+    return service.byFilter(search, filter);
   }
 
   @GetMapping("/{id}")

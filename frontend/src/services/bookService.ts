@@ -2,8 +2,11 @@ import { apiClient } from './apiClient';
 import { Book, BookRequest } from '../types';
 
 export const bookService = {
-  async getAll(search?: string): Promise<Book[]> {
-    const params = search ? { search } : {};
+  async getAll(search?: string, filter?: string): Promise<Book[]> {
+    const params = {
+      ...(search ? { search } : {}),
+      ...(filter ? { filter } : {}),
+    };
     const res = await apiClient.get<Book[]>('/books', { params });
     return res.data;
   },

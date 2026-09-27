@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { bookService } from '../../services/bookService';
 import { orderService } from '../../services/orderService';
@@ -53,12 +53,36 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   // Compute metrics
-  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+  const completedOrders = orders.filter((o) => o.status !== 'CANCELLED');
+  const totalRevenue = completedOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
   const totalOrders = orders.length;
   const totalUsers = users.length;
   const totalBooks = books.length;
   const lowStockBooks = books.filter((b) => b.stock < 10);
-  const recentOrders = orders.slice(0, 5);
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 5);
+  const weeklyRevenue = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(now);
+      date.setHours(0, 0, 0, 0);
+      date.setDate(now.getDate() - (6 - index));
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      const value = completedOrders
+        .filter((order) => {
+          const createdAt = new Date(order.createdAt || 0);
+          return createdAt >= date && createdAt < nextDate;
+        })
+        .reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+      return {
+        day: date.toLocaleDateString('vi-VN', { weekday: 'short' }).replace('.', ''),
+        value,
+      };
+    });
+  }, [completedOrders]);
+  const maxWeeklyRevenue = Math.max(...weeklyRevenue.map((item) => item.value), 1);
 
   // Seed sample data helper
   const handleSeedSampleData = async () => {
@@ -339,25 +363,17 @@ export const AdminDashboard: React.FC = () => {
             <TrendingUp size={18} color="var(--primary)" /> Biểu đồ doanh thu hàng tuần
           </h3>
           <div style={{ width: '100%', height: '180px', display: 'flex', alignItems: 'flex-end', gap: '16px', padding: '10px 0' }}>
-            {[
-              { day: 'T2', val: 35 },
-              { day: 'T3', val: 55 },
-              { day: 'T4', val: 40 },
-              { day: 'T5', val: 75 },
-              { day: 'T6', val: 90 },
-              { day: 'T7', val: 120 },
-              { day: 'CN', val: 140 },
-            ].map((d, i) => (
+            {weeklyRevenue.map((d, i) => (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                 <div
                   style={{
                     width: '100%',
                     backgroundColor: i === 6 ? 'var(--primary)' : 'var(--primary-light)',
-                    height: `${(d.val / 150) * 130}px`,
+                    height: `${Math.max((d.value / maxWeeklyRevenue) * 130, d.value > 0 ? 8 : 2)}px`,
                     borderRadius: 'var(--radius-sm)',
                     transition: 'height 0.3s ease',
                   }}
-                  title={`${d.day}: ${d.val * 10000}₫`}
+                  title={`${d.day}: ${d.value.toLocaleString('vi-VN')}₫`}
                 />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{d.day}</span>
               </div>

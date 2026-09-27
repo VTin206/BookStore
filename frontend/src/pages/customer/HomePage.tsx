@@ -20,6 +20,8 @@ import {
 
 export const HomePage: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
+  const [bestSellers, setBestSellers] = useState<Book[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -27,11 +29,15 @@ export const HomePage: React.FC = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [booksData, catsData] = await Promise.all([
+        const [booksData, bestSellerData, newArrivalData, catsData] = await Promise.all([
           bookService.getAll(),
+          bookService.getAll(undefined, 'best-seller'),
+          bookService.getAll(undefined, 'new'),
           categoryService.getAll(),
         ]);
         setBooks(booksData);
+        setBestSellers(bestSellerData);
+        setNewArrivals(newArrivalData);
         setCategories(catsData);
       } catch (err) {
         console.error('Failed to load homepage data', err);
@@ -43,8 +49,6 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const featuredBooks = books.slice(0, 4);
-  const bestSellers = books.length > 4 ? books.slice(4, 8) : books;
-  const newArrivals = books.length > 8 ? books.slice(8, 12) : books.slice(0, 4);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem', paddingBottom: '4rem' }}>

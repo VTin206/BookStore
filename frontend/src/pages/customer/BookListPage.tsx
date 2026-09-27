@@ -16,6 +16,7 @@ export const BookListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get('search') || '';
   const categoryParam = searchParams.get('category') || '';
+  const filterParam = searchParams.get('filter') || '';
 
   const [books, setBooks] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -38,7 +39,7 @@ export const BookListPage: React.FC = () => {
       try {
         setIsLoading(true);
         const [booksData, catsData] = await Promise.all([
-          bookService.getAll(searchParam),
+          bookService.getAll(searchParam, filterParam),
           categoryService.getAll(),
         ]);
         setBooks(booksData);
@@ -50,7 +51,7 @@ export const BookListPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [searchParam]);
+  }, [searchParam, filterParam]);
 
   // Client-side filtering & sorting
   const filteredBooks = useMemo(() => {
@@ -295,6 +296,20 @@ export const BookListPage: React.FC = () => {
           >
             <X size={16} /> Bỏ tìm kiếm
           </button>
+        </div>
+      )}
+
+      {filterParam === 'promo' && (
+        <div
+          style={{
+            backgroundColor: 'var(--primary-light)',
+            border: '1px solid var(--primary-subtle)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '1rem 1.5rem',
+            marginBottom: '2rem',
+          }}
+        >
+          Mã <strong>TRIAN30</strong> giảm 30% cho toàn bộ sách ở trang này.
         </div>
       )}
 

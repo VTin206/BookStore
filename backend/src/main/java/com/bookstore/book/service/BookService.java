@@ -31,6 +31,21 @@ public class BookService {
     return books.findAll();
   }
 
+  public List<Book> search(String search) {
+    return search == null || search.isBlank() ? books.findAll() : books.search(search.trim());
+  }
+
+  public List<Book> byFilter(String search, String filter) {
+    var normalizedFilter = filter == null ? "" : filter.trim().toUpperCase();
+    if ("BEST-SELLER".equals(normalizedFilter)) {
+      return books.findBestSellers();
+    }
+    if ("NEW".equals(normalizedFilter)) {
+      return books.findAllByOrderByPublicationDateDescCreatedAtDesc();
+    }
+    return search(search);
+  }
+
   public Book byId(Long id) {
     return books.findById(id).orElseThrow();
   }

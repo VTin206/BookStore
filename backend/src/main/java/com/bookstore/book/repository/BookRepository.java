@@ -7,7 +7,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
-  List<Book> findByTitleContainingIgnoreCase(String title);
+  @Query("""
+      select distinct b from Book b
+      left join b.authorRef a
+      left join b.category c
+      where lower(b.title) like lower(concat('%', :search, '%'))
+         or lower(b.author) like lower(concat('%', :search, '%'))
+         or lower(a.name) like lower(concat('%', :search, '%'))
+         or lower(c.name) like lower(concat('%', :search, '%'))
+      """)
+  List<Book> search(@Param("search") String search);
+
+  List<Book> findAllByOrderByPublicationDateDescCreatedAtDesc();
+
+  @Query("""
+      select b from Book b
+      left join OrderItem oi on oi.book = b
+      group by b.id
+      order by coalesce(sum(case when oi.order.status <> 'CANCELLED' then oi.quantity else 0 end), 0) desc,
+               b.title asc
+      """)
+  List<Book> findBestSellers();
 
   @Query("select count(b) > 0 from Book b where b.category.id = :categoryId")
   boolean existsByCategoryId(@Param("categoryId") Long categoryId);
