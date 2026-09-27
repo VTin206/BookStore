@@ -1,6 +1,6 @@
 package com.bookstore.review;
 
-import com.bookstore.user.repository.UserRepository;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,11 +27,18 @@ class Review {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
 
+  @Column(name = "user_id", nullable = false)
   Long userId;
+  @Column(name = "book_id", nullable = false)
   Long bookId;
+  @Column(nullable = false)
   Integer rating;
+  @Column(columnDefinition = "TEXT")
   String comment;
+  @Column(name = "created_at", nullable = false)
   LocalDateTime createdAt = LocalDateTime.now();
+  @jakarta.persistence.Transient
+  String userName;
 
   public Long getId() {
     return id;
@@ -54,6 +60,14 @@ class Review {
     return comment;
   }
 
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public String getUserName() {
+    return userName;
+  }
+
   public void setUserId(Long value) {
     userId = value;
   }
@@ -69,40 +83,27 @@ class Review {
   public void setComment(String value) {
     comment = value;
   }
+  public void setUserName(String value) {
+    userName = value;
+  }
 }
-
-interface ReviewRepository extends JpaRepository<Review, Long> {
-  List<Review> findByBookId(Long bookId);
-}
-
-record ReviewRequest(
-    @NotNull Long bookId,
-    @NotNull @Min(1) @Max(5) Integer rating,
-    String comment) {}
 
 @RestController
 @RequestMapping("/api/reviews")
 class ReviewController {
-  private final ReviewRepository reviews;
-  private final UserRepository users;
+  private final ReviewService service;
 
-  ReviewController(ReviewRepository reviews, UserRepository users) {
-    this.reviews = reviews;
-    this.users = users;
+  ReviewController(ReviewService service) {
+    this.service = service;
   }
 
   @GetMapping("/book/{bookId}")
   List<Review> byBook(@PathVariable Long bookId) {
-    return reviews.findByBookId(bookId);
+    return service.byBook(bookId);
   }
 
   @PostMapping
   Review create(Authentication authentication, @Valid @RequestBody ReviewRequest request) {
-    var review = new Review();
-    review.setUserId(users.findByUsername(authentication.getName()).orElseThrow().getId());
-    review.setBookId(request.bookId());
-    review.setRating(request.rating());
-    review.setComment(request.comment());
-    return reviews.save(review);
+    return service.create(authentication.getName(), request);
   }
 }

@@ -44,4 +44,12 @@ public class Payment {
   public void setPaid(boolean v) {
     paid = v;
   }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public boolean isPaid() {
+    return paid;
+  }
 }

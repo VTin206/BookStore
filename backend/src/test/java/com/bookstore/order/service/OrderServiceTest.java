@@ -45,7 +45,7 @@ class OrderServiceTest {
     var cart = new Cart(user);
     cart.getItems().add(new com.bookstore.cart.entity.CartItem(cart, book, 1));
     when(users.findByUsername("alice")).thenReturn(Optional.of(user));
-    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     when(orders.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(carts.findByUserUsername("alice")).thenReturn(Optional.of(cart));
     when(carts.save(cart)).thenReturn(cart);
@@ -100,7 +100,7 @@ class OrderServiceTest {
     var user = new User();
     var book = book(7L, "Book", 1, BigDecimal.TEN);
     when(users.findByUsername("alice")).thenReturn(Optional.of(user));
-    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     var request =
         new OrderRequest(
             "Alice",
@@ -121,7 +121,7 @@ class OrderServiceTest {
     var user = new User();
     var book = book(7L, "Book", 10, new BigDecimal("100000"));
     when(users.findByUsername("alice")).thenReturn(Optional.of(user));
-    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     when(orders.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     var request =
@@ -147,6 +147,7 @@ class OrderServiceTest {
   @Test
   void updateStatusNormalizesAndPersistsSupportedStatus() {
     var order = new Order();
+    order.setStatus("SHIPPING");
     when(orders.findById(4L)).thenReturn(Optional.of(order));
     when(orders.save(order)).thenReturn(order);
 

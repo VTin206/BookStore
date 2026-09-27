@@ -61,7 +61,7 @@ public class OrderService {
 
     var subtotal = BigDecimal.ZERO;
     for (var itemRequest : request.items()) {
-      var book = books.findById(itemRequest.bookId()).orElseThrow();
+      var book = books.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
       if (book.getStock() < itemRequest.quantity()) {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
       }
@@ -134,7 +134,42 @@ public class OrderService {
       throw new IllegalArgumentException("Trạng thái đơn hàng không hợp lệ");
     }
     var order = orders.findById(id).orElseThrow();
+    validateTransition(order.getStatus(), normalized);
+    if ("CANCELLED".equals(normalized) && !"CANCELLED".equals(order.getStatus())) {
+      order.getItems().forEach(item -> {
+        var book = item.getBook();
+        book.setStock(book.getStock() + item.getQuantity());
+      });
+    }
     order.setStatus(normalized);
-    return orders.save(order);
+    var saved = orders.save(order);
+    payments.findByOrderId(id).ifPresent(payment -> {
+      if ("CANCELLED".equals(normalized)) {
+        payment.setStatus("CANCELLED");
+        payment.setPaid(false);
+      } else if ("DELIVERED".equals(normalized)) {
+        payment.setStatus("PAID");
+        payment.setPaid(true);
+      }
+      payments.save(payment);
+    });
+    return saved;
+  }
+
+  private void validateTransition(String current, String next) {
+    if (current.equals(next)) {
+      return;
+    }
+    var allowed = switch (current) {
+      case "PENDING" -> List.of("CONFIRMED", "CANCELLED");
+      case "CONFIRMED" -> List.of("PROCESSING", "CANCELLED");
+      case "PROCESSING" -> List.of("SHIPPING", "CANCELLED");
+      case "SHIPPING" -> List.of("DELIVERED");
+      case "DELIVERED", "CANCELLED" -> List.<String>of();
+      default -> List.<String>of();
+    };
+    if (!allowed.contains(next)) {
+      throw new IllegalArgumentException("Không thể chuyển đơn từ " + current + " sang " + next);
+    }
   }
 }
