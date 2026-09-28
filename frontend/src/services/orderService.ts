@@ -19,6 +19,11 @@ export const orderService = {
     return res.data;
   },
 
+  async lookup(trackingCode: string): Promise<Pick<Order, 'trackingCode' | 'status' | 'totalAmount' | 'createdAt'>> {
+    const res = await apiClient.get('/orders/lookup', { params: { code: trackingCode } });
+    return res.data;
+  },
+
   async create(data: CreateOrderRequest): Promise<Order> {
     const res = await apiClient.post<Order>('/orders', data);
     return res.data;

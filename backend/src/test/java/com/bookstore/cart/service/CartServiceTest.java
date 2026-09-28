@@ -101,7 +101,7 @@ class CartServiceTest {
     var item = new CartItem(cart, book(10L, "Book", 5, BigDecimal.TEN), 1);
     setId(item, 20L);
     when(items.findById(20L)).thenReturn(Optional.of(item));
-    when(carts.save(cart)).thenReturn(cart);
+    when(carts.findByUserUsername("alice")).thenReturn(Optional.of(cart));
 
     service.update("alice", 20L, 4);
 

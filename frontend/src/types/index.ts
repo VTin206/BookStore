@@ -85,6 +85,7 @@ export type OrderStatus =
 
 export interface Order {
   id: number;
+  trackingCode?: string;
   customerName: string;
   customerEmail: string;
   totalAmount: number;

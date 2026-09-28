@@ -1,6 +1,7 @@
 package com.bookstore.order.entity;
 
 import com.bookstore.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class Order {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
@@ -38,6 +40,9 @@ public class Order {
 
   @Column(name = "coupon_code")
   private String couponCode;
+
+  @Column(name = "tracking_code", nullable = false, unique = true, length = 32)
+  private String trackingCode;
 
   @Column(name = "total_amount", nullable = false)
   private BigDecimal totalAmount;
@@ -69,6 +74,8 @@ public class Order {
   public BigDecimal getDiscountAmount() { return discountAmount; }
   public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
   public String getCouponCode() { return couponCode; }
+  public String getTrackingCode() { return trackingCode; }
+  public void setTrackingCode(String trackingCode) { this.trackingCode = trackingCode; }
   public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
   public BigDecimal getTotalAmount() { return totalAmount; }
   public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }

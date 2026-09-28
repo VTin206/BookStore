@@ -16,6 +16,7 @@ import { CartPage } from './pages/customer/CartPage';
 import { CheckoutPage } from './pages/customer/CheckoutPage';
 import { OrderSuccessPage } from './pages/customer/OrderSuccessPage';
 import { OrderHistoryPage } from './pages/customer/OrderHistoryPage';
+import { TrackOrderPage } from './pages/customer/TrackOrderPage';
 import { ProfilePage } from './pages/customer/ProfilePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
@@ -91,6 +92,14 @@ export default function App() {
               element={
                 <CustomerLayout>
                   <OrderSuccessPage />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/track-order"
+              element={
+                <CustomerLayout>
+                  <TrackOrderPage />
                 </CustomerLayout>
               }
             />

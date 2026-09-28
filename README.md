@@ -2,6 +2,12 @@
 
 Ứng dụng quản lý và bán sách gồm frontend React/Vite, backend Spring Boot và PostgreSQL.
 
+## Tài khoản test local
+
+Thông tin đăng nhập test được cấu hình trong file `.env` cục bộ và không được commit lên Git. Sao chép `.env.example` thành `.env`, sau đó điền các biến `TEST_*` để sử dụng tài khoản test.
+
+Nếu database local chưa có các tài khoản trên, hãy tạo tài khoản qua màn hình đăng ký rồi cập nhật role `ADMIN` cho tài khoản admin trong database.
+
 ## Chạy nhanh bằng Docker
 
 Yêu cầu: Docker Desktop đang chạy.
@@ -62,10 +68,10 @@ npm run build
 
 ## Cấu hình môi trường
 
-Sao chép `.env.example` thành `.env` rồi đổi các giá trị bí mật trước khi deploy production. `VITE_API_URL` phải trỏ tới URL API public, ví dụ `https://api.example.com/api`.
+Sao chép `.env.example` thành `.env`, sau đó điền các giá trị bí mật trước khi deploy production. `VITE_API_URL` phải trỏ tới URL API public, ví dụ `https://api.example.com/api`.
 
 Không dùng các giá trị mặc định của database và JWT trong production.
 
 ## Phạm vi chưa tích hợp
 
-Thanh toán online thật, webhook và đối soát giao dịch chưa được tích hợp vì cần lựa chọn nhà cung cấp cùng API credentials cụ thể. Hiện hệ thống chỉ lưu phương thức thanh toán và trạng thái giao dịch ở mức nghiệp vụ.
+Thanh toán online thật, webhook và đối soát giao dịch chưa được tích hợp. Hiện hệ thống chỉ lưu phương thức thanh toán và trạng thái giao dịch ở mức nghiệp vụ.

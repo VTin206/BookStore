@@ -562,3 +562,31 @@ button, input, select, textarea {
     width: 100%;
   }
 }
+
+.checkout-location-box {
+  margin: 0.25rem 0 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-alt);
+}
+
+.checkout-location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkout-location-grid .form-group {
+  margin-bottom: 0;
+}
+
+.checkout-location-grid .form-select {
+  width: 100%;
+}
+
+.checkout-location-note {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}

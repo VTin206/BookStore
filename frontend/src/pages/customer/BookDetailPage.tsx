@@ -39,6 +39,7 @@ export const BookDetailPage: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [quantity, setQuantity] = useState<number>(1);
+  const [pendingCartAction, setPendingCartAction] = useState<'add' | 'buy' | null>(null);
 
   // Review form
   const [rating, setRating] = useState<number>(5);
@@ -119,14 +120,28 @@ export const BookDetailPage: React.FC = () => {
   const coverUrl = getBookCover(book.title, book.category?.name, book.imageUrl);
   const isOutOfStock = book.stock <= 0;
 
-  const handleAddToCart = () => {
-    addToCart(book, quantity);
+  const handleAddToCart = async () => {
+    if (pendingCartAction) return;
+    setPendingCartAction('add');
+    try {
+      await addToCart(book, quantity);
+    } finally {
+      setPendingCartAction(null);
+    }
   };
 
   const handleBuyNow = async () => {
-    await addToCart(book, quantity);
-    navigate('/cart');
+    if (pendingCartAction) return;
+    setPendingCartAction('buy');
+    try {
+      if (await addToCart(book, quantity)) {
+        navigate('/cart');
+      }
+    } finally {
+      setPendingCartAction(null);
+    }
   };
+
   const handleToggleWishlist = async () => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -411,7 +426,8 @@ export const BookDetailPage: React.FC = () => {
                 variant="outline"
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || pendingCartAction !== null}
+                isLoading={pendingCartAction === 'add'}
                 leftIcon={<ShoppingBag size={20} />}
               >
                 Thêm vào giỏ hàng
@@ -420,7 +436,8 @@ export const BookDetailPage: React.FC = () => {
                 variant="primary"
                 size="lg"
                 onClick={handleBuyNow}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || pendingCartAction !== null}
+                isLoading={pendingCartAction === 'buy'}
                 leftIcon={<Zap size={20} />}
                 style={{ backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' }}
               >

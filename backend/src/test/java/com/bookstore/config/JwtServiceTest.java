@@ -24,7 +24,10 @@ class JwtServiceTest {
   @Test
   void parseRejectsTamperedToken() {
     var token = service.create("alice", "CUSTOMER");
-    var tampered = token.substring(0, token.length() - 1) + "x";
+    var parts = token.split("\\.");
+    var signature = parts[2];
+    var changedFirstCharacter = signature.charAt(0) == 'A' ? 'B' : 'A';
+    var tampered = parts[0] + "." + parts[1] + "." + changedFirstCharacter + signature.substring(1);
 
     assertThrows(JwtException.class, () -> service.parse(tampered));
   }

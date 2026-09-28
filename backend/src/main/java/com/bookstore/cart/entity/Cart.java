@@ -1,6 +1,7 @@
 package com.bookstore.cart.entity;
 
 import com.bookstore.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.*;
 
@@ -11,6 +12,7 @@ public class Cart {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @JsonIgnore
   @OneToOne
   @JoinColumn(name = "user_id", nullable = false, unique = true)
   private User user;

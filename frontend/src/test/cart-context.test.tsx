@@ -44,6 +44,9 @@ const CartProbe: React.FC = () => {
       <span data-testid="count">{cart.itemCount}</span>
       <span data-testid="total">{cart.totalAmount}</span>
       <button onClick={() => void cart.addToCart(book, 2)}>add</button>
+      <button onClick={() => void cart.addToCart(book, 2).then((added) => {
+        document.body.dataset.cartAdded = String(added);
+      })}>buy</button>
       <button onClick={() => void cart.updateQuantity('local-1', 20)}>update</button>
       <button onClick={() => void cart.updateQuantity(4, 3)}>remote-update</button>
       <button onClick={() => void cart.removeFromCart('local-1')}>remove</button>
@@ -54,6 +57,7 @@ const CartProbe: React.FC = () => {
 describe('CartContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    delete document.body.dataset.cartAdded;
     vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as unknown as ReturnType<typeof useAuth>);
     vi.mocked(useToast).mockReturnValue({
       success: vi.fn(),
@@ -82,6 +86,42 @@ describe('CartContext', () => {
     fireEvent.click(screen.getByText('remove'));
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('0'));
     expect(cartService.setLocalCart).toHaveBeenCalled();
+  });
+
+  it('adds to the remote cart before reporting success', async () => {
+    const remoteItem: CartItem = { id: 4, book, quantity: 2 };
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.addToRemoteCart).mockResolvedValue({ items: [remoteItem] });
+
+    render(<CartProvider><CartProbe /></CartProvider>);
+    fireEvent.click(screen.getByText('buy'));
+
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('2'));
+    await waitFor(() => expect(document.body.dataset.cartAdded).toBe('true'));
+    expect(cartService.addToRemoteCart).toHaveBeenCalledWith(book.id, 2);
+  });
+
+  it('keeps the current page usable when adding to the remote cart fails', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.addToRemoteCart).mockRejectedValue(new Error('Server error'));
+
+    render(<CartProvider><CartProbe /></CartProvider>);
+    fireEvent.click(screen.getByText('buy'));
+
+    await waitFor(() => expect(document.body.dataset.cartAdded).toBe('false'));
+    expect(screen.getByTestId('count')).toHaveTextContent('2');
+    expect(useToast().error).toHaveBeenCalled();
+  });
+
+  it('does not report success when the added book is missing from the response', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.addToRemoteCart).mockResolvedValue({ items: [] });
+
+    render(<CartProvider><CartProbe /></CartProvider>);
+    fireEvent.click(screen.getByText('buy'));
+
+    await waitFor(() => expect(document.body.dataset.cartAdded).toBe('false'));
+    expect(useToast().error).toHaveBeenCalled();
   });
 
   it('loads remote cart and updates numeric item ids for authenticated users', async () => {

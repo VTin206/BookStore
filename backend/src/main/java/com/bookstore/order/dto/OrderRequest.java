@@ -14,7 +14,7 @@ public record OrderRequest(
     @NotBlank String customerName,
     @Email @NotBlank String customerEmail,
     @NotBlank String shippingAddress,
-    String phone,
+    @NotBlank String phone,
     String note,
     @NotNull @PositiveOrZero BigDecimal shippingFee,
     @NotBlank String paymentMethod,

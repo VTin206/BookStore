@@ -63,7 +63,8 @@ public class CartService {
       throw new IllegalArgumentException("Số lượng vượt quá tồn kho");
     }
     item.setQuantity(quantity);
-    return cartRepository.save(item.getCart());
+    cartRepository.save(item.getCart());
+    return get(username);
   }
 
   @Transactional

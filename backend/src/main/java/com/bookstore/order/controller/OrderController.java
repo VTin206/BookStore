@@ -1,6 +1,7 @@
 package com.bookstore.order.controller;
 
 import com.bookstore.order.dto.OrderRequest;
+import com.bookstore.order.dto.OrderTrackingResponse;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -25,7 +26,12 @@ public class OrderController {
 
   @PostMapping
   public Order create(Authentication authentication, @Valid @RequestBody OrderRequest request) {
-    return orderService.create(authentication.getName(), request);
+    return orderService.create(authentication == null ? null : authentication.getName(), request);
+  }
+
+  @GetMapping("/lookup")
+  public OrderTrackingResponse lookup(@RequestParam String code) {
+    return orderService.lookup(code);
   }
 
   @PreAuthorize("hasRole('ADMIN')")

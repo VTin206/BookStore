@@ -1,10 +1,14 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { CheckCircle2, ArrowRight, Package, Home, ShoppingBag } from 'lucide-react';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { CheckCircle2, ArrowRight, Package, Home, ShoppingBag, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 export const OrderSuccessPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const isGuestOrder = Boolean((location.state as { isGuestOrder?: boolean } | null)?.isGuestOrder);
 
   return (
     <div className="container" style={{ padding: '4rem 1rem 6rem', textAlign: 'center' }}>
@@ -48,7 +52,7 @@ export const OrderSuccessPage: React.FC = () => {
             marginBottom: '1rem',
           }}
         >
-          MÃ ĐƠN HÀNG: #{id}
+          {isGuestOrder ? `M\u00c3 TRA C\u1ee8U \u0110\u01a0N H\u00c0NG: #${id}` : `M\u00c3 \u0110\u01a0N H\u00c0NG: #${id}`}
         </span>
 
         <h1 style={{ fontSize: '1.85rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
@@ -82,12 +86,24 @@ export const OrderSuccessPage: React.FC = () => {
           </div>
         </div>
 
+        {isGuestOrder || !isAuthenticated ? (
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+            H?y l?u m? tra c?u <strong>#{id}</strong> ?? li?n h? c?a h?ng khi c?n ki?m tra ??n h?ng.
+          </p>
+        ) : null}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link to="/orders" className="btn btn-secondary">
-            <ShoppingBag size={18} /> Xem lịch sử đơn hàng
-          </Link>
+          {isAuthenticated && !isGuestOrder && (
+            <Link to="/orders" className="btn btn-secondary">
+              <ShoppingBag size={18} /> Xem l?ch s? ??n h?ng
+            </Link>
+          )}
+          {isGuestOrder && (
+            <Link to="/track-order" className="btn btn-secondary">
+              <Search size={18} /> Tra c?u ??n h?ng
+            </Link>
+          )}
           <Link to="/" className="btn btn-primary">
-            <Home size={18} /> Tiếp tục mua sắm
+            <Home size={18} /> Ti?p t?c mua s?m
           </Link>
         </div>
       </div>

@@ -7,6 +7,11 @@ import { orderService } from '../../services/orderService';
 import { getBookCover } from '../../utils/bookCovers';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { getAllProvincesSorted, getDistrictsByProvinceId } from 'vietnam-divisions-js/provinces';
+import { getCommunesByDistrictId } from 'vietnam-divisions-js/districts';
+import type { Province } from 'vietnam-divisions-js/provinces';
+import type { District } from 'vietnam-divisions-js/districts';
+import type { Commune } from 'vietnam-divisions-js/communes';
 import {
   CheckCircle,
   Truck,
@@ -29,22 +34,89 @@ export const CheckoutPage: React.FC = () => {
 
   // Form states
   const [customerName, setCustomerName] = useState<string>(username || '');
-  const [customerEmail, setCustomerEmail] = useState<string>('customer@example.com');
-  const [phone, setPhone] = useState<string>('0901234567');
-  const [address, setAddress] = useState<string>('123 Đường Sách, Quận 1, TP. Hồ Chí Minh');
+  const [customerEmail, setCustomerEmail] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank' | 'card'>('cod');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [communes, setCommunes] = useState<Commune[]>([]);
+  const [provinceId, setProvinceId] = useState('');
+  const [districtId, setDistrictId] = useState('');
+  const [communeId, setCommuneId] = useState('');
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(true);
+  const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
+  const [isLoadingCommunes, setIsLoadingCommunes] = useState(false);
+  const [locationError, setLocationError] = useState(false);
 
   const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
   const discountAmount = checkoutState?.discountAmount || 0;
   const finalTotal = totalAmount + shippingFee - discountAmount;
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login', { replace: true, state: { from: '/checkout' } });
-    }
-  }, [isAuthenticated, navigate]);
+    let active = true;
+    getAllProvincesSorted()
+      .then((locations) => {
+        if (active) setProvinces(locations);
+      })
+      .catch(() => {
+        if (active) setLocationError(true);
+      })
+      .finally(() => {
+        if (active) setIsLoadingProvinces(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    setDistricts([]);
+    setDistrictId('');
+    setCommunes([]);
+    setCommuneId('');
+    if (!provinceId) return;
+
+    let active = true;
+    setIsLoadingDistricts(true);
+    getDistrictsByProvinceId(provinceId)
+      .then((locations) => {
+        if (active) setDistricts(locations);
+      })
+      .catch(() => {
+        if (active) setLocationError(true);
+      })
+      .finally(() => {
+        if (active) setIsLoadingDistricts(false);
+      });
+    return () => { active = false; };
+  }, [provinceId]);
+
+  useEffect(() => {
+    setCommunes([]);
+    setCommuneId('');
+    if (!districtId) return;
+
+    let active = true;
+    setIsLoadingCommunes(true);
+    getCommunesByDistrictId(districtId)
+      .then((locations) => {
+        if (active) setCommunes(locations);
+      })
+      .catch(() => {
+        if (active) setLocationError(true);
+      })
+      .finally(() => {
+        if (active) setIsLoadingCommunes(false);
+      });
+    return () => { active = false; };
+  }, [districtId]);
+
+  const selectedProvince = provinces.find((province) => province.idProvince === provinceId);
+  const selectedDistrict = districts.find((district) => district.idDistrict === districtId);
+  const selectedCommune = communes.find((commune) => commune.idCommune === communeId);
+
   if (items.length === 0) {
     return (
       <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>
@@ -68,12 +140,17 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
 
+    if (!address.trim() || !selectedProvince || !selectedDistrict || !selectedCommune) {
+      error('Vui lòng nhập địa chỉ chi tiết và chọn đủ tỉnh/thành, quận/huyện, phường/xã.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const orderPayload = {
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim(),
-        shippingAddress: address.trim(),
+        shippingAddress: [address.trim(), selectedCommune.name, selectedDistrict.name, selectedProvince.name].join(', '),
         phone: phone.trim(),
         note: note.trim(),
         shippingFee,
@@ -86,9 +163,15 @@ export const CheckoutPage: React.FC = () => {
       };
 
       const createdOrder = await orderService.create(orderPayload);
-      clearCart();
       success('Đặt hàng thành công! Mã đơn: #' + createdOrder.id);
-      navigate(`/order-success/${createdOrder.id}`);
+      if (isAuthenticated) {
+        navigate('/orders');
+      } else {
+        navigate(`/order-success/${createdOrder.trackingCode || createdOrder.id}`, {
+          state: { trackingCode: createdOrder.trackingCode || String(createdOrder.id), isGuestOrder: true },
+        });
+      }
+      void clearCart();
     } catch (err: any) {
       console.error('Order creation failed', err);
       const msg = err.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại!';
@@ -211,12 +294,81 @@ export const CheckoutPage: React.FC = () => {
                   onChange={(e) => setPhone(e.target.value)}
                 />
                 <Input
-                  label="Địa chỉ chi tiết (Số nhà, đường, phường, quận) *"
-                  placeholder="Ví dụ: 123 Lê Lợi, P. Bến Nghé, Quận 1"
+                  label="Địa chỉ chi tiết (số nhà, tên đường) *"
+                  placeholder="Ví dụ: 123 Lê Lợi"
                   required
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
+              </div>
+
+              <div className="checkout-location-box">
+                <div className="form-label">Khu vực giao hàng *</div>
+                <div className="checkout-location-grid">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="checkout-province">Tỉnh / thành phố</label>
+                    <select
+                      id="checkout-province"
+                      className="form-select"
+                      required
+                      value={provinceId}
+                      disabled={isLoadingProvinces || locationError}
+                      onChange={(event) => {
+                        setProvinceId(event.target.value);
+                        setDistrictId('');
+                        setCommuneId('');
+                        setDistricts([]);
+                        setCommunes([]);
+                      }}
+                    >
+                      <option value="">{isLoadingProvinces ? 'Đang tải tỉnh/thành...' : 'Chọn tỉnh / thành phố'}</option>
+                      {provinces.map((province) => (
+                        <option key={province.idProvince} value={province.idProvince}>{province.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="checkout-district">Quận / huyện</label>
+                    <select
+                      id="checkout-district"
+                      className="form-select"
+                      required
+                      value={districtId}
+                      disabled={!provinceId || isLoadingDistricts || locationError}
+                      onChange={(event) => {
+                        setDistrictId(event.target.value);
+                        setCommuneId('');
+                        setCommunes([]);
+                      }}
+                    >
+                      <option value="">{isLoadingDistricts ? 'Đang tải quận/huyện...' : 'Chọn quận / huyện'}</option>
+                      {districts.map((district) => (
+                        <option key={district.idDistrict} value={district.idDistrict}>{district.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="checkout-commune">Phường / xã / thị trấn</label>
+                    <select
+                      id="checkout-commune"
+                      className="form-select"
+                      required
+                      value={communeId}
+                      disabled={!districtId || isLoadingCommunes || locationError}
+                      onChange={(event) => setCommuneId(event.target.value)}
+                    >
+                      <option value="">{isLoadingCommunes ? 'Đang tải phường/xã...' : 'Chọn phường / xã'}</option>
+                      {communes.map((commune) => (
+                        <option key={commune.idCommune} value={commune.idCommune}>{commune.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {locationError ? (
+                  <p className="form-error">Không tải được danh mục địa chỉ. Vui lòng tải lại trang.</p>
+                ) : (
+                  <p className="checkout-location-note">Danh mục 3 cấp theo địa chỉ trước tháng 7/2025. Nếu tên phường/xã đã đổi, hãy ghi thêm tên mới ở ô địa chỉ chi tiết.</p>
+                )}
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>

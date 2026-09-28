@@ -3,6 +3,7 @@ import { apiClient } from '../services/apiClient';
 import { authService } from '../services/authService';
 import { bookService } from '../services/bookService';
 import { categoryService } from '../services/categoryService';
+import { cartService } from '../services/cartService';
 import { orderService } from '../services/orderService';
 import { userService } from '../services/userService';
 
@@ -97,6 +98,12 @@ describe('API services', () => {
     expect(apiClient.patch).toHaveBeenCalledWith('/orders/admin/9/status', null, {
       params: { value: 'SHIPPING' },
     });
+  });
+
+  it('rejects an invalid cart response before it reaches React state', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { items: null } });
+
+    await expect(cartService.addToRemoteCart(3, 1)).rejects.toThrow('Invalid cart response');
   });
 
   it('updates a user role through the admin endpoint', async () => {

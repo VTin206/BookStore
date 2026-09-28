@@ -80,10 +80,12 @@ describe('AuthContext', () => {
     );
     fireEvent.click(screen.getByText('login'));
 
-    await waitFor(() => expect(screen.getByTestId('authenticated')).toHaveTextContent('true'));
-    expect(localStorage.getItem('token')).toBe('login-token');
-    expect(localStorage.getItem('username')).toBe('alice');
-    expect(localStorage.getItem('role')).toBe('CUSTOMER');
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+      expect(localStorage.getItem('token')).toBe('login-token');
+      expect(localStorage.getItem('username')).toBe('alice');
+      expect(localStorage.getItem('role')).toBe('CUSTOMER');
+    });
 
     fireEvent.click(screen.getByText('logout'));
     await waitFor(() => expect(screen.getByTestId('authenticated')).toHaveTextContent('false'));

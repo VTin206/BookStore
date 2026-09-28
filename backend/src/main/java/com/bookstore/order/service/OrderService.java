@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.security.SecureRandom;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +27,8 @@ public class OrderService {
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
   private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "CARD");
+  private static final String TRACKING_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  private static final SecureRandom TRACKING_CODE_RANDOM = new SecureRandom();
 
   private final OrderRepository orderRepository;
   private final BookRepository bookRepository;
@@ -57,13 +60,16 @@ public class OrderService {
     }
 
     var order = new Order();
-    order.setUser(userRepository.findByUsername(username).orElseThrow());
+    if (username != null && !username.isBlank()) {
+      order.setUser(userRepository.findByUsername(username).orElseThrow());
+    }
     order.setCustomerName(request.customerName());
     order.setCustomerEmail(request.customerEmail());
     order.setShippingAddress(request.shippingAddress());
     order.setPhone(request.phone());
     order.setNote(request.note());
     order.setCouponCode(normalizeCoupon(request.couponCode()));
+    order.setTrackingCode(generateTrackingCode());
 
     var subtotal = BigDecimal.ZERO;
     Set<Long> requestedBookIds = new HashSet<>();
@@ -100,13 +106,23 @@ public class OrderService {
     payment.setStatus("PENDING");
     paymentRepository.save(payment);
 
-    cartRepository.findByUserUsername(username)
-        .ifPresent(
-            cart -> {
-              cart.getItems().clear();
-              cartRepository.save(cart);
-            });
+    if (username != null && !username.isBlank()) {
+      cartRepository.findByUserUsername(username)
+          .ifPresent(
+              cart -> {
+                cart.getItems().clear();
+                cartRepository.save(cart);
+              });
+    }
     return saved;
+  }
+
+  private String generateTrackingCode() {
+    var code = new StringBuilder(10);
+    for (var index = 0; index < 10; index++) {
+      code.append(TRACKING_CODE_ALPHABET.charAt(TRACKING_CODE_RANDOM.nextInt(TRACKING_CODE_ALPHABET.length())));
+    }
+    return code.toString();
   }
 
   private BigDecimal calculateShippingFee(BigDecimal subtotal) {
@@ -136,6 +152,16 @@ public class OrderService {
   @Transactional(readOnly = true)
   public List<Order> allForUser(String username) {
     return orderRepository.findByUserUsername(username);
+  }
+
+  @Transactional(readOnly = true)
+  public com.bookstore.order.dto.OrderTrackingResponse lookup(String trackingCode) {
+    if (trackingCode == null || trackingCode.isBlank()) {
+      throw new IllegalArgumentException("M? tra c?u kh?ng h?p l?");
+    }
+    var order = orderRepository.findByTrackingCode(trackingCode.trim().toUpperCase()).orElseThrow();
+    return new com.bookstore.order.dto.OrderTrackingResponse(
+        order.getTrackingCode(), order.getStatus(), order.getTotalAmount(), order.getCreatedAt());
   }
 
   @Transactional

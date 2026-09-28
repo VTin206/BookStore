@@ -16,7 +16,8 @@
     "lucide-react": "^1.47.0",
     "react": "latest",
     "react-dom": "latest",
-    "react-router-dom": "latest"
+    "react-router-dom": "latest",
+    "vietnam-divisions-js": "^3.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",

@@ -447,7 +447,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
             <Link to="/books?filter=promo" style={getNavLinkStyle(isActiveNav('/books', '?filter=promo'), true)}>
               Khuyến mãi HOT
             </Link>
-            <Link to="/orders" style={getNavLinkStyle(isActiveNav('/orders'))}>
+            <Link to="/track-order" style={getNavLinkStyle(isActiveNav('/orders'))}>
               Tra cứu đơn hàng
             </Link>
           </div>
@@ -496,7 +496,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
                 Hỗ trợ khách hàng
               </h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.875rem' }}>
-                <li><Link to="/orders" style={{ color: '#94a3b8' }}>Tra cứu đơn hàng</Link></li>
+                <li><Link to="/track-order" style={{ color: '#94a3b8' }}>Tra cứu đơn hàng</Link></li>
                 <li><Link to="/books" style={{ color: '#94a3b8' }}>Hướng dẫn mua hàng</Link></li>
                 <li><Link to="/cart" style={{ color: '#94a3b8' }}>Phương thức thanh toán</Link></li>
                 <li><Link to="/profile" style={{ color: '#94a3b8' }}>Tài khoản của bạn</Link></li>

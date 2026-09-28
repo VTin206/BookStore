@@ -11,6 +11,7 @@ public class CartItem {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "cart_id", nullable = false)
   private Cart cart;
