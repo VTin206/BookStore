@@ -1,6 +1,7 @@
 package com.bookstore.common;
 
 import java.util.Map;
+import com.bookstore.common.exception.ApiException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+  @ExceptionHandler(ApiException.class)
+  ResponseEntity<Map<String, String>> api(ApiException exception) {
+    return ResponseEntity.status(exception.getStatus()).body(Map.of("message", exception.getMessage()));
+  }
+
   @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
   ResponseEntity<Map<String, String>> bad(RuntimeException exception) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
