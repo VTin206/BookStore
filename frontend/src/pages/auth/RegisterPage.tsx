@@ -1,9 +1,10 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Logo } from '../../components/ui/Logo';
 import { BookOpen, UserPlus } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
@@ -21,7 +22,7 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim() || !fullName.trim() || !email.trim()) {
-      error('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ cÃ¡c trÆ°á»ng báº¯t buá»™c (*).');
+      error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
       return;
     }
 
@@ -34,11 +35,11 @@ export const RegisterPage: React.FC = () => {
         email: email.trim(),
         phone: phone.trim() || undefined,
       });
-      success('ÄÄƒng kÃ½ tÃ i khoáº£n thÃ nh cÃ´ng! Báº¡n Ä‘Ã£ Ä‘Æ°á»£c tá»± Ä‘á»™ng Ä‘Äƒng nháº­p.');
+      success('Đăng ký tài khoản thành công! Bạn đã được tự động đăng nhập.');
       navigate('/');
     } catch (err: any) {
       console.error('Registration error', err);
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Dang ky that bai. Vui long thu lai.';
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Đăng ký thất bại. Vui lòng thử lại.';
       error(msg);
     } finally {
       setIsLoading(false);
@@ -68,39 +69,27 @@ export const RegisterPage: React.FC = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div
-            style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--primary)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1rem',
-            }}
-          >
-            <BookOpen size={28} />
-          </div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.4rem' }}>ÄÄƒng kÃ½ tÃ i khoáº£n</h1>
+          <Link to="/" style={{ display: 'inline-block', marginBottom: '1.25rem', textDecoration: 'none' }}>
+            <Logo variant="stacked" size="md" />
+          </Link>
+          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.4rem' }}>Đăng ký tài khoản</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            Gia nháº­p cá»™ng Ä‘á»“ng ngÆ°á»i yÃªu sÃ¡ch táº¡i BookStore
+            Gia nhập cộng đồng người yêu sách tại BookStore
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="Há» vÃ  tÃªn *"
-            placeholder="VÃ­ dá»¥: LÃª Minh ChÃ¢u"
+            label="Họ và tên *"
+            placeholder="Ví dụ: Lê Minh Châu"
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
 
           <Input
-            label="TÃªn Ä‘Äƒng nháº­p *"
-            placeholder="VÃ­ dá»¥: minhchau99"
+            label="Tên đăng nhập *"
+            placeholder="Ví dụ: Lê Minh Châu"
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -116,7 +105,7 @@ export const RegisterPage: React.FC = () => {
           />
 
           <Input
-            label="Sá»‘ Ä‘iá»‡n thoáº¡i"
+            label="Sá»‘ Ä‘iá»‡n thoại"
             type="tel"
             placeholder="09xx xxx xxx"
             value={phone}
@@ -124,9 +113,9 @@ export const RegisterPage: React.FC = () => {
           />
 
           <Input
-            label="Máº­t kháº©u *"
+            label="Mật khẩu *"
             type="password"
-            placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±"
+            placeholder="Tá»‘i thiá»ƒu 6 ký tự"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -141,7 +130,7 @@ export const RegisterPage: React.FC = () => {
               style={{ width: '100%', fontWeight: 700 }}
               leftIcon={<UserPlus size={18} />}
             >
-              Táº¡o tÃ i khoáº£n má»›i
+              Tạo tài khoản mới
             </Button>
           </div>
         </form>
@@ -156,9 +145,9 @@ export const RegisterPage: React.FC = () => {
             color: 'var(--text-secondary)',
           }}
         >
-          ÄÃ£ cÃ³ tÃ i khoáº£n?{' '}
+          Đã có tài khoản?{' '}
           <Link to="/login" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-            ÄÄƒng nháº­p ngay
+            Đăng nhập ngay
           </Link>
         </div>
       </div>

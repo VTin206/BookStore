@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { Logo } from '../components/ui/Logo';
 import {
   BookOpen,
   Search,
@@ -41,21 +42,21 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
       {/* Top Notification Announcement Bar */}
       <div
         style={{
-          backgroundColor: '#0f172a',
+          backgroundColor: 'var(--surface-dark, #16222E)',
           color: '#cbd5e1',
           fontSize: '0.8rem',
-          padding: '6px 0',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '7px 0',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Truck size={14} color="#60a5fa" />
-            <span>Miễn phí vận chuyển toàn quốc cho đơn hàng từ <strong>250.000₫</strong></span>
+            <Truck size={14} color="#5BB573" />
+            <span>Miễn phí vận chuyển toàn quốc từ <strong>250.000₫</strong> • Ưu đãi tri thức 2026</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Phone size={13} /> Hotline: <strong>1900 6868</strong> (8h - 21h)
+              <Phone size={13} color="#94a3b8" /> Hotline: <strong style={{ color: '#ffffff' }}>1900 6868</strong> (8h - 21h)
             </span>
           </div>
         </div>
@@ -88,43 +89,11 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
               textDecoration: 'none',
               flexShrink: 0,
             }}
           >
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <BookOpen size={24} />
-            </div>
-            <div>
-              <span
-                style={{
-                  fontSize: '1.4rem',
-                  fontWeight: 800,
-                  color: 'var(--primary)',
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1,
-                  display: 'block',
-                }}
-              >
-                BOOKSTORE
-              </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
-                TRI THỨC & VĂN HÓA
-              </span>
-            </div>
+            <Logo variant="horizontal" size="md" />
           </Link>
 
           {/* Prominent Search Bar (Desktop) */}
@@ -476,10 +445,10 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
       {/* Footer */}
       <footer
         style={{
-          backgroundColor: '#0f172a',
+          backgroundColor: 'var(--surface-dark, #16222E)',
           color: '#94a3b8',
           paddingTop: '4rem',
-          paddingBottom: '2rem',
+          paddingBottom: '2.5rem',
           marginTop: 'auto',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
         }}
@@ -495,30 +464,14 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
           >
             {/* Col 1: About */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem' }}>
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#ffffff',
-                  }}
-                >
-                  <BookOpen size={18} />
-                </div>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
-                  BOOKSTORE
-                </span>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <Logo variant="horizontal" size="md" theme="dark" />
               </div>
               <p style={{ fontSize: '0.875rem', lineHeight: 1.6, color: '#94a3b8', marginBottom: '1.25rem' }}>
-                Nhà sách trực tuyến với sứ mệnh lan tỏa văn hóa đọc, cung cấp các ấn phẩm chất lượng, nguồn gốc chính hãng và dịch vụ tận tâm.
+                Nhà sách trực tuyến với sứ mệnh lan tỏa văn hóa đọc, ươm mầm tri thức và nuôi dưỡng tâm hồn qua từng ấn phẩm chất lượng, nguồn gốc chính hãng và dịch vụ tận tâm.
               </p>
               <div style={{ display: 'flex', gap: '1rem', color: '#cbd5e1' }}>
-                <span style={{ fontSize: '0.85rem' }}>Hotline: <strong>1900 6868</strong></span>
+                <span style={{ fontSize: '0.85rem' }}>Hotline hỗ trợ: <strong style={{ color: '#ffffff' }}>1900 6868</strong></span>
               </div>
             </div>
 
@@ -551,19 +504,19 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
             {/* Col 4: Values */}
             <div>
               <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '1.25rem', fontWeight: 700 }}>
-                Cam kết từ BookStore
+                Cam kết từ Book Store
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', fontSize: '0.85rem' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <Truck size={18} color="#60a5fa" />
+                  <Truck size={18} color="#5BB573" />
                   <span>Giao hàng nhanh toàn quốc</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <RotateCcw size={18} color="#34d399" />
+                  <RotateCcw size={18} color="#5BB573" />
                   <span>Đổi trả dễ dàng trong 30 ngày</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <Headphones size={18} color="#f59e0b" />
+                  <Headphones size={18} color="#F59E0B" />
                   <span>Hỗ trợ tư vấn 24/7 nhiệt tình</span>
                 </div>
               </div>
@@ -583,9 +536,9 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
               fontSize: '0.825rem',
             }}
           >
-            <div>© {new Date().getFullYear()} BookStore E-Commerce. Toàn bộ bản quyền được bảo lưu.</div>
+            <div>© {new Date().getFullYear()} Book Store — Khám Phá Thế Giới. Toàn bộ bản quyền được bảo lưu.</div>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <span>Designed with modern aesthetics & care</span>
+              <span>Ươm mầm tri thức • Đồng hành tương lai</span>
             </div>
           </div>
         </div>

@@ -55,7 +55,7 @@ export const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
+          background: 'linear-gradient(135deg, #162432 0%, #20415D 55%, #2B5746 100%)',
           color: '#ffffff',
           padding: '4.5rem 0',
           position: 'relative',
@@ -70,7 +70,7 @@ export const HomePage: React.FC = () => {
             width: '500px',
             height: '500px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(74, 133, 182, 0.22) 0%, transparent 70%)',
             pointerEvents: 'none',
           }}
         />
@@ -99,12 +99,13 @@ export const HomePage: React.FC = () => {
                 backdropFilter: 'blur(8px)',
                 fontSize: '0.85rem',
                 fontWeight: 600,
-                color: '#93c5fd',
+                color: '#A7D7B5',
                 marginBottom: '1.25rem',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
               }}
             >
               <Sparkles size={16} color="#fbbf24" />
-              <span>Khám phá tri thức mới mỗi ngày</span>
+              <span>Book Store — Khám Phá Thế Giới</span>
             </div>
 
             <h1
@@ -129,7 +130,7 @@ export const HomePage: React.FC = () => {
                 marginBottom: '2rem',
               }}
             >
-              Tuyển tập hàng ngàn tựa sách hay nhất từ văn học, kinh tế, công nghệ đến phát triển bản thân. Giao hàng nhanh chóng và đảm bảo 100% sách thật.
+              Tuyển tập hàng ngàn tựa sách chọn lọc từ văn học, kinh tế, công nghệ đến phát triển bản thân và nuôi dưỡng tâm hồn. Khởi đầu hành trình khám phá thế giới ngay hôm nay.
             </p>
 
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -137,7 +138,7 @@ export const HomePage: React.FC = () => {
                 to="/books"
                 className="btn btn-lg"
                 style={{
-                  backgroundColor: 'var(--accent)',
+                  backgroundColor: 'var(--secondary)',
                   color: '#ffffff',
                   border: 'none',
                   boxShadow: 'var(--shadow-md)',
@@ -466,7 +467,7 @@ export const HomePage: React.FC = () => {
       <section className="container">
         <div
           style={{
-            background: 'linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #4338ca 100%)',
+            background: 'linear-gradient(135deg, #162432 0%, #1E3F59 50%, #2A5A43 100%)',
             borderRadius: 'var(--radius-xl)',
             padding: '3rem 2.5rem',
             color: '#ffffff',
@@ -477,6 +478,8 @@ export const HomePage: React.FC = () => {
             gap: '2rem',
             position: 'relative',
             overflow: 'hidden',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
           <div style={{ maxWidth: '600px', position: 'relative', zIndex: 1 }}>
@@ -486,22 +489,22 @@ export const HomePage: React.FC = () => {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '4px 12px',
-                backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                backgroundColor: 'rgba(217, 119, 6, 0.25)',
                 color: '#fef3c7',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
+                border: '1px solid rgba(217, 119, 6, 0.45)',
                 borderRadius: 'var(--radius-full)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 marginBottom: '1rem',
               }}
             >
-              <Percent size={14} /> ƯU ĐÃI THÁNG NÀY
+              <Percent size={14} /> ƯU ĐÃI KHÁM PHÁ THẾ GIỚI
             </div>
             <h2 style={{ color: '#ffffff', fontSize: '2rem', marginBottom: '0.75rem' }}>
-              Tuần lễ văn hóa đọc - Giảm đến 30%
+              Tuần lễ văn hóa đọc — Giảm đến 30%
             </h2>
             <p style={{ color: '#e0e7ff', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
-              Áp dụng cho mọi đơn hàng sách chuyên ngành, công nghệ và phát triển bản thân. Nhập mã <strong>TRIAN30</strong> khi thanh toán.
+              Đồng hành cùng hành trình tri thức của bạn. Áp dụng cho toàn bộ danh mục sách kinh tế, công nghệ và phát triển bản thân. Nhập mã <strong>KHAMPHA30</strong> khi đặt hàng.
             </p>
           </div>
 

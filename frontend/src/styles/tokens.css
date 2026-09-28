@@ -1,62 +1,99 @@
 :root {
-  /* Brand & Theme Colors */
-  --primary: #1e3a8a;
-  --primary-hover: #172554;
-  --primary-light: #eff6ff;
-  --primary-subtle: #dbeafe;
-  --primary-text: #ffffff;
+  /* ==========================================================================
+     Brand & Theme Colors (Harmonized with "Book Store - Khám Phá Thế Giới")
+     ========================================================================== */
   
-  --accent: #f59e0b;
-  --accent-hover: #d97706;
-  --accent-light: #fffbeb;
+  /* Primary: Serene Ocean & Sky Blue (from book & monogram 'B' in logo) */
+  --primary: #3779AA;
+  --primary-hover: #296490;
+  --primary-active: #1F4F73;
+  --primary-light: #F0F6FA;
+  --primary-subtle: #D8E7F2;
+  --primary-border: #B7D2E7;
+  --primary-text: #FFFFFF;
+
+  /* Secondary / Brand Nature: Botanical Sage & Forest Green (from knowledge tree in logo) */
+  --secondary: #488E57;
+  --secondary-hover: #387445;
+  --secondary-active: #2A5B35;
+  --secondary-light: #F1F8F3;
+  --secondary-subtle: #D7ECDC;
+  --secondary-border: #B2DDC0;
+  --secondary-text: #FFFFFF;
+
+  /* Accent: Warm Literary Amber Gold (for promotions, discounts, ratings) */
+  --accent: #D97706;
+  --accent-hover: #B45309;
+  --accent-light: #FFFBEB;
+  --accent-subtle: #FEF3C7;
+  --accent-border: #FDE68A;
   
-  /* Surfaces & Backgrounds */
-  --bg-main: #f8fafc;
-  --surface: #ffffff;
-  --surface-alt: #f1f5f9;
-  --surface-hover: #f8fafc;
+  /* ==========================================================================
+     Surfaces & Backgrounds (Warm Paper & Parchment Reading Aesthetics)
+     ========================================================================== */
+  --bg-main: #F7F5EE;
+  --surface: #FFFFFF;
+  --surface-alt: #F0EDE4;
+  --surface-hover: #E8E4DA;
+  --surface-muted: #E2DDD1;
+
+  /* Dark Surfaces (for deep header accents, footer, admin sidebar) */
+  --surface-dark: #16222E;
+  --surface-dark-alt: #1C2B3A;
+  --surface-dark-border: rgba(255, 255, 255, 0.08);
+
+  /* ==========================================================================
+     Text Colors (Deep Slate Charcoal & Warm Reading Contrasts)
+     ========================================================================== */
+  --text-primary: #1A2735;
+  --text-secondary: #4A5B6D;
+  --text-muted: #7E90A2;
+  --text-light: #C0CDD8;
+  --text-inverse: #FFFFFF;
   
-  /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-light: #cbd5e1;
+  /* ==========================================================================
+     Borders
+     ========================================================================== */
+  --border: #E2DCD1;
+  --border-light: #ECE7DE;
+  --border-focus: #3779AA;
   
-  /* Borders */
-  --border: #e2e8f0;
-  --border-light: #f1f5f9;
-  --border-focus: #3b82f6;
+  /* ==========================================================================
+     Status Colors
+     ========================================================================== */
+  --success: #3D854F;
+  --success-bg: #F0F8F3;
+  --success-border: #BCE2C7;
+  --success-text: #1E532B;
   
-  /* Status Colors */
-  --success: #10b981;
-  --success-bg: #ecfdf5;
-  --success-border: #a7f3d0;
-  --success-text: #065f46;
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FDE68A;
+  --warning-text: #92400E;
   
-  --warning: #f59e0b;
-  --warning-bg: #fffbeb;
-  --warning-border: #fde68a;
-  --warning-text: #92400e;
+  --error: #DC2626;
+  --error-bg: #FEF2F2;
+  --error-border: #FECACA;
+  --error-text: #991B1B;
   
-  --error: #ef4444;
-  --error-bg: #fef2f2;
-  --error-border: #fecaca;
-  --error-text: #991b1b;
+  --info: #2563EB;
+  --info-bg: #EFF6FF;
+  --info-border: #BFDBFE;
+  --info-text: #1E40AF;
   
-  --info: #3b82f6;
-  --info-bg: #eff6ff;
-  --info-border: #bfdbfe;
-  --info-text: #1e40af;
+  /* ==========================================================================
+     Shadows & Elevations
+     ========================================================================== */
+  --shadow-xs: 0 1px 2px 0 rgba(28, 43, 58, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(28, 43, 58, 0.07), 0 1px 2px -1px rgba(28, 43, 58, 0.06);
+  --shadow-md: 0 4px 8px -1px rgba(28, 43, 58, 0.08), 0 2px 4px -2px rgba(28, 43, 58, 0.06);
+  --shadow-lg: 0 12px 20px -4px rgba(28, 43, 58, 0.09), 0 4px 6px -4px rgba(28, 43, 58, 0.04);
+  --shadow-xl: 0 20px 30px -6px rgba(28, 43, 58, 0.1), 0 8px 12px -6px rgba(28, 43, 58, 0.05);
+  --shadow-inner: inset 0 2px 4px 0 rgba(28, 43, 58, 0.04);
   
-  /* Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  
-  /* Border Radius */
+  /* ==========================================================================
+     Border Radius
+     ========================================================================== */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -64,11 +101,15 @@
   --radius-xl: 20px;
   --radius-full: 9999px;
   
-  /* Typography */
+  /* ==========================================================================
+     Typography
+     ========================================================================== */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Lora', Georgia, Cambria, 'Times New Roman', Times, serif;
   
-  /* Spacing */
+  /* ==========================================================================
+     Spacing & Layout
+     ========================================================================== */
   --container-max: 1240px;
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Rounded Background Container -->
+  <rect width="120" height="120" rx="26" fill="#FBF8F1"/>
+  
+  <!-- Left Pages (Book open) -->
+  <path d="M28 36 C28 32 30 30 33 30 L40 30 C44 30 46 32 46 36 L46 76 C46 80 44 82 40 82 L33 82 C30 82 28 80 28 76 Z" stroke="#4A85B6" stroke-width="4.5" stroke-linejoin="round" fill="none"/>
+  <path d="M37 26 C41 26 47 28 54 36 L54 84 C47 78 40 76 36 76" stroke="#4A85B6" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30 80 C36 84 44 86 54 90 C62 86 70 84 76 83" stroke="#4A85B6" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Right 'B' Wings -->
+  <path d="M54 30 C58 26 65 24 72 26 C81 28 87 36 87 44 C87 51 81 57 74 58 C83 59 89 66 89 74 C89 83 81 90 70 90 C62 90 57 86 54 83" stroke="#4A85B6" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Center Sprout Tree Trunk -->
+  <path d="M54 84 C54 75 51 68 53 58 C54 52 56 46 54 42" stroke="#4A85B6" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Green Foliage Leaves -->
+  <!-- Center Top Leaf -->
+  <path d="M54 38 C52 32 54 27 54 27 C54 27 56 32 54 38 Z" fill="#60A36E"/>
+  <!-- Left Leaves -->
+  <path d="M52 46 C46 44 43 39 43 39 C43 39 49 40 52 46 Z" fill="#60A36E"/>
+  <path d="M50 55 C43 54 41 49 41 49 C41 49 47 50 50 55 Z" fill="#60A36E"/>
+  <path d="M49 64 C43 64 42 60 42 60 C42 60 47 60 49 64 Z" fill="#60A36E"/>
+  <!-- Right Leaves -->
+  <path d="M55 44 C61 41 65 37 65 37 C65 37 61 44 55 44 Z" fill="#60A36E"/>
+  <path d="M56 53 C63 51 66 47 66 47 C66 47 62 53 56 53 Z" fill="#60A36E"/>
+  <path d="M56 62 C62 61 64 57 64 57 C64 57 60 62 56 62 Z" fill="#60A36E"/>
+</svg>

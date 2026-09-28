@@ -14,12 +14,12 @@ const CURATED_COVERS: Record<string, string> = {
 };
 
 const PALETTES = [
-  { bg: 'linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)', text: '#ffffff', accent: '#60a5fa' },
-  { bg: 'linear-gradient(135deg, #065f46 0%, #022c22 100%)', text: '#ffffff', accent: '#34d399' },
+  { bg: 'linear-gradient(135deg, #20415D 0%, #162432 100%)', text: '#ffffff', accent: '#76B2DE' },
+  { bg: 'linear-gradient(135deg, #1E532B 0%, #0F2D16 100%)', text: '#ffffff', accent: '#5BB573' },
   { bg: 'linear-gradient(135deg, #7c2d12 0%, #431407 100%)', text: '#ffffff', accent: '#fb923c' },
   { bg: 'linear-gradient(135deg, #581c87 0%, #2e1065 100%)', text: '#ffffff', accent: '#c084fc' },
   { bg: 'linear-gradient(135deg, #831843 0%, #500724 100%)', text: '#ffffff', accent: '#f472b6' },
-  { bg: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', text: '#ffffff', accent: '#94a3b8' },
+  { bg: 'linear-gradient(135deg, #2A3B4C 0%, #18232E 100%)', text: '#ffffff', accent: '#95ADC4' },
 ];
 
 export function getBookCover(title: string, categoryName?: string, customUrl?: string): string {

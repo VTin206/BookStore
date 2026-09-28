@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from '../components/ui/Logo';
 import {
   LayoutDashboard,
   BookOpen,
@@ -48,12 +49,12 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
       {/* Sidebar Desktop */}
       <aside
         style={{
-          width: collapsed ? '72px' : '250px',
-          backgroundColor: '#0f172a',
+          width: collapsed ? '74px' : '260px',
+          backgroundColor: 'var(--surface-dark, #16222E)',
           color: '#cbd5e1',
           display: 'flex',
           flexDirection: 'column',
@@ -70,41 +71,34 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
         {/* Brand / Logo */}
         <div
           style={{
-            height: '68px',
+            height: '70px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: collapsed ? 'center' : 'space-between',
-            padding: collapsed ? '0' : '0 1.25rem',
+            padding: collapsed ? '0' : '0 1rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                flexShrink: 0,
-              }}
-            >
-              <BookOpen size={20} />
+          {collapsed ? (
+            <Logo variant="symbol" size="sm" theme="dark" />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Logo variant="horizontal" size="sm" theme="dark" showTagline={false} />
+              <span
+                style={{
+                  fontSize: '0.62rem',
+                  backgroundColor: 'var(--secondary)',
+                  color: '#ffffff',
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-xs)',
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
+                }}
+              >
+                ADMIN
+              </span>
             </div>
-            {!collapsed && (
-              <div>
-                <div style={{ fontWeight: 800, color: '#ffffff', fontSize: '1.05rem', lineHeight: 1 }}>
-                  ADMIN PORTAL
-                </div>
-                <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.08em' }}>
-                  BOOK STORE MGMT
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           {!collapsed && (
             <button

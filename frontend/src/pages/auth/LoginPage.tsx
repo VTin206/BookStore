@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Logo } from '../../components/ui/Logo';
 import { BookOpen, LogIn, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -62,24 +63,12 @@ export const LoginPage: React.FC = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div
-            style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--primary)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1rem',
-            }}
-          >
-            <BookOpen size={28} />
-          </div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.4rem' }}>Đăng nhập BookStore</h1>
+          <Link to="/" style={{ display: 'inline-block', marginBottom: '1.25rem', textDecoration: 'none' }}>
+            <Logo variant="stacked" size="md" />
+          </Link>
+          <h1 style={{ fontSize: '1.45rem', marginBottom: '0.4rem' }}>Đăng nhập tài khoản</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            Chào mừng bạn quay trở lại với kho tàng tri thức
+            Tiếp tục hành trình khám phá thế giới tri thức cùng Book Store
           </p>
         </div>
 
