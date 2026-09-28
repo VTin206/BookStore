@@ -2,7 +2,7 @@ package com.bookstore.catalog;
 
 import com.bookstore.catalog.entity.Author;
 import com.bookstore.catalog.entity.Publisher;
-import com.bookstore.catalog.catalogService.CatalogService;
+import com.bookstore.catalog.service.CatalogService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;

@@ -3,7 +3,7 @@ package com.bookstore.cart.controller;
 import com.bookstore.cart.dto.CartItemRequest;
 import com.bookstore.cart.dto.CartItemUpdateRequest;
 import com.bookstore.cart.entity.Cart;
-import com.bookstore.cart.cartService.CartService;
+import com.bookstore.cart.service.CartService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

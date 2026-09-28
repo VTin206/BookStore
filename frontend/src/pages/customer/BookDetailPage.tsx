@@ -115,8 +115,8 @@ export const BookDetailPage: React.FC = () => {
     addToCart(book, quantity);
   };
 
-  const handleBuyNow = () => {
-    addToCart(book, quantity);
+  const handleBuyNow = async () => {
+    await addToCart(book, quantity);
     navigate('/cart');
   };
   const handleToggleWishlist = async () => {

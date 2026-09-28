@@ -2,7 +2,7 @@ package com.bookstore.category.controller;
 
 import com.bookstore.category.dto.CategoryRequest;
 import com.bookstore.category.entity.Category;
-import com.bookstore.category.categoryService.CategoryService;
+import com.bookstore.category.service.CategoryService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;

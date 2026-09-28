@@ -62,8 +62,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (isAuthenticated) {
         try {
-          await cartService.addToRemoteCart(book.id, quantity);
-          await refreshCart();
+          const remoteCart = await cartService.addToRemoteCart(book.id, quantity);
+          setItems(remoteCart.items);
+          cartService.setLocalCart(remoteCart.items);
           success(`Đã thêm "${book.title}" vào giỏ hàng!`);
           return;
         } catch {

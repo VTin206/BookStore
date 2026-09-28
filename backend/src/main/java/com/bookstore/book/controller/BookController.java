@@ -2,7 +2,7 @@ package com.bookstore.book.controller;
 
 import com.bookstore.book.dto.BookRequest;
 import com.bookstore.book.entity.Book;
-import com.bookstore.book.bookService.BookService;
+import com.bookstore.book.service.BookService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
