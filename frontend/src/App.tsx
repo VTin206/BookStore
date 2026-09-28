@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -28,12 +28,22 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminAuthorsPublishersPage } from './pages/admin/AdminAuthorsPublishersPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminVouchersPage } from './pages/admin/AdminVouchersPage';
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
 
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <CartProvider>
+          <ScrollToTop />
           <Routes>
             {/* Customer Facing Routes */}
             <Route
