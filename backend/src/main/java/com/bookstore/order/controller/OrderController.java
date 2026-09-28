@@ -36,7 +36,7 @@ public class OrderController {
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/admin/{id}/status")
-  public Order updateStatus(@PathVariable Long id, @RequestParam String value) {
-    return orderService.updateStatus(id, value);
+  public Order updateStatus(@PathVariable Long id, @RequestParam String orderStatus) {
+    return orderService.updateStatus(id, orderStatus);
   }
 }

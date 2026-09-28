@@ -70,8 +70,8 @@ public class UserController {
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{id}/role")
   public User updateRole(
-      Authentication authentication, @PathVariable Long id, @RequestParam String value) {
-    return userService.updateRole(authentication.getName(), id, value);
+      Authentication authentication, @PathVariable Long id, @RequestParam String role) {
+    return userService.updateRole(authentication.getName(), id, role);
   }
 
   @PreAuthorize("hasRole('ADMIN')")

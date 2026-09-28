@@ -68,23 +68,23 @@ class Review {
     return userName;
   }
 
-  public void setUserId(Long value) {
-    userId = value;
+  public void setUserId(Long userId) {
+    this.userId = userId;
   }
 
-  public void setBookId(Long value) {
-    bookId = value;
+  public void setBookId(Long bookId) {
+    this.bookId = bookId;
   }
 
-  public void setRating(Integer value) {
-    rating = value;
+  public void setRating(Integer rating) {
+    this.rating = rating;
   }
 
-  public void setComment(String value) {
-    comment = value;
+  public void setComment(String comment) {
+    this.comment = comment;
   }
-  public void setUserName(String value) {
-    userName = value;
+  public void setUserName(String userName) {
+    this.userName = userName;
   }
 }
 

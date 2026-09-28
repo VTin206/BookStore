@@ -28,23 +28,23 @@ public class Publisher {
     return name;
   }
 
-  public void setName(String value) {
-    name = value;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getAddress() {
     return address;
   }
 
-  public void setAddress(String value) {
-    address = value;
+  public void setAddress(String address) {
+    this.address = address;
   }
 
   public String getWebsite() {
     return website;
   }
 
-  public void setWebsite(String value) {
-    website = value;
+  public void setWebsite(String website) {
+    this.website = website;
   }
 }

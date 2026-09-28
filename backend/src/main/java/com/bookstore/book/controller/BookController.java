@@ -43,8 +43,8 @@ public class BookController {
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{id}/stock")
-  public Book stock(@PathVariable Long id, @RequestParam Integer value) {
-    return bookService.adjustStock(id, value);
+  public Book stock(@PathVariable Long id, @RequestParam Integer stockDelta) {
+    return bookService.adjustStock(id, stockDelta);
   }
 
   @PreAuthorize("hasRole('ADMIN')")

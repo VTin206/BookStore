@@ -66,48 +66,48 @@ public class Book {
     return title;
   }
 
-  public void setTitle(String value) {
-    title = value;
+  public void setTitle(String title) {
+    this.title = title;
   }
 
   public String getAuthor() {
     return author;
   }
 
-  public void setAuthor(String value) {
-    author = value;
+  public void setAuthor(String author) {
+    this.author = author;
   }
 
   public BigDecimal getPrice() {
     return price;
   }
 
-  public void setPrice(BigDecimal value) {
-    price = value;
+  public void setPrice(BigDecimal price) {
+    this.price = price;
   }
 
   public Integer getStock() {
     return stock;
   }
 
-  public void setStock(Integer value) {
-    stock = value;
+  public void setStock(Integer stock) {
+    this.stock = stock;
   }
 
   public Category getCategory() {
     return category;
   }
 
-  public void setCategory(Category value) {
-    category = value;
+  public void setCategory(Category category) {
+    this.category = category;
   }
 
   public Author getAuthorRef() {
     return authorRef;
   }
 
-  public void setAuthorRef(Author value) {
-    authorRef = value;
+  public void setAuthorRef(Author author) {
+    this.authorRef = author;
   }
 
   public Long getAuthorId() {
@@ -118,8 +118,8 @@ public class Book {
     return publisher;
   }
 
-  public void setPublisher(Publisher value) {
-    publisher = value;
+  public void setPublisher(Publisher publisher) {
+    this.publisher = publisher;
   }
 
   public Long getPublisherId() {
@@ -130,31 +130,31 @@ public class Book {
     return isbn;
   }
 
-  public void setIsbn(String value) {
-    isbn = value;
+  public void setIsbn(String isbn) {
+    this.isbn = isbn;
   }
 
   public String getDescription() {
     return description;
   }
 
-  public void setDescription(String value) {
-    description = value;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public String getImageUrl() {
     return imageUrl;
   }
 
-  public void setImageUrl(String value) {
-    imageUrl = value;
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public LocalDate getPublicationDate() {
     return publicationDate;
   }
 
-  public void setPublicationDate(LocalDate value) {
-    publicationDate = value;
+  public void setPublicationDate(LocalDate publicationDate) {
+    this.publicationDate = publicationDate;
   }
 }

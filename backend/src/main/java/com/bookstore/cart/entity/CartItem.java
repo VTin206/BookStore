@@ -30,5 +30,5 @@ public class CartItem {
   public Cart getCart() { return cart; }
   public Book getBook() { return book; }
   public Integer getQuantity() { return quantity; }
-  public void setQuantity(Integer value) { quantity = value; }
+  public void setQuantity(Integer quantity) { this.quantity = quantity; }
 }

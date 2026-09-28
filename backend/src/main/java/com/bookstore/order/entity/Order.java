@@ -53,27 +53,27 @@ public class Order {
 
   public Long getId() { return id; }
   public User getUser() { return user; }
-  public void setUser(User value) { user = value; }
+  public void setUser(User user) { this.user = user; }
   public String getCustomerName() { return customerName; }
-  public void setCustomerName(String value) { customerName = value; }
+  public void setCustomerName(String customerName) { this.customerName = customerName; }
   public String getCustomerEmail() { return customerEmail; }
-  public void setCustomerEmail(String value) { customerEmail = value; }
+  public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
   public String getShippingAddress() { return shippingAddress; }
-  public void setShippingAddress(String value) { shippingAddress = value; }
+  public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
   public String getPhone() { return phone; }
-  public void setPhone(String value) { phone = value; }
+  public void setPhone(String phone) { this.phone = phone; }
   public String getNote() { return note; }
-  public void setNote(String value) { note = value; }
+  public void setNote(String note) { this.note = note; }
   public BigDecimal getShippingFee() { return shippingFee; }
-  public void setShippingFee(BigDecimal value) { shippingFee = value; }
+  public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
   public BigDecimal getDiscountAmount() { return discountAmount; }
-  public void setDiscountAmount(BigDecimal value) { discountAmount = value; }
+  public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
   public String getCouponCode() { return couponCode; }
-  public void setCouponCode(String value) { couponCode = value; }
+  public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
   public BigDecimal getTotalAmount() { return totalAmount; }
-  public void setTotalAmount(BigDecimal value) { totalAmount = value; }
+  public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
   public String getStatus() { return status; }
-  public void setStatus(String value) { status = value; }
+  public void setStatus(String status) { this.status = status; }
   public LocalDateTime getCreatedAt() { return createdAt; }
   public List<OrderItem> getItems() { return items; }
 }

@@ -22,7 +22,7 @@ public class SecurityConfig {
   SecurityFilterChain filter(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
     return http.csrf(csrf -> csrf.disable())
         .cors(cors -> {})
-        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
