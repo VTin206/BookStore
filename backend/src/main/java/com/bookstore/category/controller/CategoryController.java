@@ -2,7 +2,7 @@ package com.bookstore.category.controller;
 
 import com.bookstore.category.dto.CategoryRequest;
 import com.bookstore.category.entity.Category;
-import com.bookstore.category.service.CategoryService;
+import com.bookstore.category.categoryService.CategoryService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,32 +20,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
-  private final CategoryService service;
+  private final CategoryService categoryService;
 
-  public CategoryController(CategoryService service) {
-    this.service = service;
+  public CategoryController(CategoryService categoryService) {
+    this.categoryService = categoryService;
   }
 
   @GetMapping
   public List<Category> all() {
-    return service.all();
+    return categoryService.all();
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
   public Category create(@Valid @RequestBody CategoryRequest request) {
-    return service.create(request);
+    return categoryService.create(request);
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @PutMapping("/{id}")
   public Category update(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
-    return service.update(id, request);
+    return categoryService.update(id, request);
   }
   @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable Long id) {
-    service.delete(id);
+    categoryService.delete(id);
   }
 }

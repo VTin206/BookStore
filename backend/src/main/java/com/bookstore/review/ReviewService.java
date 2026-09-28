@@ -8,29 +8,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReviewService {
-  private final ReviewRepository reviews;
-  private final UserRepository users;
-  private final BookRepository books;
+  private final ReviewRepository reviewRepository;
+  private final UserRepository userRepository;
+  private final BookRepository bookRepository;
 
-  public ReviewService(ReviewRepository reviews, UserRepository users, BookRepository books) {
-    this.reviews = reviews;
-    this.users = users;
-    this.books = books;
+  public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, BookRepository bookRepository) {
+    this.reviewRepository = reviewRepository;
+    this.userRepository = userRepository;
+    this.bookRepository = bookRepository;
   }
 
   @Transactional(readOnly = true)
   public List<Review> byBook(Long bookId) {
-    books.findById(bookId).orElseThrow();
-    var result = reviews.findByBookIdOrderByCreatedAtDesc(bookId);
+    bookRepository.findById(bookId).orElseThrow();
+    var result = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
     result.forEach(this::attachUserName);
     return result;
   }
 
   @Transactional
   public Review create(String username, ReviewRequest request) {
-    var user = users.findByUsername(username).orElseThrow();
-    books.findById(request.bookId()).orElseThrow();
-    if (reviews.existsByUserIdAndBookId(user.getId(), request.bookId())) {
+    var user = userRepository.findByUsername(username).orElseThrow();
+    bookRepository.findById(request.bookId()).orElseThrow();
+    if (reviewRepository.existsByUserIdAndBookId(user.getId(), request.bookId())) {
       throw new IllegalArgumentException("Bạn đã đánh giá sách này");
     }
 
@@ -40,10 +40,10 @@ public class ReviewService {
     review.setRating(request.rating());
     review.setComment(request.comment());
     review.setUserName(user.getFullName());
-    return reviews.save(review);
+    return reviewRepository.save(review);
   }
 
   private void attachUserName(Review review) {
-    users.findById(review.getUserId()).ifPresent(user -> review.setUserName(user.getFullName()));
+    userRepository.findById(review.getUserId()).ifPresent(user -> review.setUserName(user.getFullName()));
   }
 }

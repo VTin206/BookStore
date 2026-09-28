@@ -10,35 +10,35 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WishlistService {
-  private final WishlistRepository wishlist;
-  private final UserRepository users;
-  private final BookRepository books;
+  private final WishlistRepository wishlistRepository;
+  private final UserRepository userRepository;
+  private final BookRepository bookRepository;
 
-  public WishlistService(WishlistRepository wishlist, UserRepository users, BookRepository books) {
-    this.wishlist = wishlist;
-    this.users = users;
-    this.books = books;
+  public WishlistService(WishlistRepository wishlistRepository, UserRepository userRepository, BookRepository bookRepository) {
+    this.wishlistRepository = wishlistRepository;
+    this.userRepository = userRepository;
+    this.bookRepository = bookRepository;
   }
 
   @Transactional(readOnly = true)
   public List<WishlistItem> getAll(String username) {
-    return wishlist.findByUserUsernameOrderByCreatedAtDesc(username);
+    return wishlistRepository.findByUserUsernameOrderByCreatedAtDesc(username);
   }
 
   @Transactional
   public WishlistItem add(String username, Long bookId) {
-    return wishlist
+    return wishlistRepository
         .findByUserUsernameAndBookId(username, bookId)
         .orElseGet(
             () ->
-                wishlist.save(
+                wishlistRepository.save(
                     new WishlistItem(
-                        users.findByUsername(username).orElseThrow(),
-                        books.findById(bookId).orElseThrow())));
+                        userRepository.findByUsername(username).orElseThrow(),
+                        bookRepository.findById(bookId).orElseThrow())));
   }
 
   @Transactional
   public void remove(String username, Long bookId) {
-    wishlist.findByUserUsernameAndBookId(username, bookId).ifPresent(wishlist::delete);
+    wishlistRepository.findByUserUsernameAndBookId(username, bookId).ifPresent(wishlistRepository::delete);
   }
 }

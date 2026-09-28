@@ -20,8 +20,8 @@ public class Cart {
 
   public Cart() {}
 
-  public Cart(User u) {
-    user = u;
+  public Cart(User user) {
+    this.user = user;
   }
 
   public Long getId() {

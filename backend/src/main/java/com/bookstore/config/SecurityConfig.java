@@ -19,13 +19,13 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain filter(HttpSecurity h, JwtFilter f) throws Exception {
-    return h.csrf(c -> c.disable())
-        .cors(c -> {})
+  SecurityFilterChain filter(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    return http.csrf(csrf -> csrf.disable())
+        .cors(cors -> {})
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
-            a ->
-                a.requestMatchers(
+            auth ->
+                auth.requestMatchers(
                         "/api/auth/**",
                         "/api/books/**",
                         "/api/categories/**",
@@ -36,7 +36,7 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .addFilterBefore(f, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 }

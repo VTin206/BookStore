@@ -8,19 +8,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-  private final AuthService service;
+  private final AuthService authService;
 
-  public AuthController(AuthService s) {
-    service = s;
+  public AuthController(AuthService authService) {
+    this.authService = authService;
   }
 
   @PostMapping("/register")
-  public AuthResponse register(@Valid @RequestBody RegisterRequest r) {
-    return service.register(r);
+  public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
+    return authService.register(request);
   }
 
   @PostMapping("/login")
-  public AuthResponse login(@Valid @RequestBody AuthRequest r) {
-    return service.login(r);
+  public AuthResponse login(@Valid @RequestBody AuthRequest request) {
+    return authService.login(request);
   }
 }

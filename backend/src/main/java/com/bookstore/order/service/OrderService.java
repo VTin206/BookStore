@@ -27,26 +27,26 @@ public class OrderService {
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
   private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "CARD");
 
-  private final OrderRepository orders;
-  private final BookRepository books;
-  private final UserRepository users;
-  private final CartRepository carts;
-  private final PaymentRepository payments;
-  private final VoucherService vouchers;
+  private final OrderRepository orderRepository;
+  private final BookRepository bookRepository;
+  private final UserRepository userRepository;
+  private final CartRepository cartRepository;
+  private final PaymentRepository paymentRepository;
+  private final VoucherService voucherService;
 
   public OrderService(
-      OrderRepository orders,
-      BookRepository books,
-      UserRepository users,
-      CartRepository carts,
-      PaymentRepository payments,
-      VoucherService vouchers) {
-    this.orders = orders;
-    this.books = books;
-    this.users = users;
-    this.carts = carts;
-    this.payments = payments;
-    this.vouchers = vouchers;
+      OrderRepository orderRepository,
+      BookRepository bookRepository,
+      UserRepository userRepository,
+      CartRepository cartRepository,
+      PaymentRepository paymentRepository,
+      VoucherService voucherService) {
+    this.orderRepository = orderRepository;
+    this.bookRepository = bookRepository;
+    this.userRepository = userRepository;
+    this.cartRepository = cartRepository;
+    this.paymentRepository = paymentRepository;
+    this.voucherService = voucherService;
   }
 
   @Transactional
@@ -57,7 +57,7 @@ public class OrderService {
     }
 
     var order = new Order();
-    order.setUser(users.findByUsername(username).orElseThrow());
+    order.setUser(userRepository.findByUsername(username).orElseThrow());
     order.setCustomerName(request.customerName());
     order.setCustomerEmail(request.customerEmail());
     order.setShippingAddress(request.shippingAddress());
@@ -71,7 +71,7 @@ public class OrderService {
       if (!requestedBookIds.add(itemRequest.bookId())) {
         throw new IllegalArgumentException("Không được lặp sách trong đơn hàng");
       }
-      var book = books.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
+      var book = bookRepository.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
       if (book.getStock() < itemRequest.quantity()) {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
       }
@@ -87,24 +87,24 @@ public class OrderService {
     }
 
     var shippingFee = calculateShippingFee(subtotal);
-    var discountAmount = vouchers != null ? vouchers.apply(order.getCouponCode(), subtotal) : legacyTestDiscount(order.getCouponCode(), subtotal);
+    var discountAmount = voucherService != null ? voucherService.apply(order.getCouponCode(), subtotal) : legacyTestDiscount(order.getCouponCode(), subtotal);
     order.setShippingFee(shippingFee);
     order.setDiscountAmount(discountAmount);
     order.setTotalAmount(subtotal.add(shippingFee).subtract(discountAmount));
-    var saved = orders.save(order);
+    var saved = orderRepository.save(order);
 
     var payment = new Payment();
     payment.setOrder(saved);
     payment.setAmount(saved.getTotalAmount());
     payment.setMethod(paymentMethod);
     payment.setStatus("PENDING");
-    payments.save(payment);
+    paymentRepository.save(payment);
 
-    carts.findByUserUsername(username)
+    cartRepository.findByUserUsername(username)
         .ifPresent(
             cart -> {
               cart.getItems().clear();
-              carts.save(cart);
+              cartRepository.save(cart);
             });
     return saved;
   }
@@ -130,12 +130,12 @@ public class OrderService {
 
   @Transactional(readOnly = true)
   public List<Order> allForAdmin() {
-    return orders.findAll();
+    return orderRepository.findAll();
   }
 
   @Transactional(readOnly = true)
   public List<Order> allForUser(String username) {
-    return orders.findByUserUsername(username);
+    return orderRepository.findByUserUsername(username);
   }
 
   @Transactional
@@ -144,7 +144,7 @@ public class OrderService {
     if (!VALID_STATUSES.contains(normalized)) {
       throw new IllegalArgumentException("Trạng thái đơn hàng không hợp lệ");
     }
-    var order = orders.findById(id).orElseThrow();
+    var order = orderRepository.findById(id).orElseThrow();
     validateTransition(order.getStatus(), normalized);
     if ("CANCELLED".equals(normalized) && !"CANCELLED".equals(order.getStatus())) {
       order.getItems().forEach(item -> {
@@ -153,8 +153,8 @@ public class OrderService {
       });
     }
     order.setStatus(normalized);
-    var saved = orders.save(order);
-    payments.findByOrderId(id).ifPresent(payment -> {
+    var saved = orderRepository.save(order);
+    paymentRepository.findByOrderId(id).ifPresent(payment -> {
       if ("CANCELLED".equals(normalized)) {
         payment.setStatus("CANCELLED");
         payment.setPaid(false);
@@ -162,7 +162,7 @@ public class OrderService {
         payment.setStatus("PAID");
         payment.setPaid(true);
       }
-      payments.save(payment);
+      paymentRepository.save(payment);
     });
     return saved;
   }

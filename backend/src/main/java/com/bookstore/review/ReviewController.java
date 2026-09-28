@@ -91,19 +91,19 @@ class Review {
 @RestController
 @RequestMapping("/api/reviews")
 class ReviewController {
-  private final ReviewService service;
+  private final ReviewService reviewService;
 
-  ReviewController(ReviewService service) {
-    this.service = service;
+  ReviewController(ReviewService reviewService) {
+    this.reviewService = reviewService;
   }
 
   @GetMapping("/book/{bookId}")
   List<Review> byBook(@PathVariable Long bookId) {
-    return service.byBook(bookId);
+    return reviewService.byBook(bookId);
   }
 
   @PostMapping
   Review create(Authentication authentication, @Valid @RequestBody ReviewRequest request) {
-    return service.create(authentication.getName(), request);
+    return reviewService.create(authentication.getName(), request);
   }
 }

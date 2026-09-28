@@ -12,31 +12,31 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
-  private final OrderService service;
+  private final OrderService orderService;
 
-  public OrderController(OrderService service) {
-    this.service = service;
+  public OrderController(OrderService orderService) {
+    this.orderService = orderService;
   }
 
   @GetMapping
   public List<Order> all(Authentication authentication) {
-    return service.allForUser(authentication.getName());
+    return orderService.allForUser(authentication.getName());
   }
 
   @PostMapping
   public Order create(Authentication authentication, @Valid @RequestBody OrderRequest request) {
-    return service.create(authentication.getName(), request);
+    return orderService.create(authentication.getName(), request);
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/admin")
   public List<Order> allForAdmin() {
-    return service.allForAdmin();
+    return orderService.allForAdmin();
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/admin/{id}/status")
   public Order updateStatus(@PathVariable Long id, @RequestParam String value) {
-    return service.updateStatus(id, value);
+    return orderService.updateStatus(id, value);
   }
 }

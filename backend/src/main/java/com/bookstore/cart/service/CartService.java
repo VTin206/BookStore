@@ -12,29 +12,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CartService {
-  private final CartRepository carts;
-  private final CartItemRepository items;
-  private final BookRepository books;
-  private final UserRepository users;
+  private final CartRepository cartRepository;
+  private final CartItemRepository cartItemRepository;
+  private final BookRepository bookRepository;
+  private final UserRepository userRepository;
 
-  public CartService(CartRepository carts, CartItemRepository items, BookRepository books, UserRepository users) {
-    this.carts = carts;
-    this.items = items;
-    this.books = books;
-    this.users = users;
+  public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, BookRepository bookRepository, UserRepository userRepository) {
+    this.cartRepository = cartRepository;
+    this.cartItemRepository = cartItemRepository;
+    this.bookRepository = bookRepository;
+    this.userRepository = userRepository;
   }
 
   @Transactional
   public Cart get(String username) {
-    return carts
+    return cartRepository
         .findByUserUsername(username)
-        .orElseGet(() -> carts.save(new Cart(users.findByUsername(username).orElseThrow())));
+        .orElseGet(() -> cartRepository.save(new Cart(userRepository.findByUsername(username).orElseThrow())));
   }
 
   @Transactional
   public Cart add(String username, CartItemRequest request) {
     var cart = get(username);
-    var book = books.findById(request.bookId()).orElseThrow();
+    var book = bookRepository.findById(request.bookId()).orElseThrow();
     var item =
         cart.getItems().stream()
             .filter(existing -> existing.getBook().getId().equals(book.getId()))
@@ -53,7 +53,7 @@ public class CartService {
       }
       item.setQuantity(newQuantity);
     }
-    return carts.save(cart);
+    return cartRepository.save(cart);
   }
 
   @Transactional
@@ -63,24 +63,24 @@ public class CartService {
       throw new IllegalArgumentException("Số lượng vượt quá tồn kho");
     }
     item.setQuantity(quantity);
-    return carts.save(item.getCart());
+    return cartRepository.save(item.getCart());
   }
 
   @Transactional
   public void remove(String username, Long itemId) {
     var item = getOwnedItem(username, itemId);
-    items.delete(item);
+    cartItemRepository.delete(item);
   }
 
   @Transactional
   public void clear(String username) {
     var cart = get(username);
     cart.getItems().clear();
-    carts.save(cart);
+    cartRepository.save(cart);
   }
 
   private CartItem getOwnedItem(String username, Long itemId) {
-    var item = items.findById(itemId).orElseThrow();
+    var item = cartItemRepository.findById(itemId).orElseThrow();
     if (!item.getCart().getUser().getUsername().equals(username)) {
       throw new IllegalArgumentException("Bạn không có quyền thao tác giỏ hàng này");
     }

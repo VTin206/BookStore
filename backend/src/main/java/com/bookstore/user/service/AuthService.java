@@ -9,35 +9,35 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-  private final UserRepository users;
-  private final PasswordEncoder encoder;
-  private final JwtService jwt;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtService jwtService;
 
-  public AuthService(UserRepository u, PasswordEncoder e, JwtService j) {
-    users = u;
-    encoder = e;
-    jwt = j;
+  public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.jwtService = jwtService;
   }
 
-  public AuthResponse register(RegisterRequest r) {
-    if (users.existsByUsernameIgnoreCase(r.username()))
+  public AuthResponse register(RegisterRequest request) {
+    if (userRepository.existsByUsernameIgnoreCase(request.username()))
       throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
-    if (users.existsByEmailIgnoreCase(r.email()))
+    if (userRepository.existsByEmailIgnoreCase(request.email()))
       throw new IllegalArgumentException("Email đã tồn tại");
-    var u = new User();
-    u.setUsername(r.username());
-    u.setPassword(encoder.encode(r.password()));
-    u.setFullName(r.fullName());
-    u.setEmail(r.email());
-    u.setPhone(r.phone());
-    users.save(u);
-    return new AuthResponse(jwt.create(u.getUsername(), u.getRole()), u.getUsername(), u.getRole());
+    var user = new User();
+    user.setUsername(request.username());
+    user.setPassword(passwordEncoder.encode(request.password()));
+    user.setFullName(request.fullName());
+    user.setEmail(request.email());
+    user.setPhone(request.phone());
+    userRepository.save(user);
+    return new AuthResponse(jwtService.create(user.getUsername(), user.getRole()), user.getUsername(), user.getRole());
   }
 
-  public AuthResponse login(AuthRequest r) {
-    var u = users.findByUsername(r.username()).orElseThrow();
-    if (!encoder.matches(r.password(), u.getPassword()))
+  public AuthResponse login(AuthRequest request) {
+    var user = userRepository.findByUsername(request.username()).orElseThrow();
+    if (!passwordEncoder.matches(request.password(), user.getPassword()))
       throw new IllegalArgumentException("Invalid credentials");
-    return new AuthResponse(jwt.create(u.getUsername(), u.getRole()), u.getUsername(), u.getRole());
+    return new AuthResponse(jwtService.create(user.getUsername(), user.getRole()), user.getUsername(), user.getRole());
   }
 }

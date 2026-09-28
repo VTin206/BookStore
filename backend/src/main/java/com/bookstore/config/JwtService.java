@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
-  private final SecretKey key;
+  private final SecretKey signingKey;
 
   public JwtService(
       @Value("${app.jwt.secret:book-store-dev-secret-key-32-characters}") String secret) {
-    key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
   }
 
   public String create(String username, String role) {
@@ -23,11 +23,11 @@ public class JwtService {
         .claim("role", role)
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + 86400000))
-        .signWith(key)
+        .signWith(signingKey)
         .compact();
   }
 
   public Claims parse(String token) {
-    return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+    return Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload();
   }
 }

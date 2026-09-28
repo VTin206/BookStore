@@ -9,16 +9,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CategoryService {
-  private final CategoryRepository categories;
-  private final BookRepository books;
+  private final CategoryRepository categoryRepository;
+  private final BookRepository bookRepository;
 
-  public CategoryService(CategoryRepository categories, BookRepository books) {
-    this.categories = categories;
-    this.books = books;
+  public CategoryService(CategoryRepository categoryRepository, BookRepository bookRepository) {
+    this.categoryRepository = categoryRepository;
+    this.bookRepository = bookRepository;
   }
 
   public List<Category> all() {
-    return categories.findAll();
+    return categoryRepository.findAll();
   }
 
   public Category create(CategoryRequest request) {
@@ -26,19 +26,19 @@ public class CategoryService {
   }
 
   public Category update(Long id, CategoryRequest request) {
-    return save(categories.findById(id).orElseThrow(), request);
+    return save(categoryRepository.findById(id).orElseThrow(), request);
   }
 
   public void delete(Long id) {
-    if (books.existsByCategoryId(id)) {
+    if (bookRepository.existsByCategoryId(id)) {
       throw new IllegalStateException("Cannot delete a category linked to books");
     }
-    categories.deleteById(id);
+    categoryRepository.deleteById(id);
   }
 
   private Category save(Category category, CategoryRequest request) {
     category.setName(request.name().trim());
     category.setDescription(request.description());
-    return categories.save(category);
+    return categoryRepository.save(category);
   }
 }

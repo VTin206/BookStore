@@ -10,31 +10,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
-  private final UserRepository users;
+  private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public UserService(UserRepository users, PasswordEncoder passwordEncoder) {
-    this.users = users;
+  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
   @Transactional(readOnly = true)
   public User getByUsername(String username) {
-    return users.findByUsername(username).orElseThrow();
+    return userRepository.findByUsername(username).orElseThrow();
   }
 
   @Transactional
   public User updateProfile(String username, ProfileUpdateRequest request) {
     var user = getByUsername(username);
     var emailChanged = !user.getEmail().equalsIgnoreCase(request.email());
-    if (emailChanged && users.existsByEmailIgnoreCase(request.email())) {
+    if (emailChanged && userRepository.existsByEmailIgnoreCase(request.email())) {
       throw new IllegalArgumentException("Email đã tồn tại");
     }
     user.setFullName(request.fullName());
     user.setEmail(request.email());
     user.setPhone(request.phone());
     user.setAddress(request.address());
-    return users.save(user);
+    return userRepository.save(user);
   }
 
 
@@ -46,13 +46,13 @@ public class UserService {
     }
 
     var currentUser = getByUsername(currentUsername);
-    var user = users.findById(userId).orElseThrow();
+    var user = userRepository.findById(userId).orElseThrow();
     if (currentUser.getId().equals(user.getId())) {
       throw new IllegalArgumentException("You cannot change your own role");
     }
 
     user.setRole(normalizedRole);
-    return users.save(user);
+    return userRepository.save(user);
   }
   @Transactional
   public void changePassword(String username, ChangePasswordRequest request) {
@@ -61,6 +61,6 @@ public class UserService {
       throw new IllegalArgumentException("Mật khẩu hiện tại không đúng");
     }
     user.setPassword(passwordEncoder.encode(request.newPassword()));
-    users.save(user);
+    userRepository.save(user);
   }
 }

@@ -11,43 +11,43 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class BookService {
-  private final BookRepository books;
-  private final CategoryRepository categories;
-  private final AuthorRepository authors;
-  private final PublisherRepository publishers;
+  private final BookRepository bookRepository;
+  private final CategoryRepository categoryRepository;
+  private final AuthorRepository authorRepository;
+  private final PublisherRepository publisherRepository;
 
   public BookService(
-      BookRepository books,
-      CategoryRepository categories,
-      AuthorRepository authors,
-      PublisherRepository publishers) {
-    this.books = books;
-    this.categories = categories;
-    this.authors = authors;
-    this.publishers = publishers;
+      BookRepository bookRepository,
+      CategoryRepository categoryRepository,
+      AuthorRepository authorRepository,
+      PublisherRepository publisherRepository) {
+    this.bookRepository = bookRepository;
+    this.categoryRepository = categoryRepository;
+    this.authorRepository = authorRepository;
+    this.publisherRepository = publisherRepository;
   }
 
   public List<Book> all() {
-    return books.findAll();
+    return bookRepository.findAll();
   }
 
   public List<Book> search(String search) {
-    return search == null || search.isBlank() ? books.findAll() : books.search(search.trim());
+    return search == null || search.isBlank() ? bookRepository.findAll() : bookRepository.search(search.trim());
   }
 
   public List<Book> byFilter(String search, String filter) {
     var normalizedFilter = filter == null ? "" : filter.trim().toUpperCase();
     if ("BEST-SELLER".equals(normalizedFilter)) {
-      return books.findBestSellers();
+      return bookRepository.findBestSellers();
     }
     if ("NEW".equals(normalizedFilter)) {
-      return books.findAllByOrderByPublicationDateDescCreatedAtDesc();
+      return bookRepository.findAllByOrderByPublicationDateDescCreatedAtDesc();
     }
     return search(search);
   }
 
   public Book byId(Long id) {
-    return books.findById(id).orElseThrow();
+    return bookRepository.findById(id).orElseThrow();
   }
 
   public Book create(BookRequest request) {
@@ -55,20 +55,20 @@ public class BookService {
   }
 
   public Book update(Long id, BookRequest request) {
-    return save(books.findById(id).orElseThrow(), request);
+    return save(bookRepository.findById(id).orElseThrow(), request);
   }
 
   public void delete(Long id) {
-    books.deleteById(id);
+    bookRepository.deleteById(id);
   }
 
   public Book adjustStock(Long id, Integer stock) {
-    var book = books.findById(id).orElseThrow();
+    var book = bookRepository.findById(id).orElseThrow();
     if (stock < 0) {
       throw new IllegalArgumentException("Stock cannot be negative");
     }
     book.setStock(stock);
-    return books.save(book);
+    return bookRepository.save(book);
   }
 
   private Book save(Book book, BookRequest request) {
@@ -79,17 +79,17 @@ public class BookService {
     book.setCategory(
         request.categoryId() == null
             ? null
-            : categories.findById(request.categoryId()).orElseThrow());
+            : categoryRepository.findById(request.categoryId()).orElseThrow());
     book.setAuthorRef(
-        request.authorId() == null ? null : authors.findById(request.authorId()).orElseThrow());
+        request.authorId() == null ? null : authorRepository.findById(request.authorId()).orElseThrow());
     book.setPublisher(
         request.publisherId() == null
             ? null
-            : publishers.findById(request.publisherId()).orElseThrow());
+            : publisherRepository.findById(request.publisherId()).orElseThrow());
     book.setIsbn(request.isbn());
     book.setDescription(request.description());
     book.setImageUrl(request.imageUrl());
     book.setPublicationDate(request.publicationDate());
-    return books.save(book);
+    return bookRepository.save(book);
   }
 }

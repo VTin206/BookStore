@@ -27,31 +27,31 @@ public class OrderItem {
   @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
   private BigDecimal unitPrice;
 
-  public void setOrder(Order v) {
-    order = v;
+  public void setOrder(Order order) {
+    this.order = order;
   }
 
   public Book getBook() {
     return book;
   }
 
-  public void setBook(Book v) {
-    book = v;
+  public void setBook(Book book) {
+    this.book = book;
   }
 
   public Integer getQuantity() {
     return quantity;
   }
 
-  public void setQuantity(Integer v) {
-    quantity = v;
+  public void setQuantity(Integer quantity) {
+    this.quantity = quantity;
   }
 
   public BigDecimal getUnitPrice() {
     return unitPrice;
   }
 
-  public void setUnitPrice(BigDecimal v) {
-    unitPrice = v;
+  public void setUnitPrice(BigDecimal unitPrice) {
+    this.unitPrice = unitPrice;
   }
 }

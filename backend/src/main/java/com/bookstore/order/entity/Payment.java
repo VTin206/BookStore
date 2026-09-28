@@ -25,24 +25,24 @@ public class Payment {
 
   public Payment() {}
 
-  public void setOrder(Order v) {
-    order = v;
+  public void setOrder(Order order) {
+    this.order = order;
   }
 
-  public void setAmount(BigDecimal v) {
-    amount = v;
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
   }
 
-  public void setMethod(String v) {
-    method = v;
+  public void setMethod(String method) {
+    this.method = method;
   }
 
-  public void setStatus(String v) {
-    status = v;
+  public void setStatus(String status) {
+    this.status = status;
   }
 
-  public void setPaid(boolean v) {
-    paid = v;
+  public void setPaid(boolean paid) {
+    this.paid = paid;
   }
 
   public String getStatus() {

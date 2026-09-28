@@ -10,44 +10,44 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CatalogService {
-  private final AuthorRepository authors;
-  private final PublisherRepository publishers;
-  private final BookRepository books;
+  private final AuthorRepository authorRepository;
+  private final PublisherRepository publisherRepository;
+  private final BookRepository bookRepository;
 
   public CatalogService(
-      AuthorRepository authors, PublisherRepository publishers, BookRepository books) {
-    this.authors = authors;
-    this.publishers = publishers;
-    this.books = books;
+      AuthorRepository authorRepository, PublisherRepository publisherRepository, BookRepository bookRepository) {
+    this.authorRepository = authorRepository;
+    this.publisherRepository = publisherRepository;
+    this.bookRepository = bookRepository;
   }
 
   public List<Author> allAuthors() {
-    return authors.findAll();
+    return authorRepository.findAll();
   }
 
   public Author createAuthor(String name, String biography) {
     var author = new Author();
     author.setName(name.trim());
     author.setBiography(biography);
-    return authors.save(author);
+    return authorRepository.save(author);
   }
 
   public Author updateAuthor(Long id, String name, String biography) {
-    var author = authors.findById(id).orElseThrow();
+    var author = authorRepository.findById(id).orElseThrow();
     author.setName(name.trim());
     author.setBiography(biography);
-    return authors.save(author);
+    return authorRepository.save(author);
   }
 
   public void deleteAuthor(Long id) {
-    if (books.existsByAuthorId(id)) {
+    if (bookRepository.existsByAuthorId(id)) {
       throw new IllegalStateException("Cannot delete an author linked to books");
     }
-    authors.deleteById(id);
+    authorRepository.deleteById(id);
   }
 
   public List<Publisher> allPublishers() {
-    return publishers.findAll();
+    return publisherRepository.findAll();
   }
 
   public Publisher createPublisher(String name, String address, String website) {
@@ -55,21 +55,21 @@ public class CatalogService {
     publisher.setName(name.trim());
     publisher.setAddress(address);
     publisher.setWebsite(website);
-    return publishers.save(publisher);
+    return publisherRepository.save(publisher);
   }
 
   public Publisher updatePublisher(Long id, String name, String address, String website) {
-    var publisher = publishers.findById(id).orElseThrow();
+    var publisher = publisherRepository.findById(id).orElseThrow();
     publisher.setName(name.trim());
     publisher.setAddress(address);
     publisher.setWebsite(website);
-    return publishers.save(publisher);
+    return publisherRepository.save(publisher);
   }
 
   public void deletePublisher(Long id) {
-    if (books.existsByPublisherId(id)) {
+    if (bookRepository.existsByPublisherId(id)) {
       throw new IllegalStateException("Cannot delete a publisher linked to books");
     }
-    publishers.deleteById(id);
+    publisherRepository.deleteById(id);
   }
 }
