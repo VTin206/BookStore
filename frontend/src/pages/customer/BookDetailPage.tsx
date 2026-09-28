@@ -162,7 +162,7 @@ export const BookDetailPage: React.FC = () => {
       // Reload reviews
       const revs = await reviewService.getByBook(book.id);
       setReviews(revs);
-    } catch {
+    } catch (err: any) {
       error('Không thể gửi đánh giá vào lúc này.');
     } finally {
       setIsSubmittingReview(false);
@@ -518,6 +518,7 @@ export const BookDetailPage: React.FC = () => {
             <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Đánh giá từ độc giả ({reviews.length})</h3>
             <div>
               {/* Write Review Form */}
+              <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Chỉ khách đã nhận hàng mới có thể gửi nhận xét.</p>
               <div
                 style={{
                   backgroundColor: 'var(--surface-alt)',

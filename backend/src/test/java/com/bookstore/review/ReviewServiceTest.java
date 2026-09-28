@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.bookstore.book.entity.Book;
 import com.bookstore.book.repository.BookRepository;
+import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.user.entity.User;
 import com.bookstore.user.repository.UserRepository;
 import java.util.List;
@@ -21,7 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReviewServiceTest {
   @Mock private ReviewRepository reviews;
   @Mock private UserRepository users;
-  @Mock private BookRepository books;
+  @Mock private BookRepository bookRepository;
+  @Mock private OrderRepository orderRepository;
   @InjectMocks private ReviewService service;
 
   @Test
@@ -31,7 +33,8 @@ class ReviewServiceTest {
     user.setFullName("Alice");
     var book = new Book();
     when(users.findByUsername("alice")).thenReturn(Optional.of(user));
-    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(bookRepository.findById(7L)).thenReturn(Optional.of(book));
+    when(orderRepository.existsByUserUsernameAndStatusAndItemsBookId("alice", "DELIVERED", 7L)).thenReturn(true);
     when(reviews.existsByUserIdAndBookId(null, 7L)).thenReturn(false);
     when(reviews.save(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -47,7 +50,8 @@ class ReviewServiceTest {
     user.setUsername("alice");
     var book = new Book();
     when(users.findByUsername("alice")).thenReturn(Optional.of(user));
-    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(bookRepository.findById(7L)).thenReturn(Optional.of(book));
+    when(orderRepository.existsByUserUsernameAndStatusAndItemsBookId("alice", "DELIVERED", 7L)).thenReturn(true);
     when(reviews.existsByUserIdAndBookId(null, 7L)).thenReturn(true);
 
     assertThrows(
@@ -61,7 +65,7 @@ class ReviewServiceTest {
     user.setFullName("Alice");
     var review = new Review();
     review.setUserId(3L);
-    when(books.findById(7L)).thenReturn(Optional.of(new Book()));
+    when(bookRepository.findById(7L)).thenReturn(Optional.of(new Book()));
     when(reviews.findByBookIdOrderByCreatedAtDesc(7L)).thenReturn(List.of(review));
     when(users.findById(3L)).thenReturn(Optional.of(user));
 
