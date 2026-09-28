@@ -39,7 +39,6 @@ export const BookDetailPage: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [quantity, setQuantity] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
 
   // Review form
   const [rating, setRating] = useState<number>(5);
@@ -398,14 +397,13 @@ export const BookDetailPage: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className="book-actions">
               <Button
                 variant="outline"
                 size="lg"
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
                 leftIcon={<ShoppingBag size={20} />}
-                style={{ flex: 1, minWidth: '180px' }}
               >
                 Thêm vào giỏ hàng
               </Button>
@@ -415,10 +413,12 @@ export const BookDetailPage: React.FC = () => {
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
                 leftIcon={<Zap size={20} />}
-                style={{ flex: 1, minWidth: '180px', backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' }}
+                style={{ backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' }}
               >
                 Mua ngay
-              </Button>              <Button
+              </Button>
+              <Button
+                className="wishlist-action"
                 variant="secondary"
                 size="lg"
                 onClick={handleToggleWishlist}
@@ -465,42 +465,11 @@ export const BookDetailPage: React.FC = () => {
           marginBottom: '3.5rem',
         }}
       >
-        {/* Tab Headers */}
-        <div
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid var(--border)',
-            backgroundColor: 'var(--surface-alt)',
-          }}
-        >
-          {[
-            { id: 'desc', label: 'Giới thiệu tác phẩm' },
-            { id: 'specs', label: 'Thông tin chi tiết' },
-            { id: 'reviews', label: `Đánh giá từ độc giả (${reviews.length})` },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              style={{
-                padding: '1rem 1.75rem',
-                border: 'none',
-                background: activeTab === tab.id ? 'var(--surface)' : 'transparent',
-                fontWeight: activeTab === tab.id ? 700 : 500,
-                color: activeTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
-                borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : 'none',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Book details */}
 
-        {/* Tab Content */}
         <div style={{ padding: '2rem' }}>
-          {activeTab === 'desc' && (
+          <section>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Giới thiệu tác phẩm</h3>
             <div style={{ lineHeight: 1.8, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
               <p style={{ marginBottom: '1.25rem' }}>
                 Tác phẩm <strong>"{book.title}"</strong> của tác giả <strong>{book.author}</strong> là một trong những cuốn sách tiêu biểu thuộc thể loại {book.category?.name || 'sách hay'}. Tác phẩm mang đến cho người đọc những góc nhìn sâu sắc, mở rộng hiểu biết và gợi mở nhiều chiêm nghiệm giá trị về cuộc sống và công việc.
@@ -509,9 +478,10 @@ export const BookDetailPage: React.FC = () => {
                 Với văn phong lôi cuốn, cô đọng nhưng không kém phần truyền cảm hứng, cuốn sách xứng đáng có một vị trí trang trọng trong tủ sách gia đình cũng như đồng hành cùng độc giả trên hành trình trau dồi tri thức mỗi ngày.
               </p>
             </div>
-          )}
+          </section>
 
-          {activeTab === 'specs' && (
+          <section>
+            <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Thông tin chi tiết</h3>
             <div style={{ maxWidth: '600px' }}>
               <table className="table">
                 <tbody>
@@ -542,9 +512,10 @@ export const BookDetailPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          )}
+          </section>
 
-          {activeTab === 'reviews' && (
+          <section>
+            <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Đánh giá từ độc giả ({reviews.length})</h3>
             <div>
               {/* Write Review Form */}
               <div
@@ -656,7 +627,7 @@ export const BookDetailPage: React.FC = () => {
                 )}
               </div>
             </div>
-          )}
+          </section>
         </div>
       </div>
 
