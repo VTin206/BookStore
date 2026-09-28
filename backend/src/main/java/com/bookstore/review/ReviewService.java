@@ -29,6 +29,11 @@ public class ReviewService {
     return result;
   }
 
+  @Transactional(readOnly = true)
+  public boolean canReview(String username, Long bookId) {
+    return orderRepository.existsByUserUsernameAndStatusAndItemsBookId(username, "DELIVERED", bookId);
+  }
+
   @Transactional
   public Review create(String username, ReviewRequest request) {
     var user = userRepository.findByUsername(username).orElseThrow();

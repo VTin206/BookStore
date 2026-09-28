@@ -45,6 +45,7 @@ export const BookDetailPage: React.FC = () => {
   const [comment, setComment] = useState<string>('');
   const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [canReviewBook, setCanReviewBook] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -71,6 +72,14 @@ export const BookDetailPage: React.FC = () => {
     fetchBook();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !isAuthenticated) {
+      setCanReviewBook(false);
+      return;
+    }
+    reviewService.canReview(id).then(setCanReviewBook);
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     if (!id || !isAuthenticated) {
@@ -517,7 +526,9 @@ export const BookDetailPage: React.FC = () => {
           <section>
             <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Đánh giá từ độc giả ({reviews.length})</h3>
             <div>
-              {/* Write Review Form */}
+              {isAuthenticated && canReviewBook && (
+                <>
+                  {/* Write Review Form */}
               <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Chỉ khách đã nhận hàng mới có thể gửi nhận xét.</p>
               <div
                 style={{
@@ -571,6 +582,8 @@ export const BookDetailPage: React.FC = () => {
                   </Button>
                 </form>
               </div>
+                </>
+              )}
 
               {/* Reviews List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

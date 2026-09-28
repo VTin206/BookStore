@@ -102,6 +102,11 @@ class ReviewController {
     return reviewService.byBook(bookId);
   }
 
+  @GetMapping("/book/{bookId}/can-review")
+  boolean canReview(Authentication authentication, @PathVariable Long bookId) {
+    return authentication != null && reviewService.canReview(authentication.getName(), bookId);
+  }
+
   @PostMapping
   Review create(Authentication authentication, @Valid @RequestBody ReviewRequest request) {
     return reviewService.create(authentication.getName(), request);
