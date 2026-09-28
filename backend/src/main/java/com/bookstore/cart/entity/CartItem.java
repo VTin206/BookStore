@@ -1,6 +1,7 @@
 package com.bookstore.cart.entity;
 
 import com.bookstore.book.entity.Book;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
