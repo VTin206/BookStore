@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Logo } from '../components/ui/Logo';
@@ -24,6 +24,21 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
   const { isAuthenticated, username, isAdmin, logout } = useAuth();
   const { itemCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActiveNav = (path: string, search = '') =>
+    location.pathname === path && location.search === search;
+
+  const getNavLinkStyle = (active: boolean, accent = false): React.CSSProperties => ({
+    color: active ? (accent ? 'var(--accent-hover)' : 'var(--primary)') : 'var(--text-secondary)',
+    backgroundColor: active ? 'var(--primary-light)' : 'transparent',
+    borderBottom: active ? `3px solid ${accent ? 'var(--accent)' : 'var(--primary)'}` : '3px solid transparent',
+    borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
+    padding: '0.7rem 0.75rem 0.55rem',
+    fontWeight: active || accent ? 700 : 600,
+    textDecoration: 'none',
+    transition: 'all 0.15s ease',
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -417,22 +432,22 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
               fontWeight: 600,
             }}
           >
-            <Link to="/" style={{ color: 'var(--primary)' }}>
+            <Link to="/" style={getNavLinkStyle(isActiveNav('/'))}>
               Trang chủ
             </Link>
-            <Link to="/books" style={{ color: 'var(--text-secondary)' }}>
+            <Link to="/books" style={getNavLinkStyle(isActiveNav('/books'))}>
               Tất cả sách
             </Link>
-            <Link to="/books?filter=best-seller" style={{ color: 'var(--text-secondary)' }}>
+            <Link to="/books?filter=best-seller" style={getNavLinkStyle(isActiveNav('/books', '?filter=best-seller'))}>
               Sách bán chạy
             </Link>
-            <Link to="/books?filter=new" style={{ color: 'var(--text-secondary)' }}>
+            <Link to="/books?filter=new" style={getNavLinkStyle(isActiveNav('/books', '?filter=new'))}>
               Sách mới về
             </Link>
-            <Link to="/books?filter=promo" style={{ color: 'var(--accent)', fontWeight: 700 }}>
+            <Link to="/books?filter=promo" style={getNavLinkStyle(isActiveNav('/books', '?filter=promo'), true)}>
               Khuyến mãi HOT
             </Link>
-            <Link to="/orders" style={{ color: 'var(--text-secondary)' }}>
+            <Link to="/orders" style={getNavLinkStyle(isActiveNav('/orders'))}>
               Tra cứu đơn hàng
             </Link>
           </div>
