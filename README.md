@@ -16,14 +16,14 @@ Book Store is a full-stack web application for browsing, selling, and managing b
 
 ## Tech Stack
 
-[![React](https://img.shields.io/badge/React?logo=react&logoColor=white&color=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript?logo=typescript&logoColor=white&color=3178C6)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite?logo=vite&logoColor=white&color=646CFF)](https://vite.dev/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4?logo=springboot&logoColor=white&color=6DB33F)](https://spring.io/projects/spring-boot)
-[![Java](https://img.shields.io/badge/Java-21?logo=openjdk&logoColor=white&color=437291)](https://www.oracle.com/java/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL?logo=postgresql&logoColor=white&color=4169E1)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose?logo=docker&logoColor=white&color=2496ED)](https://docs.docker.com/compose/)
-[![Vitest](https://img.shields.io/badge/Vitest-Tests?logo=vitest&logoColor=white&color=6E9F18)](https://vitest.dev/)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-437291?logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![Vitest](https://img.shields.io/badge/Vitest-Tests-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 
 ## Project Structure
 
@@ -59,6 +59,7 @@ For separate development, start PostgreSQL with docker compose up -d postgres, t
 cd backend && mvn test
 cd frontend && npm test && npm run build
 ~~~
+
 
 
 
