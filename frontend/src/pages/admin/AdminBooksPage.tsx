@@ -127,7 +127,7 @@ export const AdminBooksPage: React.FC = () => {
       isbn: book.isbn || '',
       description: book.description || '',
       imageUrl: book.imageUrl || '',
-      publicationDate: book.publicationDate || '',
+      publicationDate: book.publicationDate ? book.publicationDate.slice(0, 4) : '',
     });
     setIsModalOpen(true);
   };
@@ -203,7 +203,7 @@ export const AdminBooksPage: React.FC = () => {
         isbn: form.isbn?.trim() || undefined,
         description: form.description?.trim() || undefined,
         imageUrl: form.imageUrl?.trim() || undefined,
-        publicationDate: form.publicationDate || undefined,
+        publicationDate: form.publicationDate ? (/^\d{4}$/.test(form.publicationDate) ? form.publicationDate + '-01-01' : form.publicationDate) : undefined,
       };
 
       if (editingBook) {
@@ -587,10 +587,14 @@ export const AdminBooksPage: React.FC = () => {
               onChange={(e) => setForm({ ...form, isbn: e.target.value })}
             />
             <Input
-              label="Ngày xuất bản"
-              type="date"
+              label="Năm xuất bản"
+              type="number"
+              min="1000"
+              max={new Date().getFullYear()}
+              step="1"
+              placeholder="Ví dụ: 2024"
               value={form.publicationDate || ''}
-              onChange={(e) => setForm({ ...form, publicationDate: e.target.value })}
+              onChange={(e) => setForm({ ...form, publicationDate: e.target.value.slice(0, 4) })}
             />
           </div>
 
