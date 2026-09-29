@@ -23,15 +23,17 @@ export const BookListPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Filters state
-  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
-  const [priceRange, setPriceRange] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(categoryParam ? [categoryParam] : []);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [condition, setCondition] = useState<'all' | 'new' | 'used'>('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>('default');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    setSelectedCategory(categoryParam);
+    setSelectedCategories(categoryParam ? [categoryParam] : []);
   }, [categoryParam]);
 
   useEffect(() => {
@@ -57,21 +59,10 @@ export const BookListPage: React.FC = () => {
   const filteredBooks = useMemo(() => {
     let result = [...books];
 
-    // Category filter
-    if (selectedCategory) {
-      result = result.filter(
-        (b) => b.category?.id?.toString() === selectedCategory || b.category?.name === selectedCategory
-      );
-    }
-
-    // Price range filter
-    if (priceRange === 'under-100') {
-      result = result.filter((b) => Number(b.price) < 100000);
-    } else if (priceRange === '100-200') {
-      result = result.filter((b) => Number(b.price) >= 100000 && Number(b.price) <= 200000);
-    } else if (priceRange === 'over-200') {
-      result = result.filter((b) => Number(b.price) > 200000);
-    }
+    if (selectedCategories.length) result = result.filter((b) => selectedCategories.includes(b.category?.id?.toString() || '') || selectedCategories.includes(b.category?.name || ''));
+    if (minPrice > 0) result = result.filter((b) => Number(b.price) >= minPrice * 1000);
+    if (maxPrice > 0) result = result.filter((b) => Number(b.price) <= maxPrice * 1000);
+    if (condition !== 'all') result = result.filter((b) => ((b as Book & { condition?: string }).condition || 'new') === condition);
 
     // In-stock only filter
     if (inStockOnly) {
@@ -90,7 +81,7 @@ export const BookListPage: React.FC = () => {
     }
 
     return result;
-  }, [books, selectedCategory, priceRange, inStockOnly, sortBy]);
+  }, [books, selectedCategories, minPrice, maxPrice, condition, inStockOnly, sortBy]);
 
   // Pagination calculation
   const totalPages = Math.ceil(filteredBooks.length / ITEMS_PER_PAGE);
@@ -100,15 +91,17 @@ export const BookListPage: React.FC = () => {
   }, [filteredBooks, currentPage]);
 
   const clearAllFilters = () => {
-    setSelectedCategory('');
-    setPriceRange('all');
+    setSelectedCategories([]);
+    setMinPrice(0);
+    setMaxPrice(0);
+    setCondition('all');
     setInStockOnly(false);
     setSortBy('default');
     setCurrentPage(1);
     setSearchParams({});
   };
 
-  const hasActiveFilters = !!selectedCategory || priceRange !== 'all' || inStockOnly || !!searchParam;
+  const hasActiveFilters = selectedCategories.length > 0 || minPrice > 0 || maxPrice > 0 || condition !== 'all' || inStockOnly || !!searchParam;
 
   const renderFilterPanel = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -135,55 +128,12 @@ export const BookListPage: React.FC = () => {
 
       {/* Category Filter */}
       <div>
-        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
-          Danh mục sách
-        </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              color: !selectedCategory ? 'var(--primary)' : 'var(--text-secondary)',
-              fontWeight: !selectedCategory ? 700 : 400,
-            }}
-          >
-            <input
-              type="radio"
-              name="category"
-              checked={!selectedCategory}
-              onChange={() => {
-                setSelectedCategory('');
-                setCurrentPage(1);
-              }}
-            />
-            Tất cả danh mục
-          </label>
+        <h4 className="filter-heading">Danh mục sách</h4>
+        <div className="filter-options">
           {categories.map((c) => (
-            <label
-              key={c.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                color: selectedCategory === c.id.toString() ? 'var(--primary)' : 'var(--text-secondary)',
-                fontWeight: selectedCategory === c.id.toString() ? 700 : 400,
-              }}
-            >
-              <input
-                type="radio"
-                name="category"
-                checked={selectedCategory === c.id.toString()}
-                onChange={() => {
-                  setSelectedCategory(c.id.toString());
-                  setCurrentPage(1);
-                }}
-              />
-              {c.name}
+            <label key={c.id} className="filter-option">
+              <input type="checkbox" checked={selectedCategories.includes(c.id.toString())} onChange={() => { setSelectedCategories((items) => items.includes(c.id.toString()) ? items.filter((id) => id !== c.id.toString()) : [...items, c.id.toString()]); setCurrentPage(1); }} />
+              <span>{c.name}</span>
             </label>
           ))}
         </div>
@@ -191,40 +141,17 @@ export const BookListPage: React.FC = () => {
 
       {/* Price Range Filter */}
       <div>
-        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
-          Khoảng giá
-        </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {[
-            { value: 'all', label: 'Tất cả mức giá' },
-            { value: 'under-100', label: 'Dưới 100.000₫' },
-            { value: '100-200', label: '100.000₫ - 200.000₫' },
-            { value: 'over-200', label: 'Trên 200.000₫' },
-          ].map((item) => (
-            <label
-              key={item.value}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                color: priceRange === item.value ? 'var(--primary)' : 'var(--text-secondary)',
-                fontWeight: priceRange === item.value ? 700 : 400,
-              }}
-            >
-              <input
-                type="radio"
-                name="priceRange"
-                checked={priceRange === item.value}
-                onChange={() => {
-                  setPriceRange(item.value);
-                  setCurrentPage(1);
-                }}
-              />
-              {item.label}
-            </label>
-          ))}
+        <h4 className="filter-heading">Khoảng giá (nghìn đồng)</h4>
+        <div className="price-range-labels"><span>{minPrice.toLocaleString('vi-VN')}K</span><span>{maxPrice ? maxPrice.toLocaleString('vi-VN') + 'K' : 'Cao nhất'}</span></div>
+        <input className="price-range-input" type="range" min="0" max={Math.max(1000, Math.ceil(Math.max(...books.map((b) => Number(b.price)), 1000000) / 1000))} step="1" value={minPrice} onChange={(e) => { const value = Number(e.target.value); setMinPrice(Math.min(value, maxPrice || Infinity)); setCurrentPage(1); }} />
+        <input className="price-range-input" type="range" min="0" max={Math.max(1000, Math.ceil(Math.max(...books.map((b) => Number(b.price)), 1000000) / 1000))} step="1" value={maxPrice || Math.max(1000, Math.ceil(Math.max(...books.map((b) => Number(b.price)), 1000000) / 1000))} onChange={(e) => { const value = Number(e.target.value); setMaxPrice(Math.max(value, minPrice)); setCurrentPage(1); }} />
+      </div>
+
+      {/* Condition Filter */}
+      <div>
+        <h4 className="filter-heading">Tình trạng sách</h4>
+        <div className="filter-options">
+          {[['all', 'Tất cả'], ['new', 'Sách mới'], ['used', 'Sách cũ']].map(([value, label]) => <label key={value} className="filter-option"><input type="radio" name="condition" checked={condition === value} onChange={() => { setCondition(value as 'all' | 'new' | 'used'); setCurrentPage(1); }} /><span>{label}</span></label>)}
         </div>
       </div>
 
