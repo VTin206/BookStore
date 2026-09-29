@@ -138,7 +138,7 @@ export const BookListPage: React.FC = () => {
 
       {/* Price Range Filter */}
       <div>
-        <h4 className="filter-heading">Khoảng giá (nghÃ¬n VNÄ)</h4>
+        <h4 className="filter-heading">Khoảng giá</h4>
         {(() => {
           const highestPrice = Math.max(1000, Math.ceil(Math.max(...books.map((b) => Number(b.price)), 1000000) / 1000));
           const selectedPrice = maxPrice || highestPrice;
@@ -223,7 +223,7 @@ export const BookListPage: React.FC = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '260px 1fr',
+          gridTemplateColumns: '300px 1fr',
           gap: '2.5rem',
           alignItems: 'start',
         }}
@@ -391,4 +391,5 @@ export const BookListPage: React.FC = () => {
     </div>
   );
 };
+
 
