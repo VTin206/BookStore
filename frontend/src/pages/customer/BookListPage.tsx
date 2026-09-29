@@ -104,7 +104,7 @@ export const BookListPage: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h3 style={{ fontSize: '1.1rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <SlidersHorizontal size={18} color="var(--primary)" /> Bá»™ lá»c tÃ¬m kiáº¿m
+          <SlidersHorizontal size={18} color="var(--primary)" /> Bộ lọc tìm kiếm
         </h3>
         {hasActiveFilters && (
           <button
@@ -118,14 +118,14 @@ export const BookListPage: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            XÃ³a bá»™ lá»c
+            Xóa bộ lọc
           </button>
         )}
       </div>
 
       {/* Category Filter */}
       <div>
-        <h4 className="filter-heading">Danh má»¥c sÃ¡ch</h4>
+        <h4 className="filter-heading">Danh mục sách</h4>
         <div className="filter-options">
           {categories.map((c) => (
             <label key={c.id} className="filter-option">
@@ -138,7 +138,7 @@ export const BookListPage: React.FC = () => {
 
       {/* Price Range Filter */}
       <div>
-        <h4 className="filter-heading">Khoáº£ng giÃ¡ (nghÃ¬n VNÄ)</h4>
+        <h4 className="filter-heading">Khoảng giá (nghÃ¬n VNÄ)</h4>
         {(() => {
           const highestPrice = Math.max(1000, Math.ceil(Math.max(...books.map((b) => Number(b.price)), 1000000) / 1000));
           const selectedPrice = maxPrice || highestPrice;
@@ -153,7 +153,7 @@ export const BookListPage: React.FC = () => {
 
       {/* Condition Filter */}
       <div>
-        <h4 className="filter-heading">TÃ¬nh tráº¡ng sÃ¡ch</h4>
+        <h4 className="filter-heading">Tình trạng sÃ¡ch</h4>
         <div className="filter-options">
           {[['all', 'Táº¥t cáº£'], ['new', 'SÃ¡ch má»›i'], ['used', 'SÃ¡ch cÅ©']].map(([value, label]) => <label key={value} className="filter-option"><input type="radio" name="condition" checked={condition === value} onChange={() => { setCondition(value as 'all' | 'new' | 'used'); setCurrentPage(1); }} /><span>{label}</span></label>)}
         </div>
@@ -162,7 +162,7 @@ export const BookListPage: React.FC = () => {
       {/* Availability Filter */}
       <div>
         <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
-          TÃ¬nh tráº¡ng
+          Tình trạng
         </h4>
         <label
           style={{
@@ -181,7 +181,7 @@ export const BookListPage: React.FC = () => {
               setCurrentPage(1);
             }}
           />
-          Chá»‰ hiá»‡n sÃ¡ch cÃ²n hÃ ng
+          Chỉ hiện sách còn hàng
         </label>
       </div>
     </div>
@@ -206,7 +206,7 @@ export const BookListPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Search size={18} color="var(--primary)" />
             <span style={{ fontSize: '0.95rem' }}>
-              Káº¿t quáº£ tÃ¬m kiáº¿m cho: <strong>"{searchParam}"</strong>
+              Kết quả tìm kiếm cho: <strong>"{searchParam}"</strong>
             </span>
           </div>
           <button
@@ -225,7 +225,7 @@ export const BookListPage: React.FC = () => {
               gap: '4px',
             }}
           >
-            <X size={16} /> Bá» tÃ¬m kiáº¿m
+            <X size={16} /> Bỏ tìm kiếm
           </button>
         </div>
       )}
@@ -240,7 +240,7 @@ export const BookListPage: React.FC = () => {
             marginBottom: '2rem',
           }}
         >
-          MÃ£ <strong>TRIAN30</strong> giáº£m 30% cho toÃ n bá»™ sÃ¡ch á»Ÿ trang nÃ y.
+          Mã <strong>TRIAN30</strong> giảm 30% cho toàn bộ sách ở trang này.
         </div>
       )}
 
@@ -290,7 +290,7 @@ export const BookListPage: React.FC = () => {
           >
             <div>
               <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                Hiá»ƒn thá»‹ <strong>{filteredBooks.length}</strong> tá»±a sÃ¡ch
+                Hiển thị <strong>{filteredBooks.length}</strong> tựa sách
               </span>
             </div>
 
@@ -301,12 +301,12 @@ export const BookListPage: React.FC = () => {
                 onClick={() => setIsMobileFilterOpen(true)}
                 style={{ display: 'none' }}
               >
-                <Filter size={16} /> Lá»c ({hasActiveFilters ? '1+' : '0'})
+                <Filter size={16} /> Lọc ({hasActiveFilters ? '1+' : '0'})
               </button>
 
               {/* Sort Selector */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sáº¯p xáº¿p:</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sắp xếp:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -320,11 +320,11 @@ export const BookListPage: React.FC = () => {
                     outline: 'none',
                   }}
                 >
-                  <option value="default">Máº·c Ä‘á»‹nh</option>
-                  <option value="price-asc">GiÃ¡: Tháº¥p Ä‘áº¿n Cao</option>
-                  <option value="price-desc">GiÃ¡: Cao Ä‘áº¿n Tháº¥p</option>
-                  <option value="name-asc">TÃªn sÃ¡ch: A - Z</option>
-                  <option value="name-desc">TÃªn sÃ¡ch: Z - A</option>
+                  <option value="default">Mặc định</option>
+                  <option value="price-asc">Giá: Thấp đến Cao</option>
+                  <option value="price-desc">Giá: Cao đến Thấp</option>
+                  <option value="name-asc">Tên sách: A - Z</option>
+                  <option value="name-desc">Tên sách: Z - A</option>
                 </select>
               </div>
             </div>
@@ -355,9 +355,9 @@ export const BookListPage: React.FC = () => {
             </>
           ) : (
             <EmptyState
-              title="KhÃ´ng tÃ¬m tháº¥y sÃ¡ch nÃ o phÃ¹ há»£p"
-              description="HÃ£y thá»­ thay Ä‘á»•i tá»« khÃ³a tÃ¬m kiáº¿m hoáº·c bá» cÃ¡c tiÃªu chÃ­ lá»c Ä‘á»ƒ xem thÃªm nhiá»u sÃ¡ch hÆ¡n."
-              actionText="XÃ³a toÃ n bá»™ bá»™ lá»c"
+              title="Không tìm thấy sách nào phù hợp"
+              description="Hãy thử thay đổi từ khóa tìm kiếm hoặc bỏ các tiêu chí lọc để xem thêm nhiều sách hơn."
+              actionText="Xóa toàn bộ bộ lọc"
               onAction={clearAllFilters}
             />
           )}
