@@ -63,8 +63,10 @@ export const AdminBooksPage: React.FC = () => {
   const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
   const [isQuickAuthorOpen, setIsQuickAuthorOpen] = useState(false);
   const [isQuickCategoryOpen, setIsQuickCategoryOpen] = useState(false);
+  const [isQuickPublisherOpen, setIsQuickPublisherOpen] = useState(false);
   const [quickAuthorName, setQuickAuthorName] = useState('');
   const [quickCategoryName, setQuickCategoryName] = useState('');
+  const [quickPublisherName, setQuickPublisherName] = useState('');
   const [isQuickCreating, setIsQuickCreating] = useState(false);
 
 
@@ -161,6 +163,23 @@ export const AdminBooksPage: React.FC = () => {
     } catch (err) {
       const message = isAxiosError(err) ? err.response?.data?.message : undefined;
       error(typeof message === 'string' && message.trim() ? message : 'Kh\u00f4ng th\u1ec3 th\u00eam danh m\u1ee5c.');
+    } finally { setIsQuickCreating(false); }
+  };
+
+  const handleQuickCreatePublisher = async () => {
+    const name = quickPublisherName.trim();
+    if (!name) return;
+    try {
+      setIsQuickCreating(true);
+      const created = await publisherService.create({ name });
+      setPublishers((items) => [...items, created]);
+      setForm((current) => ({ ...current, publisherId: created.id }));
+      setQuickPublisherName('');
+      setIsQuickPublisherOpen(false);
+      success('Đã thêm nhà xuất bản "' + created.name + '".');
+    } catch (err) {
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể thêm nhà xuất bản.');
     } finally { setIsQuickCreating(false); }
   };
 
@@ -528,7 +547,8 @@ export const AdminBooksPage: React.FC = () => {
             }
             options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
             placeholder="-- Chọn nhà xuất bản --"
-          />          <Select
+          /> 
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickPublisherOpen(true)}><Plus size={16} /><span>Thêm nhà xuất bản mới</span></button>         <Select
             label="Danh mục thể loại"
             value={form.categoryId || ''}
             onChange={(e) =>
@@ -617,6 +637,14 @@ export const AdminBooksPage: React.FC = () => {
           <div className="quick-create-panel"><div className="quick-create-icon"><Edit2 size={20} /></div><div><strong>Tạo tác giả ngay trong lúc thêm sách</strong><p>Thông tin sẽ được lưu vào danh sách tác giả để bạn chọn lại sau.</p></div></div>
           <Input label="Tên tác giả *" placeholder="Ví dụ: Nguyễn Nhật Ánh" required autoFocus value={quickAuthorName} onChange={(event) => setQuickAuthorName(event.target.value)} />
           <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickAuthorOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm tác giả</Button></div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isQuickPublisherOpen} onClose={() => setIsQuickPublisherOpen(false)} title="Thêm nhà xuất bản mới" maxWidth="440px">
+        <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreatePublisher(); }}>
+          <div className="quick-create-panel"><div className="quick-create-icon"><BookOpen size={20} /></div><div><strong>Tạo nhà xuất bản ngay trong lúc thêm sách</strong><p>Nhà xuất bản mới sẽ được chọn sẵn cho cuốn sách này.</p></div></div>
+          <Input label="Tên nhà xuất bản *" placeholder="Ví dụ: Nhà xuất bản Trẻ" required autoFocus value={quickPublisherName} onChange={(event) => setQuickPublisherName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickPublisherOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm nhà xuất bản</Button></div>
         </form>
       </Modal>
 
