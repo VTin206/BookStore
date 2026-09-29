@@ -1,77 +1,64 @@
-# Book Store
+﻿# Book Store
 
-Ứng dụng quản lý và bán sách gồm frontend React/Vite, backend Spring Boot và PostgreSQL.
+## Overview
 
-## Tài khoản test local
+Book Store is a full-stack web application for browsing, selling, and managing books. It includes a customer storefront and an admin workspace backed by a REST API.
 
-Thông tin đăng nhập test được cấu hình trong file `.env` cục bộ và không được commit lên Git. Sao chép `.env.example` thành `.env`, sau đó điền các biến `TEST_*` để sử dụng tài khoản test.
+## Features
 
-Nếu database local chưa có các tài khoản trên, hãy tạo tài khoản qua màn hình đăng ký rồi cập nhật role `ADMIN` cho tài khoản admin trong database.
+- Browse, search, sort, and filter books by category and price.
+- View book details, reviews, wishlist items, cart contents, and order history.
+- Customer checkout with order tracking and Vietnamese address selection.
+- Admin management for books, categories, authors, publishers, orders, users, and vouchers.
+- Book availability controls with stop-selling status and transaction-aware deletion.
+- JWT-based authentication and role-based access control.
+- Database versioning with Flyway and API documentation with Swagger UI.
 
-## Chạy nhanh bằng Docker
+## Tech Stack
 
-Yêu cầu: Docker Desktop đang chạy.
+[![React](https://img.shields.io/badge/React?logo=react&logoColor=white&color=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript?logo=typescript&logoColor=white&color=3178C6)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite?logo=vite&logoColor=white&color=646CFF)](https://vite.dev/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4?logo=springboot&logoColor=white&color=6DB33F)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21?logo=openjdk&logoColor=white&color=437291)](https://www.oracle.com/java/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL?logo=postgresql&logoColor=white&color=4169E1)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose?logo=docker&logoColor=white&color=2496ED)](https://docs.docker.com/compose/)
+[![Vitest](https://img.shields.io/badge/Vitest-Tests?logo=vitest&logoColor=white&color=6E9F18)](https://vitest.dev/)
 
-```bash
+## Project Structure
+
+~~~text
+.
+├── backend/     Spring Boot REST API, security, services, persistence, and Flyway migrations
+├── frontend/    React and TypeScript storefront and admin interface
+├── docs/        API and project documentation
+├── docker-compose.yml
+└── .env.example
+~~~
+
+### Local development
+
+Requirements: Docker Desktop, Java 21, Maven, and Node.js.
+
+~~~bash
 docker compose up --build
-```
+~~~
 
-Sau khi khởi động:
+Services:
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8080/api
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - PostgreSQL: localhost:5432
 
-Flyway tự chạy các migration trong `backend/src/main/resources/db/migration` khi backend khởi động.
+For separate development, start PostgreSQL with docker compose up -d postgres, then run mvn spring-boot:run in backend/ and npm install && npm run dev in frontend/.
 
-## Chạy từng phần khi phát triển
+### Validation
 
-Khởi động database:
+~~~bash
+cd backend && mvn test
+cd frontend && npm test && npm run build
+~~~
 
-```bash
-docker compose up -d postgres
-```
 
-Khởi động backend:
 
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-Khởi động frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Kiểm tra mã nguồn
-
-Backend:
-
-```bash
-cd backend
-mvn test
-mvn clean package -DskipTests
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm test
-npm run build
-```
-
-## Cấu hình môi trường
-
-Sao chép `.env.example` thành `.env`, sau đó điền các giá trị bí mật trước khi deploy production. `VITE_API_URL` phải trỏ tới URL API public, ví dụ `https://api.example.com/api`.
-
-Không dùng các giá trị mặc định của database và JWT trong production.
-
-## Phạm vi chưa tích hợp
-
-Thanh toán online thật, webhook và đối soát giao dịch chưa được tích hợp. Hiện hệ thống chỉ lưu phương thức thanh toán và trạng thái giao dịch ở mức nghiệp vụ.
