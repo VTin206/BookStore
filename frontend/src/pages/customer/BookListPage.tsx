@@ -153,37 +153,12 @@ export const BookListPage: React.FC = () => {
 
       {/* Condition Filter */}
       <div>
-        <h4 className="filter-heading">Tình trạng sÃ¡ch</h4>
+        <h4 className="filter-heading">Tình trạng sách</h4>
         <div className="filter-options">
-          {[['all', 'Táº¥t cáº£'], ['new', 'SÃ¡ch má»›i'], ['used', 'SÃ¡ch cÅ©']].map(([value, label]) => <label key={value} className="filter-option"><input type="radio" name="condition" checked={condition === value} onChange={() => { setCondition(value as 'all' | 'new' | 'used'); setCurrentPage(1); }} /><span>{label}</span></label>)}
+          {[['all', 'Tất cả'], ['new', 'Sách mới'], ['used', 'Sách cũ']].map(([value, label]) => <label key={value} className="filter-option"><input type="radio" name="condition" checked={condition === value} onChange={() => { setCondition(value as 'all' | 'new' | 'used'); setCurrentPage(1); }} /><span>{label}</span></label>)}
         </div>
       </div>
 
-      {/* Availability Filter */}
-      <div>
-        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
-          Tình trạng
-        </h4>
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={inStockOnly}
-            onChange={(e) => {
-              setInStockOnly(e.target.checked);
-              setCurrentPage(1);
-            }}
-          />
-          Chỉ hiện sách còn hàng
-        </label>
-      </div>
     </div>
   );
 
