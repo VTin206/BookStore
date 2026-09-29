@@ -186,8 +186,10 @@ export const AdminBooksPage: React.FC = () => {
 
   const handleSaveBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.author.trim()) {
-      error('Vui lòng nhập tên sách và tác giả.');
+    const selectedAuthor = authors.find((item) => item.id === Number(form.authorId));
+    const authorName = selectedAuthor?.name || form.author.trim();
+    if (!form.title.trim() || !authorName) {
+      error('Vui lòng nhập tên sách và chọn tác giả.');
       return;
     }
 
@@ -195,7 +197,7 @@ export const AdminBooksPage: React.FC = () => {
       setIsSubmitting(true);
       const payload: BookRequest = {
         title: form.title.trim(),
-        author: form.author.trim(),
+        author: authorName,
         price: Number(form.price),
         stock: Number(form.stock),
         categoryId: form.categoryId ? Number(form.categoryId) : null,
