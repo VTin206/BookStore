@@ -541,13 +541,13 @@ export const AdminBooksPage: React.FC = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <Input
-              label="Giá bán (VNĐ) *"
+              label="Giá bán (nghìn VNĐ) *"
               type="number"
               min="0"
-              step="1000"
+              step="1"
               required
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              value={form.price ? form.price / 1000 : ""}
+              onChange={(e) => setForm({ ...form, price: Number(e.target.value) * 1000 })}
             />
 
             <Input
