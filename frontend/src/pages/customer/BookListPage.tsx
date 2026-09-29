@@ -144,7 +144,7 @@ export const BookListPage: React.FC = () => {
           const selectedPrice = maxPrice || highestPrice;
           return (
             <>
-              <div className="price-range-labels"><span>0K</span><span>{selectedPrice.toLocaleString('vi-VN')}K</span></div>
+              <div className="price-range-labels"><span>0 nghìn VNĐ</span><span>{selectedPrice.toLocaleString('vi-VN')} nghìn VNĐ</span></div>
               <input className="price-range-input" type="range" min="0" max={highestPrice} step="1" value={selectedPrice} onChange={(e) => { setMaxPrice(Number(e.target.value) >= highestPrice ? 0 : Number(e.target.value)); setCurrentPage(1); }} />
             </>
           );
@@ -391,5 +391,6 @@ export const BookListPage: React.FC = () => {
     </div>
   );
 };
+
 
 
