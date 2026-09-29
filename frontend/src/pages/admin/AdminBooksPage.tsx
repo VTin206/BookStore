@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { isAxiosError } from 'axios';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
@@ -55,6 +55,7 @@ export const AdminBooksPage: React.FC = () => {
     publicationDate: '',
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const [deleteBookId, setDeleteBookId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -598,11 +599,26 @@ export const AdminBooksPage: React.FC = () => {
             />
           </div>
 
-          <Input
-            label="URL ảnh bìa"
-            value={form.imageUrl || ''}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-          />
+          <div className="form-group">
+            <label className="form-label">Ảnh bìa</label>
+            <div className="cover-upload-row">
+              <Input
+                value={form.imageUrl || ''}
+                placeholder="Dán URL ảnh hoặc tải ảnh lên"
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+              />
+              <input ref={coverInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { error('Ảnh bìa không được vượt quá 2MB.'); return; }
+                const reader = new FileReader();
+                reader.onload = () => setForm((current) => ({ ...current, imageUrl: String(reader.result) }));
+                reader.readAsDataURL(file);
+              }} />
+              <Button type="button" variant="secondary" onClick={() => coverInputRef.current?.click()} leftIcon={<Plus size={16} />}>Tải ảnh lên</Button>
+            </div>
+            {form.imageUrl && <img className="cover-upload-preview" src={form.imageUrl} alt="Xem trước ảnh bìa" />}
+          </div>
 
           <div className="form-group">
             <label className="form-label">Mô tả sách</label>
