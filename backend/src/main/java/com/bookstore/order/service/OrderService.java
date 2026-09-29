@@ -78,6 +78,9 @@ public class OrderService {
         throw new IllegalArgumentException("Không được lặp sách trong đơn hàng");
       }
       var book = bookRepository.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
+      if (!book.isActive()) {
+        throw new IllegalStateException("S?ch n?y hi?n ?? ng?ng b?n: " + book.getTitle());
+      }
       if (book.getStock() < itemRequest.quantity()) {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
       }

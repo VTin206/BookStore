@@ -8,6 +8,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
+  List<Book> findAllByActiveTrue();
+  List<Book> findAllByActiveTrueOrderByPublicationDateDescCreatedAtDesc();
+  @Query(value = "select exists(select 1 from order_items where book_id = :bookId)", nativeQuery = true)
+  boolean hasOrderItems(@Param("bookId") Long bookId);
+
+  @Query(value = "select exists(select 1 from cart_items where book_id = :bookId)", nativeQuery = true)
+  boolean hasCartItems(@Param("bookId") Long bookId);
+
+  @Query(value = "select exists(select 1 from reviews where book_id = :bookId)", nativeQuery = true)
+  boolean hasReviews(@Param("bookId") Long bookId);
+
   @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
   @Query("select b from Book b where b.id = :id")
   java.util.Optional<Book> findByIdForUpdate(@Param("id") Long id);
@@ -23,6 +34,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
       """)
   List<Book> search(@Param("search") String search);
 
+  @Query("select distinct b from Book b left join b.authorRef a left join b.category c where b.active = true and (lower(b.title) like lower(concat('%', :search, '%')) or lower(b.author) like lower(concat('%', :search, '%')) or lower(a.name) like lower(concat('%', :search, '%')) or lower(c.name) like lower(concat('%', :search, '%')))")
+  List<Book> searchActive(@Param("search") String search);
+
   List<Book> findAllByOrderByPublicationDateDescCreatedAtDesc();
 
   @Query("""
@@ -33,6 +47,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
                b.title asc
       """)
   List<Book> findBestSellers();
+
+  @Query("select b from Book b left join OrderItem oi on oi.book = b where b.active = true group by b order by coalesce(sum(case when oi.order.status <> 'CANCELLED' then oi.quantity else 0 end), 0) desc, b.title asc")
+  List<Book> findActiveBestSellers();
 
   @Query("select count(b) > 0 from Book b where b.category.id = :categoryId")
   boolean existsByCategoryId(@Param("categoryId") Long categoryId);

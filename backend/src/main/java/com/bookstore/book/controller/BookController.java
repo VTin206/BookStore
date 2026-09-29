@@ -20,8 +20,9 @@ public class BookController {
   @GetMapping
   public List<Book> all(
       @RequestParam(required = false) String search,
-      @RequestParam(required = false) String filter) {
-    return bookService.byFilter(search, filter);
+      @RequestParam(required = false) String filter,
+      @RequestParam(defaultValue = "false") boolean includeInactive) {
+    return includeInactive ? bookService.allIncludingInactive() : bookService.byFilter(search, filter);
   }
 
   @GetMapping("/{id}")
@@ -45,6 +46,12 @@ public class BookController {
   @PatchMapping("/{id}/stock")
   public Book stock(@PathVariable Long id, @RequestParam Integer stockDelta) {
     return bookService.adjustStock(id, stockDelta);
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("/{id}/status")
+  public Book status(@PathVariable Long id, @RequestParam boolean active) {
+    return bookService.setActive(id, active);
   }
 
   @PreAuthorize("hasRole('ADMIN')")

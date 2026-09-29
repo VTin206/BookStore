@@ -33,6 +33,10 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedAuthorIds, setSelectedAuthorIds] = useState<number[]>([]);
+  const [selectedPublisherIds, setSelectedPublisherIds] = useState<number[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
   const { success, error } = useToast();
 
   const loadData = async () => {
@@ -167,6 +171,31 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
     }
   };
 
+  const selectedIds = activeTab === 'authors' ? selectedAuthorIds : selectedPublisherIds;
+  const currentItems = activeTab === 'authors' ? authors : publishers;
+  const allCurrentSelected = currentItems.length > 0 && currentItems.every((item) => selectedIds.includes(item.id));
+  const toggleCatalogItem = (id: number) => {
+    const setter = activeTab === 'authors' ? setSelectedAuthorIds : setSelectedPublisherIds;
+    setter((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+  };
+  const toggleAllCurrent = () => {
+    const setter = activeTab === 'authors' ? setSelectedAuthorIds : setSelectedPublisherIds;
+    setter(allCurrentSelected ? [] : currentItems.map((item) => item.id));
+  };
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    setIsBulkDeleting(true);
+    const remove = activeTab === 'authors' ? authorService.delete : publisherService.delete;
+    const results = await Promise.allSettled(selectedIds.map((id) => remove(id)));
+    const deleted = results.filter((item) => item.status === 'fulfilled').length;
+    const blocked = results.length - deleted;
+    if (activeTab === 'authors') setSelectedAuthorIds([]); else setSelectedPublisherIds([]);
+    await loadData();
+    if (blocked) error(`Đã xóa ${deleted} mục. ${blocked} mục đang được sách sử dụng nên không thể xóa.`);
+    else success(`Đã xóa ${deleted} mục đã chọn.`);
+    setIsBulkDeleting(false);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
@@ -194,6 +223,8 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
         </button>
       </div>
 
+      {selectedIds.length > 0 && <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem' }}><span>Đã chọn <strong>{selectedIds.length}</strong> m?c</span><Button variant="secondary" size="sm" onClick={() => { const setter = activeTab === 'authors' ? setSelectedAuthorIds : setSelectedPublisherIds; setter(allCurrentSelected ? [] : currentItems.map((item) => item.id)); }}>{allCurrentSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>Xóa đã chọn</Button></div>}
+
       {isLoading ? (
         <div className="card"><TableSkeleton rows={4} /></div>
       ) : activeTab === 'authors' ? (
@@ -205,6 +236,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
             <tbody>
               {authors.map((author) => (
                 <tr key={author.id}>
+                  <td><input type="checkbox" aria-label={`Chọn tác giả ${author.name}`} checked={selectedAuthorIds.includes(author.id)} onChange={() => toggleCatalogItem(author.id)} /></td>
                   <td>#{author.id}</td>
                   <td><strong>{author.name}</strong></td>
                   <td>{author.biography || '—'}</td>
@@ -228,6 +260,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
             <tbody>
               {publishers.map((publisher) => (
                 <tr key={publisher.id}>
+                  <td><input type="checkbox" aria-label={`Chọn nhà xuất bản ${publisher.name}`} checked={selectedPublisherIds.includes(publisher.id)} onChange={() => toggleCatalogItem(publisher.id)} /></td>
                   <td>#{publisher.id}</td>
                   <td><strong>{publisher.name}</strong></td>
                   <td>{publisher.address || '—'}</td>
@@ -245,16 +278,21 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
         </div>
       )}
 
-      <Modal isOpen={isAuthorModalOpen} onClose={() => setIsAuthorModalOpen(false)} title={editingAuthor ? 'Sửa tác giả' : 'Thêm tác giả'} maxWidth="460px">
-        <form onSubmit={handleSaveAuthor}>
-          <Input label="Tên tác giả *" required value={authorName} onChange={(event) => setAuthorName(event.target.value)} />
-          <div className="form-group">
-            <label className="form-label">Tiểu sử</label>
-            <textarea className="form-textarea" rows={4} value={authorBio} onChange={(event) => setAuthorBio(event.target.value)} />
+      <Modal isOpen={isAuthorModalOpen} onClose={() => setIsAuthorModalOpen(false)} title={editingAuthor ? 'Chỉnh sửa tác giả' : 'Thêm tác giả mới'} maxWidth="520px">
+        <form onSubmit={handleSaveAuthor} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', padding: '1rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, var(--primary-light), var(--surface-alt))', border: '1px solid var(--border)' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', display: 'grid', placeItems: 'center', background: 'var(--primary)', color: '#fff' }}><Feather size={22} /></div>
+            <div><strong style={{ display: 'block', color: 'var(--text-primary)' }}>{editingAuthor ? 'Cập nhật hồ sơ tác giả' : 'Tạo hồ sơ tác giả'}</strong><span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Thông tin này sẽ xuất hiện khi chọn tác giả cho sách.</span></div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <Button type="button" variant="ghost" onClick={() => setIsAuthorModalOpen(false)}>Hủy</Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>Lưu</Button>
+          <Input label="Tên tác giả *" placeholder="Ví dụ: Nguyễn Nhật Ánh" required value={authorName} onChange={(event) => setAuthorName(event.target.value)} />
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" htmlFor="author-biography">Tiểu sử</label>
+            <textarea id="author-biography" className="form-textarea" rows={5} placeholder="Giới thiệu ngắn về tác giả (không bắt buộc)" value={authorBio} onChange={(event) => setAuthorBio(event.target.value)} />
+            <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{authorBio.length}/500 k? t?</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.25rem', borderTop: '1px solid var(--border)' }}>
+            <Button type="button" variant="ghost" onClick={() => setIsAuthorModalOpen(false)} disabled={isSubmitting}>Hủy</Button>
+            <Button type="submit" variant="primary" isLoading={isSubmitting}>{editingAuthor ? 'Lưu thay đổi' : 'Tạo tác giả'}</Button>
           </div>
         </form>
       </Modal>
@@ -270,6 +308,8 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa mục" message={`Bạn có chắc muốn xóa ${selectedIds.length} mục đã chọn không? Những mục đang được sách sử dụng sẽ được giữ lại.`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
 
       <ConfirmDialog
         isOpen={deleteTarget !== null}

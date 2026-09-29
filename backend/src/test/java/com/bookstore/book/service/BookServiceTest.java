@@ -4,6 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
+
+import com.bookstore.common.exception.ConflictException;
+import com.bookstore.common.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.bookstore.book.dto.BookRequest;
 import com.bookstore.book.entity.Book;
@@ -30,6 +39,47 @@ class BookServiceTest {
   @Mock private AuthorRepository authors;
   @Mock private PublisherRepository publishers;
   @InjectMocks private BookService service;
+
+  @ParameterizedTest
+  @CsvSource({
+    "true,false,false,đã có trong đơn hàng (kể cả đơn đã hủy)",
+    "false,true,false,đang có trong giỏ hàng của khách hàng",
+    "false,false,true,đã có đánh giá của khách hàng",
+    "true,true,true,đã có trong đơn hàng (kể cả đơn đã hủy); đang có trong giỏ hàng của khách hàng; đã có đánh giá của khách hàng"
+  })
+  void deleteReportsRelatedData(boolean orders, boolean carts, boolean reviews, String reason) {
+    when(books.existsById(1L)).thenReturn(true);
+    when(books.hasOrderItems(1L)).thenReturn(orders);
+    when(books.hasCartItems(1L)).thenReturn(carts);
+    when(books.hasReviews(1L)).thenReturn(reviews);
+    var exception = assertThrows(ConflictException.class, () -> service.delete(1L));
+    assertEquals("Không thể xóa sách vì sách " + reason + ".", exception.getMessage());
+    assertEquals(org.springframework.http.HttpStatus.CONFLICT, exception.getStatus());
+    verify(books, never()).deleteById(any());
+  }
+
+  @Test
+  void deleteAllowsBookWithoutRelatedData() {
+    when(books.existsById(1L)).thenReturn(true);
+    service.delete(1L);
+    verify(books).deleteById(1L);
+  }
+
+  @Test
+  void deleteReportsMissingBook() {
+    assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
+    verify(books, never()).deleteById(any());
+  }
+
+  @Test
+  void deleteHandlesReferenceAddedAfterChecks() {
+    when(books.existsById(1L)).thenReturn(true);
+    doThrow(new DataIntegrityViolationException("constraint")).when(books).deleteById(1L);
+    var exception = assertThrows(ConflictException.class, () -> service.delete(1L));
+    assertEquals(
+        "Không thể xóa sách vì có dữ liệu liên quan. Vui lòng tải lại danh sách và thử lại.",
+        exception.getMessage());
+  }
 
   @Test
   void createMapsAllBookFieldsAndRelations() {

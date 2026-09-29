@@ -12,13 +12,14 @@ interface BookCardProps {
 export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const { addToCart } = useCart();
   const coverUrl = getBookCover(book.title, book.category?.name, book.imageUrl);
+  const isDiscontinued = book.active === false;
   const isOutOfStock = book.stock <= 0;
   const rating = book.rating || 4.8;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isOutOfStock) {
+    if (!isOutOfStock && !isDiscontinued) {
       addToCart(book, 1);
     }
   };
@@ -69,6 +70,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             height: '100%',
             objectFit: 'cover',
             transition: 'transform 0.3s ease',
+            filter: isDiscontinued ? 'grayscale(1)' : 'none',
           }}
           onError={(e) => {
             // Fallback gracefully to default image if network error
@@ -84,7 +86,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
         {/* Stock / Promotion Badges */}
         <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', gap: '6px', zIndex: 2 }}>
-          {isOutOfStock ? (
+          {isDiscontinued ? (
+            <span style={{ backgroundColor: 'rgba(71, 85, 105, 0.94)', color: '#fff', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 'var(--radius-sm)' }}>
+              NGỪNG BÁN
+            </span>
+          ) : isOutOfStock ? (
             <span
               style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.92)',
@@ -196,7 +202,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
           <button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || isDiscontinued}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -205,24 +211,24 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
               height: '36px',
               borderRadius: 'var(--radius-md)',
               border: 'none',
-              backgroundColor: isOutOfStock ? 'var(--surface-alt)' : 'var(--primary-light)',
-              color: isOutOfStock ? 'var(--text-muted)' : 'var(--primary)',
-              cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+              backgroundColor: isOutOfStock || isDiscontinued ? 'var(--surface-alt)' : 'var(--primary-light)',
+              color: isOutOfStock || isDiscontinued ? 'var(--text-muted)' : 'var(--primary)',
+              cursor: isOutOfStock || isDiscontinued ? 'not-allowed' : 'pointer',
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              if (!isOutOfStock) {
+              if (!isOutOfStock && !isDiscontinued) {
                 e.currentTarget.style.backgroundColor = 'var(--primary)';
                 e.currentTarget.style.color = '#ffffff';
               }
             }}
             onMouseLeave={(e) => {
-              if (!isOutOfStock) {
+              if (!isOutOfStock && !isDiscontinued) {
                 e.currentTarget.style.backgroundColor = 'var(--primary-light)';
                 e.currentTarget.style.color = 'var(--primary)';
               }
             }}
-            title={isOutOfStock ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
+            title={isDiscontinued ? 'Ngừng bán' : isOutOfStock ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
             aria-label="Thêm vào giỏ"
           >
             <ShoppingBag size={17} />

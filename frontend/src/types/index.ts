@@ -18,6 +18,7 @@ export interface Book {
   author: string;
   price: number;
   stock: number;
+  active?: boolean;
   category?: Category | null;
   authorId?: number | null;
   publisherId?: number | null;

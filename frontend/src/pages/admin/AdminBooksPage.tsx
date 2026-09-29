@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { isAxiosError } from 'axios';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
 import { authorService } from '../../services/authorService';
@@ -18,6 +19,8 @@ import {
   Search,
   Plus,
   Edit2,
+  Ban,
+  RotateCcw,
   Trash2,
   BookOpen,
   Filter,
@@ -53,9 +56,17 @@ export const AdminBooksPage: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Confirm delete
   const [deleteBookId, setDeleteBookId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedBookIds, setSelectedBookIds] = useState<number[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
+  const [isQuickAuthorOpen, setIsQuickAuthorOpen] = useState(false);
+  const [isQuickCategoryOpen, setIsQuickCategoryOpen] = useState(false);
+  const [quickAuthorName, setQuickAuthorName] = useState('');
+  const [quickCategoryName, setQuickCategoryName] = useState('');
+  const [isQuickCreating, setIsQuickCreating] = useState(false);
+
 
   const { success, error } = useToast();
 
@@ -63,7 +74,7 @@ export const AdminBooksPage: React.FC = () => {
     try {
       setIsLoading(true);
       const [booksData, catsData, authorsData, publishersData] = await Promise.all([
-        bookService.getAll(),
+        bookService.getAll(undefined, undefined, true),
         categoryService.getAll(),
         authorService.getAll(),
         publisherService.getAll(),
@@ -119,6 +130,40 @@ export const AdminBooksPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleQuickCreateAuthor = async () => {
+    const name = quickAuthorName.trim();
+    if (!name) return;
+    try {
+      setIsQuickCreating(true);
+      const created = await authorService.create({ name });
+      setAuthors((items) => [...items, created]);
+      setForm((current) => ({ ...current, authorId: created.id, author: created.name }));
+      setQuickAuthorName('');
+      setIsQuickAuthorOpen(false);
+      success('\u0110\u00e3 th\u00eam t\u00e1c gi\u1ea3 "' + created.name + '".');
+    } catch (err) {
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Kh\u00f4ng th\u1ec3 th\u00eam t\u00e1c gi\u1ea3.');
+    } finally { setIsQuickCreating(false); }
+  };
+
+  const handleQuickCreateCategory = async () => {
+    const name = quickCategoryName.trim();
+    if (!name) return;
+    try {
+      setIsQuickCreating(true);
+      const created = await categoryService.create({ name });
+      setCategories((items) => [...items, created]);
+      setForm((current) => ({ ...current, categoryId: created.id }));
+      setQuickCategoryName('');
+      setIsQuickCategoryOpen(false);
+      success('\u0110\u00e3 th\u00eam danh m\u1ee5c "' + created.name + '".');
+    } catch (err) {
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Kh\u00f4ng th\u1ec3 th\u00eam danh m\u1ee5c.');
+    } finally { setIsQuickCreating(false); }
+  };
+
   const handleSaveBook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.author.trim()) {
@@ -159,16 +204,29 @@ export const AdminBooksPage: React.FC = () => {
     }
   };
 
+  const handleToggleBookStatus = async (book: Book) => {
+    const active = book.active === false;
+    try {
+      await bookService.setActive(book.id, active);
+      success(active ? `Đã mở bán lại sách "${book.title}".` : `Đã ngừng bán sách "${book.title}".`);
+      loadData();
+    } catch (err) {
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể cập nhật trạng thái sách.');
+    }
+  };
+
   const handleDeleteBook = async () => {
-    if (!deleteBookId) return;
+    if (deleteBookId === null) return;
     try {
       setIsDeleting(true);
       await bookService.delete(deleteBookId);
-      success('Đã xóa sách khỏi kho thành công.');
+      success('Đã xóa sách khỏi hệ thống.');
       setDeleteBookId(null);
       loadData();
-    } catch {
-      error('Không thể xóa sách vào lúc này.');
+    } catch (err) {
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể xóa sách. Nếu sách đã phát sinh giao dịch, hãy ngừng bán.');
     } finally {
       setIsDeleting(false);
     }
@@ -190,6 +248,35 @@ export const AdminBooksPage: React.FC = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const currentPageIds = paginatedBooks.map((book) => book.id);
+  const allCurrentPageSelected = currentPageIds.length > 0 && currentPageIds.every((id) => selectedBookIds.includes(id));
+
+  const toggleBookSelection = (id: number) => {
+    setSelectedBookIds((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+  };
+
+  const toggleCurrentPageSelection = () => {
+    setSelectedBookIds((ids) => allCurrentPageSelected
+      ? ids.filter((id) => !currentPageIds.includes(id))
+      : Array.from(new Set([...ids, ...currentPageIds])));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedBookIds.length === 0) return;
+    setIsBulkDeleting(true);
+    const results = await Promise.allSettled(selectedBookIds.map((id) => bookService.delete(id)));
+    const deleted = results.filter((result) => result.status === 'fulfilled').length;
+    const blocked = results.length - deleted;
+    setSelectedBookIds([]);
+    await loadData();
+    if (blocked > 0) {
+      error(`Đã xóa ${deleted} sách. ${blocked} sách không thể xóa vì đã phát sinh giao dịch hoặc dữ liệu liên quan; hãy ngừng bán các sách đó.`);
+    } else {
+      success(`Đã xóa ${deleted} sách Đã chọn.`);
+    }
+    setIsBulkDeleting(false);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -273,6 +360,15 @@ export const AdminBooksPage: React.FC = () => {
         </div>
       </div>
 
+      {selectedBookIds.length > 0 && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
+          <span>Đã chọn <strong>{selectedBookIds.length}</strong> sách</span>
+          <Button variant="secondary" size="sm" onClick={() => setSelectedBookIds(allCurrentPageSelected ? [] : currentPageIds)}>{allCurrentPageSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>
+            Xóa đã chọn
+          </Button>
+        </div>
+      )}
+
       {/* Main Table */}
       {isLoading ? (
         <div className="card">
@@ -296,7 +392,8 @@ export const AdminBooksPage: React.FC = () => {
               {paginatedBooks.map((b) => {
                 const cover = getBookCover(b.title, b.category?.name, b.imageUrl);
                 return (
-                  <tr key={b.id}>
+                  <tr key={b.id} style={{ opacity: b.active === false ? 0.58 : 1 }}>
+                    <td><input type="checkbox" aria-label={`Chọn sách ${b.title}`} checked={selectedBookIds.includes(b.id)} onChange={() => toggleBookSelection(b.id)} /></td>
                     <td>
                       <div
                         style={{
@@ -310,12 +407,13 @@ export const AdminBooksPage: React.FC = () => {
                         <img
                           src={cover}
                           alt={b.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: b.active === false ? 'grayscale(1)' : 'none' }}
                         />
                       </div>
                     </td>
                     <td>
                       <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{b.title}</div>
+                      {b.active === false && <span className="badge badge-outofstock">Ngừng bán</span>}
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã ID: #{b.id}</div>
                     </td>
                     <td>{b.author}</td>
@@ -345,6 +443,14 @@ export const AdminBooksPage: React.FC = () => {
                           leftIcon={<Edit2 size={14} />}
                         >
                           Sửa
+                        </Button>
+                        <Button
+                          variant={b.active === false ? 'secondary' : 'danger'}
+                          size="sm"
+                          onClick={() => handleToggleBookStatus(b)}
+                          leftIcon={b.active === false ? <RotateCcw size={14} /> : <Ban size={14} />}
+                        >
+                          {b.active === false ? 'Bán lại' : 'Ngừng bán'}
                         </Button>
                         <Button
                           variant="danger"
@@ -396,17 +502,9 @@ export const AdminBooksPage: React.FC = () => {
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
 
-          <Input
-            label="Tác giả *"
-            placeholder="Tên tác giả"
-            required
-            value={form.author}
-            onChange={(e) => setForm({ ...form, author: e.target.value })}
-          />
-
 
           <Select
-            label="Liên kết tác giả"
+            label="Tác giả"
             value={form.authorId || ''}
             onChange={(e) => {
               const authorId = e.target.value ? Number(e.target.value) : null;
@@ -420,6 +518,7 @@ export const AdminBooksPage: React.FC = () => {
             options={authors.map((author) => ({ value: author.id, label: author.name }))}
             placeholder="-- Chọn tác giả --"
           />
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickAuthorOpen(true)}><Plus size={16} /><span>Thêm tác giả mới</span></button>
 
           <Select
             label="Nhà xuất bản"
@@ -438,6 +537,7 @@ export const AdminBooksPage: React.FC = () => {
             options={categories.map((c) => ({ value: c.id, label: c.name }))}
             placeholder="-- Chọn danh mục --"
           />
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickCategoryOpen(true)}><Plus size={16} /><span>Thêm danh mục mới</span></button>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <Input
@@ -512,15 +612,32 @@ export const AdminBooksPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Delete Confirmation Dialog */}
+      <Modal isOpen={isQuickAuthorOpen} onClose={() => setIsQuickAuthorOpen(false)} title="Thêm tác giả mới" maxWidth="440px">
+        <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreateAuthor(); }}>
+          <div className="quick-create-panel"><div className="quick-create-icon"><Edit2 size={20} /></div><div><strong>Tạo tác giả ngay trong lúc thêm sách</strong><p>Thông tin sẽ được lưu vào danh sách tác giả để bạn chọn lại sau.</p></div></div>
+          <Input label="Tên tác giả *" placeholder="Ví dụ: Nguyễn Nhật Ánh" required autoFocus value={quickAuthorName} onChange={(event) => setQuickAuthorName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickAuthorOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm tác giả</Button></div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isQuickCategoryOpen} onClose={() => setIsQuickCategoryOpen(false)} title="Thêm danh mục mới" maxWidth="440px">
+        <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreateCategory(); }}>
+          <div className="quick-create-panel"><div className="quick-create-icon"><Filter size={20} /></div><div><strong>Tạo danh mục ngay trong lúc thêm sách</strong><p>Danh mục mới sẽ được chọn sẵn cho cuốn sách này.</p></div></div>
+          <Input label="Tên danh mục *" placeholder="Ví dụ: Kinh doanh" required autoFocus value={quickCategoryName} onChange={(event) => setQuickCategoryName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickCategoryOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm danh mục</Button></div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa sách" message={`Bạn có chắc muốn xóa ${selectedBookIds.length} sách Đã chọn không? Sách đã phát sinh giao dịch sẽ được giữ lại.`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
+
       <ConfirmDialog
         isOpen={deleteBookId !== null}
         onClose={() => setDeleteBookId(null)}
         onConfirm={handleDeleteBook}
         title="Xóa đầu sách"
-        message="Hành động này sẽ xóa vĩnh viễn cuốn sách khỏi kho dữ liệu và không thể hoàn tác. Bạn có chắc chắn muốn xóa?"
+        message="Chỉ xóa được sách chưa phát sinh giao dịch hoặc dữ liệu liên quan. Với sách đã bán, hãy chọn Ngừng bán."
         confirmText="Xác nhận xóa"
-        isDanger={true}
+        isDanger
         isLoading={isDeleting}
       />
     </div>

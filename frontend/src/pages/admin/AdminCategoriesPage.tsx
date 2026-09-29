@@ -22,6 +22,9 @@ export const AdminCategoriesPage: React.FC = () => {
   const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
   const { success, error } = useToast();
 
   const loadData = async () => {
@@ -105,6 +108,22 @@ export const AdminCategoriesPage: React.FC = () => {
     }
   };
 
+  const toggleCategory = (id: number) => setSelectedCategoryIds((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+  const allCategoriesSelected = categories.length > 0 && categories.every((item) => selectedCategoryIds.includes(item.id));
+  const toggleAllCategories = () => setSelectedCategoryIds(allCategoriesSelected ? [] : categories.map((item) => item.id));
+  const handleBulkDelete = async () => {
+    if (!selectedCategoryIds.length) return;
+    setIsBulkDeleting(true);
+    const results = await Promise.allSettled(selectedCategoryIds.map((id) => categoryService.delete(id)));
+    const deleted = results.filter((item) => item.status === 'fulfilled').length;
+    const blocked = results.length - deleted;
+    setSelectedCategoryIds([]);
+    await loadData();
+    if (blocked) error(`Đã xóa ${deleted} danh mục. ${blocked} danh mục đang được sách sử dụng nên không thể xóa.`);
+    else success(`Đã xóa ${deleted} danh mục Đã chọn.`);
+    setIsBulkDeleting(false);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
@@ -119,6 +138,8 @@ export const AdminCategoriesPage: React.FC = () => {
         </Button>
       </div>
 
+      {selectedCategoryIds.length > 0 && <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem' }}><span>Đã chọn <strong>{selectedCategoryIds.length}</strong> danh mục</span><Button variant="secondary" size="sm" onClick={() => setSelectedCategoryIds(allCategoriesSelected ? [] : categories.map((item) => item.id))}>{allCategoriesSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>Xóa đã chọn</Button></div>}
+
       {isLoading ? (
         <div className="card"><TableSkeleton rows={4} /></div>
       ) : categories.length > 0 ? (
@@ -126,6 +147,7 @@ export const AdminCategoriesPage: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
+                <th><input type="checkbox" aria-label="Chọn tất cả danh mục" checked={allCategoriesSelected} onChange={toggleAllCategories} /></th>
                 <th>ID</th>
                 <th>Tên danh mục</th>
                 <th>Mô tả</th>
@@ -138,6 +160,7 @@ export const AdminCategoriesPage: React.FC = () => {
                 const bookCount = books.filter((book) => book.category?.id === category.id).length;
                 return (
                   <tr key={category.id}>
+                    <td><input type="checkbox" aria-label={`Chọn danh mục ${category.name}`} checked={selectedCategoryIds.includes(category.id)} onChange={() => toggleCategory(category.id)} /></td>
                     <td>#{category.id}</td>
                     <td><strong>{category.name}</strong></td>
                     <td>{category.description || '—'}</td>
@@ -201,6 +224,8 @@ export const AdminCategoriesPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa danh mục" message={`Bạn có chắc muốn xóa ${selectedCategoryIds.length} danh mục Đã chọn không?`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
 
       <ConfirmDialog
         isOpen={deleteCategoryId !== null}

@@ -118,6 +118,7 @@ export const BookDetailPage: React.FC = () => {
   }
 
   const coverUrl = getBookCover(book.title, book.category?.name, book.imageUrl);
+  const isDiscontinued = book.active === false;
   const isOutOfStock = book.stock <= 0;
 
   const handleAddToCart = async () => {
@@ -259,6 +260,7 @@ export const BookDetailPage: React.FC = () => {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                filter: isDiscontinued ? 'grayscale(1) opacity(0.58)' : 'none',
               }}
             />
           </div>
@@ -367,14 +369,16 @@ export const BookDetailPage: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Tình trạng kho:</span>
-                {isOutOfStock ? (
+                {isDiscontinued ? (
+                  <span className="badge badge-outofstock">Ngừng bán</span>
+                ) : isOutOfStock ? (
                   <span className="badge badge-outofstock">Hết hàng</span>
                 ) : (
                   <span className="badge badge-instock">Còn hàng ({book.stock} cuốn)</span>
                 )}
               </div>
 
-              {!isOutOfStock && (
+              {!isOutOfStock && !isDiscontinued && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Số lượng:</span>
                   <div
@@ -421,7 +425,7 @@ export const BookDetailPage: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="book-actions">
+            {!isDiscontinued && <div className="book-actions">
               <Button
                 variant="outline"
                 size="lg"
@@ -452,7 +456,8 @@ export const BookDetailPage: React.FC = () => {
               >
                 {isWishlisted ? 'Đã yêu thích' : 'Yêu thích'}
               </Button>
-            </div>
+            </div>}
+            {isDiscontinued && <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Sản phẩm này hiện đã ngừng bán.</p>}
           </div>
 
           {/* Guarantees */}

@@ -2,12 +2,18 @@ import { apiClient } from './apiClient';
 import { Book, BookRequest } from '../types';
 
 export const bookService = {
-  async getAll(search?: string, filter?: string): Promise<Book[]> {
+  async getAll(search?: string, filter?: string, includeInactive = false): Promise<Book[]> {
     const params = {
       ...(search ? { search } : {}),
       ...(filter ? { filter } : {}),
+      ...(includeInactive ? { includeInactive: true } : {}),
     };
     const res = await apiClient.get<Book[]>('/books', { params });
+    return res.data;
+  },
+
+  async setActive(id: number | string, active: boolean): Promise<Book> {
+    const res = await apiClient.patch<Book>(`/books/${id}/status`, undefined, { params: { active } });
     return res.data;
   },
 

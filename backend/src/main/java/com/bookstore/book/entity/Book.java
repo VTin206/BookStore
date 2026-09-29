@@ -27,6 +27,9 @@ public class Book {
   @Column(nullable = false)
   private Integer stock;
 
+  @Column(nullable = false)
+  private boolean active = true;
+
   @Column private String isbn;
 
   @Column(columnDefinition = "TEXT")
@@ -92,6 +95,14 @@ public class Book {
 
   public void setStock(Integer stock) {
     this.stock = stock;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 
   public Category getCategory() {

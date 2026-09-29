@@ -6,7 +6,11 @@ import com.bookstore.book.repository.BookRepository;
 import com.bookstore.catalog.repository.AuthorRepository;
 import com.bookstore.catalog.repository.PublisherRepository;
 import com.bookstore.category.repository.CategoryRepository;
+import com.bookstore.common.exception.ConflictException;
+import com.bookstore.common.exception.ResourceNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,20 +32,24 @@ public class BookService {
   }
 
   public List<Book> all() {
+    return bookRepository.findAllByActiveTrue();
+  }
+
+  public List<Book> allIncludingInactive() {
     return bookRepository.findAll();
   }
 
   public List<Book> search(String search) {
-    return search == null || search.isBlank() ? bookRepository.findAll() : bookRepository.search(search.trim());
+    return search == null || search.isBlank() ? bookRepository.findAllByActiveTrue() : bookRepository.search(search.trim());
   }
 
   public List<Book> byFilter(String search, String filter) {
     var normalizedFilter = filter == null ? "" : filter.trim().toUpperCase();
     if ("BEST-SELLER".equals(normalizedFilter)) {
-      return bookRepository.findBestSellers();
+      return bookRepository.findActiveBestSellers();
     }
     if ("NEW".equals(normalizedFilter)) {
-      return bookRepository.findAllByOrderByPublicationDateDescCreatedAtDesc();
+      return bookRepository.findAllByActiveTrueOrderByPublicationDateDescCreatedAtDesc();
     }
     return search(search);
   }
@@ -58,8 +66,36 @@ public class BookService {
     return save(bookRepository.findById(id).orElseThrow(), request);
   }
 
+  public Book setActive(Long id, boolean active) {
+    var book = bookRepository.findById(id).orElseThrow();
+    book.setActive(active);
+    return bookRepository.save(book);
+  }
+
   public void delete(Long id) {
-    bookRepository.deleteById(id);
+    if (!bookRepository.existsById(id)) {
+      throw new ResourceNotFoundException("Sách không còn tồn tại. Vui lòng tải lại danh sách.");
+    }
+    var reasons = new ArrayList<String>();
+    if (bookRepository.hasOrderItems(id)) {
+      reasons.add("đã có trong đơn hàng (kể cả đơn đã hủy)");
+    }
+    if (bookRepository.hasCartItems(id)) {
+      reasons.add("đang có trong giỏ hàng của khách hàng");
+    }
+    if (bookRepository.hasReviews(id)) {
+      reasons.add("đã có đánh giá của khách hàng");
+    }
+    if (!reasons.isEmpty()) {
+      throw new ConflictException("Không thể xóa sách vì sách " + String.join("; ", reasons) + ".");
+    }
+    try {
+      bookRepository.deleteById(id);
+    } catch (DataIntegrityViolationException exception) {
+      // A reference may be added after the checks above.
+      throw new ConflictException(
+          "Không thể xóa sách vì có dữ liệu liên quan. Vui lòng tải lại danh sách và thử lại.");
+    }
   }
 
   public Book adjustStock(Long id, Integer stock) {

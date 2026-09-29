@@ -35,6 +35,9 @@ public class CartService {
   public Cart add(String username, CartItemRequest request) {
     var cart = get(username);
     var book = bookRepository.findById(request.bookId()).orElseThrow();
+    if (!book.isActive()) {
+      throw new IllegalStateException("S?ch n?y hi?n ?? ng?ng b?n");
+    }
     var item =
         cart.getItems().stream()
             .filter(existing -> existing.getBook().getId().equals(book.getId()))
