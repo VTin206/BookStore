@@ -12,6 +12,10 @@ import { Filter, SlidersHorizontal, X, Search, Check } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 8;
 
+const formatPriceLimit = (thousandVnd: number) => thousandVnd >= 1000
+  ? (thousandVnd / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' triệu VNĐ'
+  : thousandVnd.toLocaleString('vi-VN') + ' nghìn VNĐ';
+
 export const BookListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get('search') || '';
@@ -144,7 +148,7 @@ export const BookListPage: React.FC = () => {
           const selectedPrice = maxPrice || highestPrice;
           return (
             <>
-              <div className="price-range-labels"><span>0 nghìn VNĐ</span><span>{selectedPrice.toLocaleString('vi-VN')} nghìn VNĐ</span></div>
+              <div className="price-range-labels"><span>{formatPriceLimit(0)}</span><span>{formatPriceLimit(selectedPrice)}</span></div>
               <input className="price-range-input" type="range" min="0" max={highestPrice} step="1" value={selectedPrice} onChange={(e) => { setMaxPrice(Number(e.target.value) >= highestPrice ? 0 : Number(e.target.value)); setCurrentPage(1); }} />
             </>
           );
