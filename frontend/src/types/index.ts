@@ -20,6 +20,7 @@ export interface Book {
   stock: number;
   active?: boolean;
   category?: Category | null;
+  categories?: Category[];
   authorId?: number | null;
   publisherId?: number | null;
   isbn?: string;
@@ -36,6 +37,7 @@ export interface BookRequest {
   price: number;
   stock: number;
   categoryId?: number | null;
+  categoryIds?: number[];
   authorId?: number | null;
   publisherId?: number | null;
   isbn?: string;

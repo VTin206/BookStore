@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { isAxiosError } from 'axios';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
@@ -47,6 +47,7 @@ export const AdminBooksPage: React.FC = () => {
     price: 0,
     stock: 0,
     categoryId: null,
+    categoryIds: [],
     authorId: null,
     publisherId: null,
     isbn: '',
@@ -105,6 +106,7 @@ export const AdminBooksPage: React.FC = () => {
       price: 50000,
       stock: 10,
       categoryId: categories[0]?.id || null,
+      categoryIds: categories[0]?.id ? [categories[0].id] : [],
       authorId: authors[0]?.id || null,
       publisherId: null,
       isbn: '',
@@ -123,6 +125,7 @@ export const AdminBooksPage: React.FC = () => {
       price: Number(book.price),
       stock: book.stock,
       categoryId: book.category?.id || null,
+      categoryIds: book.categories?.map((category) => category.id) || (book.category?.id ? [book.category.id] : []),
       authorId: book.authorId || null,
       publisherId: book.publisherId || null,
       isbn: book.isbn || '',
@@ -177,10 +180,10 @@ export const AdminBooksPage: React.FC = () => {
       setForm((current) => ({ ...current, publisherId: created.id }));
       setQuickPublisherName('');
       setIsQuickPublisherOpen(false);
-      success('ÄÃ£ thÃªm nhÃ  xuáº¥t báº£n "' + created.name + '".');
+      success('Đã thêm nhà xuất bản "' + created.name + '".');
     } catch (err) {
       const message = isAxiosError(err) ? err.response?.data?.message : undefined;
-      error(typeof message === 'string' && message.trim() ? message : 'KhÃ´ng thá»ƒ thÃªm nhÃ  xuáº¥t báº£n.');
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể thêm nhà xuất bản.');
     } finally { setIsQuickCreating(false); }
   };
 
@@ -189,7 +192,7 @@ export const AdminBooksPage: React.FC = () => {
     const selectedAuthor = authors.find((item) => item.id === Number(form.authorId));
     const authorName = selectedAuthor?.name || form.author.trim();
     if (!form.title.trim() || !authorName) {
-      error('Vui lÃ²ng nháº­p tÃªn sÃ¡ch vÃ  chá»n tÃ¡c giáº£.');
+      error('Vui lòng nhập tên sách và chọn tác giả.');
       return;
     }
 
@@ -201,6 +204,7 @@ export const AdminBooksPage: React.FC = () => {
         price: Number(form.price),
         stock: Number(form.stock),
         categoryId: form.categoryId ? Number(form.categoryId) : null,
+        categoryIds: form.categoryIds?.map(Number),
         authorId: form.authorId ? Number(form.authorId) : null,
         publisherId: form.publisherId ? Number(form.publisherId) : null,
         isbn: form.isbn?.trim() || undefined,
@@ -211,16 +215,17 @@ export const AdminBooksPage: React.FC = () => {
 
       if (editingBook) {
         await bookService.update(editingBook.id, payload);
-        success(`ÄÃ£ cáº­p nháº­t sÃ¡ch "${payload.title}" thÃ nh cÃ´ng!`);
+        success(`Đã cập nhật sách "${payload.title}" thành công!`);
       } else {
         await bookService.create(payload);
-        success(`ÄÃ£ thÃªm sÃ¡ch má»›i "${payload.title}"!`);
+        success(`Đã thêm sách mới "${payload.title}"!`);
       }
       setIsModalOpen(false);
       loadData();
     } catch (err) {
       console.error('Save book error', err);
-      error('KhÃ´ng thá»ƒ lÆ°u thÃ´ng tin sÃ¡ch. Vui lÃ²ng kiá»ƒm tra láº¡i!');
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể lưu thông tin sách. Vui lòng kiểm tra dữ liệu và thử lại.');
     } finally {
       setIsSubmitting(false);
     }
@@ -230,11 +235,11 @@ export const AdminBooksPage: React.FC = () => {
     const active = book.active === false;
     try {
       await bookService.setActive(book.id, active);
-      success(active ? `ÄÃ£ má»Ÿ bÃ¡n láº¡i sÃ¡ch "${book.title}".` : `ÄÃ£ ngá»«ng bÃ¡n sÃ¡ch "${book.title}".`);
+      success(active ? `Đã mở bán lại sách "${book.title}".` : `Đã ngừng bán sách "${book.title}".`);
       loadData();
     } catch (err) {
       const message = isAxiosError(err) ? err.response?.data?.message : undefined;
-      error(typeof message === 'string' && message.trim() ? message : 'KhÃ´ng thá»ƒ cáº­p nháº­t tráº¡ng thÃ¡i sÃ¡ch.');
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể cập nhật trạng thái sách.');
     }
   };
 
@@ -243,12 +248,12 @@ export const AdminBooksPage: React.FC = () => {
     try {
       setIsDeleting(true);
       await bookService.delete(deleteBookId);
-      success('ÄÃ£ xÃ³a sÃ¡ch khá»i há»‡ thá»‘ng.');
+      success('Đã xóa sách khỏi hệ thống.');
       setDeleteBookId(null);
       loadData();
     } catch (err) {
       const message = isAxiosError(err) ? err.response?.data?.message : undefined;
-      error(typeof message === 'string' && message.trim() ? message : 'KhÃ´ng thá»ƒ xÃ³a sÃ¡ch. Náº¿u sÃ¡ch Ä‘Ã£ phÃ¡t sinh giao dá»‹ch, hÃ£y ngá»«ng bÃ¡n.');
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể xóa sách. Nếu sách đã phát sinh giao dịch, hãy ngừng bán.');
     } finally {
       setIsDeleting(false);
     }
@@ -293,15 +298,15 @@ export const AdminBooksPage: React.FC = () => {
     setSelectedBookIds([]);
     await loadData();
     if (blocked > 0) {
-      error(`ÄÃ£ xÃ³a ${deleted} sÃ¡ch. ${blocked} sÃ¡ch khÃ´ng thá»ƒ xÃ³a vÃ¬ Ä‘Ã£ phÃ¡t sinh giao dá»‹ch hoáº·c dá»¯ liá»‡u liÃªn quan; hÃ£y ngá»«ng bÃ¡n cÃ¡c sÃ¡ch Ä‘Ã³.`);
+      error(`Đã xóa ${deleted} sách. ${blocked} sách không thể xóa vì đã phát sinh giao dịch hoặc dữ liệu liên quan; hãy ngừng bán các sách đó.`);
     } else {
-      success(`ÄÃ£ xÃ³a ${deleted} sÃ¡ch ÄÃ£ chá»n.`);
+      success(`Đã xóa ${deleted} sách đã chọn.`);
     }
     setIsBulkDeleting(false);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div className="admin-books-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Top Header */}
       <div
         style={{
@@ -313,20 +318,20 @@ export const AdminBooksPage: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quáº£n lÃ½ kho sÃ¡ch</h1>
+          <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý kho sách</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
-            Tá»•ng cá»™ng <strong>{books.length}</strong> Ä‘áº§u sÃ¡ch trong há»‡ thá»‘ng
+            Tổng cộng <strong>{books.length}</strong> đầu sách trong hệ thống
           </p>
         </div>
 
         <Button variant="primary" onClick={openCreateModal} leftIcon={<Plus size={18} />}>
-          ThÃªm sÃ¡ch má»›i
+          Thêm sách mới
         </Button>
       </div>
 
       {/* Filter and Search Bar */}
       <div
-        className="card"
+        className="card admin-books-toolbar"
         style={{
           padding: '1.25rem 1.5rem',
           display: 'flex',
@@ -351,7 +356,7 @@ export const AdminBooksPage: React.FC = () => {
             />
             <input
               type="text"
-              placeholder="TÃ¬m theo tÃªn sÃ¡ch, tÃ¡c giáº£..."
+              placeholder="Tìm theo tên sách, tác giả..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -372,7 +377,7 @@ export const AdminBooksPage: React.FC = () => {
             className="form-select"
             style={{ width: '180px', fontSize: '0.875rem' }}
           >
-            <option value="">Táº¥t cáº£ danh má»¥c</option>
+            <option value="">Tất cả danh mục</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id.toString()}>
                 {c.name}
@@ -384,9 +389,9 @@ export const AdminBooksPage: React.FC = () => {
 
       {selectedBookIds.length > 0 && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem' }}>
-          <span>ÄÃ£ chá»n <strong>{selectedBookIds.length}</strong> sÃ¡ch</span>
-          <Button variant="secondary" size="sm" onClick={() => setSelectedBookIds(allCurrentPageSelected ? [] : currentPageIds)}>{allCurrentPageSelected ? 'Bá» chá»n táº¥t cáº£' : 'Chá»n táº¥t cáº£'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>
-            XÃ³a Ä‘Ã£ chá»n
+          <span>Đã chọn <strong>{selectedBookIds.length}</strong> sách</span>
+          <Button variant="secondary" size="sm" onClick={() => setSelectedBookIds(allCurrentPageSelected ? [] : currentPageIds)}>{allCurrentPageSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>
+            Xóa đã chọn
           </Button>
         </div>
       )}
@@ -397,17 +402,18 @@ export const AdminBooksPage: React.FC = () => {
           <TableSkeleton rows={6} />
         </div>
       ) : paginatedBooks.length > 0 ? (
-        <div className="table-container">
+        <div className="table-container admin-books-table">
           <table className="table">
             <thead>
               <tr>
-                <th style={{ width: '60px' }}>BÃ¬a</th>
-                <th>TÃªn sÃ¡ch</th>
-                <th>TÃ¡c giáº£</th>
-                <th>Danh má»¥c</th>
-                <th>GiÃ¡ bÃ¡n</th>
-                <th>Tá»“n kho</th>
-                <th style={{ textAlign: 'right' }}>Thao tÃ¡c</th>
+                <th className="book-select-column" aria-label="Chọn"><span className="sr-only">Chọn</span></th>
+                <th className="book-cover-column">Bìa</th>
+                <th>Tên sách</th>
+                <th>Tác giả</th>
+                <th>Danh mục</th>
+                <th>Giá bán</th>
+                <th>Tồn kho</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -415,7 +421,7 @@ export const AdminBooksPage: React.FC = () => {
                 const cover = getBookCover(b.title, b.category?.name, b.imageUrl);
                 return (
                   <tr key={b.id} style={{ opacity: b.active === false ? 0.58 : 1 }}>
-                    <td><input type="checkbox" aria-label={`Chá»n sÃ¡ch ${b.title}`} checked={selectedBookIds.includes(b.id)} onChange={() => toggleBookSelection(b.id)} /></td>
+                    <td><input type="checkbox" aria-label={`Chọn sách ${b.title}`} checked={selectedBookIds.includes(b.id)} onChange={() => toggleBookSelection(b.id)} /></td>
                     <td>
                       <div
                         style={{
@@ -435,36 +441,36 @@ export const AdminBooksPage: React.FC = () => {
                     </td>
                     <td>
                       <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{b.title}</div>
-                      {b.active === false && <span className="badge badge-outofstock">Ngá»«ng bÃ¡n</span>}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MÃ£ ID: #{b.id}</div>
+                      {b.active === false && <span className="badge badge-outofstock">Ngừng bán</span>}
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã ID: #{b.id}</div>
                     </td>
                     <td>{b.author}</td>
                     <td>
-                      <span className="badge badge-primary">{b.category?.name || 'â€”'}</span>
+                      <div className="book-category-badges">{(b.categories?.length ? b.categories : b.category ? [b.category] : []).map((category) => <span key={category.id} className="badge badge-primary">{category.name}</span>)}</div>
                     </td>
                     <td>
                       <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {Number(b.price).toLocaleString('vi-VN')} â‚«
+                        {Number(b.price).toLocaleString('vi-VN')} ₫
                       </span>
                     </td>
                     <td>
                       {b.stock <= 0 ? (
-                        <span className="badge badge-outofstock">Háº¿t hÃ ng</span>
+                        <span className="badge badge-outofstock">Hết hàng</span>
                       ) : b.stock < 10 ? (
-                        <span className="badge badge-lowstock">CÃ²n {b.stock}</span>
+                        <span className="badge badge-lowstock">Còn {b.stock}</span>
                       ) : (
-                        <span className="badge badge-instock">CÃ²n {b.stock}</span>
+                        <span className="badge badge-instock">Còn {b.stock}</span>
                       )}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <div className="book-row-actions" style={{ display: 'inline-flex', gap: '6px' }}>
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => openEditModal(b)}
                           leftIcon={<Edit2 size={14} />}
                         >
-                          Sá»­a
+                          Sửa
                         </Button>
                         <Button
                           variant={b.active === false ? 'secondary' : 'danger'}
@@ -472,7 +478,7 @@ export const AdminBooksPage: React.FC = () => {
                           onClick={() => handleToggleBookStatus(b)}
                           leftIcon={b.active === false ? <RotateCcw size={14} /> : <Ban size={14} />}
                         >
-                          {b.active === false ? 'BÃ¡n láº¡i' : 'Ngá»«ng bÃ¡n'}
+                          {b.active === false ? 'Bán lại' : 'Ngừng bán'}
                         </Button>
                         <Button
                           variant="danger"
@@ -480,7 +486,7 @@ export const AdminBooksPage: React.FC = () => {
                           onClick={() => setDeleteBookId(b.id)}
                           leftIcon={<Trash2 size={14} />}
                         >
-                          XÃ³a
+                          Xóa
                         </Button>
                       </div>
                     </td>
@@ -501,9 +507,9 @@ export const AdminBooksPage: React.FC = () => {
       ) : (
         <EmptyState
           icon={<BookOpen size={32} />}
-          title="KhÃ´ng tÃ¬m tháº¥y sÃ¡ch nÃ o"
-          description="Thá»­ thay Ä‘á»•i tá»« khÃ³a tÃ¬m kiáº¿m hoáº·c nháº¥n nÃºt '+ ThÃªm sÃ¡ch má»›i' Ä‘á»ƒ bá»• sung Ä‘áº§u sÃ¡ch vÃ o kho."
-          actionText="+ ThÃªm sÃ¡ch má»›i"
+          title="Không tìm thấy sách nào"
+          description="Thử thay đổi từ khóa tìm kiếm hoặc nhấn nút '+ Thêm sách mới' để bổ sung đầu sách vào kho."
+          actionText="+ Thêm sách mới"
           onAction={openCreateModal}
         />
       )}
@@ -512,13 +518,14 @@ export const AdminBooksPage: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingBook ? 'Chá»‰nh sá»­a thÃ´ng tin sÃ¡ch' : 'ThÃªm sÃ¡ch má»›i vÃ o kho'}
-        maxWidth="540px"
+        title={editingBook ? 'Chỉnh sửa thông tin sách' : 'Thêm sách mới vào kho'}
+        maxWidth="760px"
+        closeOnBackdropClick={false}
       >
         <form onSubmit={handleSaveBook}>
           <Input
-            label="TÃªn sÃ¡ch *"
-            placeholder="Nháº­p tiÃªu Ä‘á» sÃ¡ch"
+            label="Tên sách *"
+            placeholder="Nhập tiêu đề sách"
             required
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -526,7 +533,7 @@ export const AdminBooksPage: React.FC = () => {
 
 
           <Select
-            label="TÃ¡c giáº£"
+            label="Tác giả"
             value={form.authorId || ''}
             onChange={(e) => {
               const authorId = e.target.value ? Number(e.target.value) : null;
@@ -538,33 +545,35 @@ export const AdminBooksPage: React.FC = () => {
               });
             }}
             options={authors.map((author) => ({ value: author.id, label: author.name }))}
-            placeholder="-- Chá»n tÃ¡c giáº£ --"
+            placeholder="-- Chọn tác giả --"
           />
-          <button type="button" className="quick-add-button" onClick={() => setIsQuickAuthorOpen(true)}><Plus size={16} /><span>ThÃªm tÃ¡c giáº£ má»›i</span></button>
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickAuthorOpen(true)}><Plus size={16} /><span>Thêm tác giả mới</span></button>
 
           <Select
-            label="NhÃ  xuáº¥t báº£n"
+            label="Nhà xuất bản"
             value={form.publisherId || ''}
             onChange={(e) =>
               setForm({ ...form, publisherId: e.target.value ? Number(e.target.value) : null })
             }
             options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
-            placeholder="-- Chá»n nhÃ  xuáº¥t báº£n --"
+            placeholder="-- Chọn nhà xuất bản --"
           /> 
-          <button type="button" className="quick-add-button" onClick={() => setIsQuickPublisherOpen(true)}><Plus size={16} /><span>ThÃªm nhÃ  xuáº¥t báº£n má»›i</span></button>         <Select
-            label="Danh má»¥c thá»ƒ loáº¡i"
-            value={form.categoryId || ''}
-            onChange={(e) =>
-              setForm({ ...form, categoryId: e.target.value ? Number(e.target.value) : null })
-            }
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickPublisherOpen(true)}><Plus size={16} /><span>Thêm nhà xuất bản mới</span></button>         <Select
+            label="Danh mục thể loại"
+            multiple
+            value={form.categoryIds?.map(String) || []}
+            onChange={(e) => {
+              const selectedIds = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+              setForm({ ...form, categoryIds: selectedIds, categoryId: selectedIds[0] || null });
+            }}
             options={categories.map((c) => ({ value: c.id, label: c.name }))}
-            placeholder="-- Chá»n danh má»¥c --"
+            placeholder="-- Chọn danh mục --"
           />
-          <button type="button" className="quick-add-button" onClick={() => setIsQuickCategoryOpen(true)}><Plus size={16} /><span>ThÃªm danh má»¥c má»›i</span></button>
+          <button type="button" className="quick-add-button" onClick={() => setIsQuickCategoryOpen(true)}><Plus size={16} /><span>Thêm danh mục mới</span></button>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <Input
-              label="GiÃ¡ bÃ¡n (nghÃ¬n VNÄ) *"
+              label="Giá bán (nghìn VNĐ) *"
               type="number"
               min="0"
               step="1"
@@ -574,7 +583,7 @@ export const AdminBooksPage: React.FC = () => {
             />
 
             <Input
-              label="Sá»‘ lÆ°á»£ng tá»“n kho *"
+              label="Số lượng tồn kho *"
               type="number"
               min="0"
               required
@@ -590,40 +599,40 @@ export const AdminBooksPage: React.FC = () => {
               onChange={(e) => setForm({ ...form, isbn: e.target.value })}
             />
             <Input
-              label="NÄƒm xuáº¥t báº£n"
+              label="Năm xuất bản"
               type="number"
               min="1000"
               max={new Date().getFullYear()}
               step="1"
-              placeholder="VÃ­ dá»¥: 2024"
+              placeholder="Ví dụ: 2024"
               value={form.publicationDate || ''}
               onChange={(e) => setForm({ ...form, publicationDate: e.target.value.slice(0, 4) })}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">áº¢nh bÃ¬a</label>
+            <label className="form-label">Ảnh bìa</label>
             <div className="cover-upload-row">
               <Input
                 value={form.imageUrl || ''}
-                placeholder="DÃ¡n URL áº£nh hoáº·c táº£i áº£nh lÃªn"
+                placeholder="Dán URL ảnh hoặc tải ảnh lên"
                 onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
               />
               <input ref={coverInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
-                if (file.size > 2 * 1024 * 1024) { error('áº¢nh bÃ¬a khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 2MB.'); return; }
+                if (file.size > 2 * 1024 * 1024) { error('Ảnh bìa không được vượt quá 2MB.'); return; }
                 const reader = new FileReader();
                 reader.onload = () => setForm((current) => ({ ...current, imageUrl: String(reader.result) }));
                 reader.readAsDataURL(file);
               }} />
-              <Button type="button" variant="secondary" onClick={() => coverInputRef.current?.click()} leftIcon={<Plus size={16} />}>Táº£i áº£nh lÃªn</Button>
+              <Button type="button" variant="secondary" onClick={() => coverInputRef.current?.click()} leftIcon={<Plus size={16} />}>Tải ảnh lên</Button>
             </div>
-            {form.imageUrl && <img className="cover-upload-preview" src={form.imageUrl} alt="Xem trÆ°á»›c áº£nh bÃ¬a" />}
+            {form.imageUrl && <img className="cover-upload-preview" src={form.imageUrl} alt="Xem trước ảnh bìa" />}
           </div>
 
           <div className="form-group">
-            <label className="form-label">MÃ´ táº£ sÃ¡ch</label>
+            <label className="form-label">Mô tả sách</label>
             <textarea
               className="form-textarea"
               rows={4}
@@ -645,48 +654,48 @@ export const AdminBooksPage: React.FC = () => {
               onClick={() => setIsModalOpen(false)}
               disabled={isSubmitting}
             >
-              Há»§y
+              Hủy
             </Button>
             <Button type="submit" variant="primary" isLoading={isSubmitting}>
-              {editingBook ? 'LÆ°u thay Ä‘á»•i' : 'ThÃªm sÃ¡ch'}
+              {editingBook ? 'Lưu thay đổi' : 'Thêm sách'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={isQuickAuthorOpen} onClose={() => setIsQuickAuthorOpen(false)} title="ThÃªm tÃ¡c giáº£ má»›i" maxWidth="440px">
+      <Modal isOpen={isQuickAuthorOpen} onClose={() => setIsQuickAuthorOpen(false)} title="Thêm tác giả mới" maxWidth="440px">
         <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreateAuthor(); }}>
-          <div className="quick-create-panel"><div className="quick-create-icon"><Edit2 size={20} /></div><div><strong>Táº¡o tÃ¡c giáº£ ngay trong lÃºc thÃªm sÃ¡ch</strong><p>ThÃ´ng tin sáº½ Ä‘Æ°á»£c lÆ°u vÃ o danh sÃ¡ch tÃ¡c giáº£ Ä‘á»ƒ báº¡n chá»n láº¡i sau.</p></div></div>
-          <Input label="TÃªn tÃ¡c giáº£ *" placeholder="VÃ­ dá»¥: Nguyá»…n Nháº­t Ãnh" required autoFocus value={quickAuthorName} onChange={(event) => setQuickAuthorName(event.target.value)} />
-          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickAuthorOpen(false)}>Há»§y</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>ThÃªm tÃ¡c giáº£</Button></div>
+          <div className="quick-create-panel"><div className="quick-create-icon"><Edit2 size={20} /></div><div><strong>Tạo tác giả ngay trong lúc thêm sách</strong><p>Thông tin sẽ được lưu vào danh sách tác giả để bạn chọn lại sau.</p></div></div>
+          <Input label="Tên tác giả *" placeholder="Ví dụ: Nguyễn Nhật Ánh" required autoFocus value={quickAuthorName} onChange={(event) => setQuickAuthorName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickAuthorOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm tác giả</Button></div>
         </form>
       </Modal>
 
-      <Modal isOpen={isQuickPublisherOpen} onClose={() => setIsQuickPublisherOpen(false)} title="ThÃªm nhÃ  xuáº¥t báº£n má»›i" maxWidth="440px">
+      <Modal isOpen={isQuickPublisherOpen} onClose={() => setIsQuickPublisherOpen(false)} title="Thêm nhà xuất bản mới" maxWidth="440px">
         <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreatePublisher(); }}>
-          <div className="quick-create-panel"><div className="quick-create-icon"><BookOpen size={20} /></div><div><strong>Táº¡o nhÃ  xuáº¥t báº£n ngay trong lÃºc thÃªm sÃ¡ch</strong><p>NhÃ  xuáº¥t báº£n má»›i sáº½ Ä‘Æ°á»£c chá»n sáºµn cho cuá»‘n sÃ¡ch nÃ y.</p></div></div>
-          <Input label="TÃªn nhÃ  xuáº¥t báº£n *" placeholder="VÃ­ dá»¥: NhÃ  xuáº¥t báº£n Tráº»" required autoFocus value={quickPublisherName} onChange={(event) => setQuickPublisherName(event.target.value)} />
-          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickPublisherOpen(false)}>Há»§y</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>ThÃªm nhÃ  xuáº¥t báº£n</Button></div>
+          <div className="quick-create-panel"><div className="quick-create-icon"><BookOpen size={20} /></div><div><strong>Tạo nhà xuất bản ngay trong lúc thêm sách</strong><p>Nhà xuất bản mới sẽ được chọn sẵn cho cuốn sách này.</p></div></div>
+          <Input label="Tên nhà xuất bản *" placeholder="Ví dụ: Nhà xuất bản Trẻ" required autoFocus value={quickPublisherName} onChange={(event) => setQuickPublisherName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickPublisherOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm nhà xuất bản</Button></div>
         </form>
       </Modal>
 
-      <Modal isOpen={isQuickCategoryOpen} onClose={() => setIsQuickCategoryOpen(false)} title="ThÃªm danh má»¥c má»›i" maxWidth="440px">
+      <Modal isOpen={isQuickCategoryOpen} onClose={() => setIsQuickCategoryOpen(false)} title="Thêm danh mục mới" maxWidth="440px">
         <form onSubmit={(event) => { event.preventDefault(); void handleQuickCreateCategory(); }}>
-          <div className="quick-create-panel"><div className="quick-create-icon"><Filter size={20} /></div><div><strong>Táº¡o danh má»¥c ngay trong lÃºc thÃªm sÃ¡ch</strong><p>Danh má»¥c má»›i sáº½ Ä‘Æ°á»£c chá»n sáºµn cho cuá»‘n sÃ¡ch nÃ y.</p></div></div>
-          <Input label="TÃªn danh má»¥c *" placeholder="VÃ­ dá»¥: Kinh doanh" required autoFocus value={quickCategoryName} onChange={(event) => setQuickCategoryName(event.target.value)} />
-          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickCategoryOpen(false)}>Há»§y</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>ThÃªm danh má»¥c</Button></div>
+          <div className="quick-create-panel"><div className="quick-create-icon"><Filter size={20} /></div><div><strong>Tạo danh mục ngay trong lúc thêm sách</strong><p>Danh mục mới sẽ được chọn sẵn cho cuốn sách này.</p></div></div>
+          <Input label="Tên danh mục *" placeholder="Ví dụ: Kinh doanh" required autoFocus value={quickCategoryName} onChange={(event) => setQuickCategoryName(event.target.value)} />
+          <div className="quick-create-actions"><Button type="button" variant="ghost" onClick={() => setIsQuickCategoryOpen(false)}>Hủy</Button><Button type="submit" variant="primary" isLoading={isQuickCreating} leftIcon={<Plus size={16} />}>Thêm danh mục</Button></div>
         </form>
       </Modal>
 
-      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="XÃ¡c nháº­n xÃ³a sÃ¡ch" message={`Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a ${selectedBookIds.length} sÃ¡ch ÄÃ£ chá»n khÃ´ng? SÃ¡ch Ä‘Ã£ phÃ¡t sinh giao dá»‹ch sáº½ Ä‘Æ°á»£c giá»¯ láº¡i.`} confirmText="XÃ³a Ä‘Ã£ chá»n" isLoading={isBulkDeleting} />
+      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa sách" message={`Bạn có chắc muốn xóa ${selectedBookIds.length} sách đã chọn không? Sách đã phát sinh giao dịch sẽ được giữ lại.`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
 
       <ConfirmDialog
         isOpen={deleteBookId !== null}
         onClose={() => setDeleteBookId(null)}
         onConfirm={handleDeleteBook}
-        title="XÃ³a Ä‘áº§u sÃ¡ch"
-        message="Chá»‰ xÃ³a Ä‘Æ°á»£c sÃ¡ch chÆ°a phÃ¡t sinh giao dá»‹ch hoáº·c dá»¯ liá»‡u liÃªn quan. Vá»›i sÃ¡ch Ä‘Ã£ bÃ¡n, hÃ£y chá»n Ngá»«ng bÃ¡n."
-        confirmText="XÃ¡c nháº­n xÃ³a"
+        title="Xóa đầu sách"
+        message="Chỉ xóa được sách chưa phát sinh giao dịch hoặc dữ liệu liên quan. Với sách đã bán, hãy chọn Ngừng bán."
+        confirmText="Xác nhận xóa"
         isDanger
         isLoading={isDeleting}
       />

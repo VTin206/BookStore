@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
@@ -300,8 +300,8 @@ export const BookListPage: React.FC = () => {
                   }}
                 >
                   <option value="default">Mặc định</option>
-                  <option value="price-asc">Giá: Thấp đến Cao</option>
-                  <option value="price-desc">Giá: Cao đến Thấp</option>
+                  <option value="price-asc">Giá: thấp đến cao</option>
+                  <option value="price-desc">Giá: cao đến thấp</option>
                   <option value="name-asc">Tên sách: A - Z</option>
                   <option value="name-desc">Tên sách: Z - A</option>
                 </select>
@@ -371,7 +371,7 @@ export const BookListPage: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Bá»™ lá»c sÃ¡ch</h3>
+              <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Bộ lọc sách</h3>
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
@@ -386,7 +386,7 @@ export const BookListPage: React.FC = () => {
                 style={{ width: '100%' }}
                 onClick={() => setIsMobileFilterOpen(false)}
               >
-                Ãp dá»¥ng bá»™ lá»c
+                Áp dụng bộ lọc
               </Button>
             </div>
           </div>

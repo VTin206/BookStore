@@ -120,7 +120,7 @@ export const AdminCategoriesPage: React.FC = () => {
     setSelectedCategoryIds([]);
     await loadData();
     if (blocked) error(`Đã xóa ${deleted} danh mục. ${blocked} danh mục đang được sách sử dụng nên không thể xóa.`);
-    else success(`Đã xóa ${deleted} danh mục Đã chọn.`);
+    else success(`Đã xóa ${deleted} danh mục đã chọn.`);
     setIsBulkDeleting(false);
   };
 
@@ -225,7 +225,7 @@ export const AdminCategoriesPage: React.FC = () => {
         </form>
       </Modal>
 
-      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa danh mục" message={`Bạn có chắc muốn xóa ${selectedCategoryIds.length} danh mục Đã chọn không?`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
+      <ConfirmDialog isOpen={isBulkConfirmOpen} onClose={() => setIsBulkConfirmOpen(false)} onConfirm={async () => { setIsBulkConfirmOpen(false); await handleBulkDelete(); }} title="Xác nhận xóa danh mục" message={`Bạn có chắc muốn xóa ${selectedCategoryIds.length} danh mục đã chọn không?`} confirmText="Xóa đã chọn" isLoading={isBulkDeleting} />
 
       <ConfirmDialog
         isOpen={deleteCategoryId !== null}

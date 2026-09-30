@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "books")
@@ -35,7 +37,7 @@ public class Book {
   @Column(columnDefinition = "TEXT")
   private String description;
 
-  @Column(name = "image_url")
+  @Column(name = "image_url", columnDefinition = "TEXT")
   private String imageUrl;
 
   @Column(name = "publication_date")
@@ -50,6 +52,10 @@ public class Book {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "category_id")
   private Category category;
+
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(name = "book_categories", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+  private Set<Category> categories = new LinkedHashSet<>();
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "author_id")
@@ -103,6 +109,14 @@ public class Book {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public Set<Category> getCategories() {
+    return categories;
+  }
+
+  public void setCategories(Set<Category> categories) {
+    this.categories = categories == null ? new LinkedHashSet<>() : categories;
   }
 
   public Category getCategory() {
