@@ -23,7 +23,7 @@ const PALETTES = [
 ];
 
 export function getBookCover(title: string, categoryName?: string, customUrl?: string): string {
-  if (customUrl && customUrl.startsWith('http')) {
+  if (customUrl && (customUrl.startsWith('http://') || customUrl.startsWith('https://') || customUrl.startsWith('data:image/'))) {
     return customUrl;
   }
 
