@@ -270,7 +270,7 @@ export const HomePage: React.FC = () => {
               <ShieldCheck size={24} />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', marginBottom: '2px' }}>100% Sách Thật</h4>
+              <h4 style={{ fontSize: '0.95rem', marginBottom: '2px' }}>100% sách thật</h4>
               <p style={{ fontSize: '0.825rem', margin: 0, color: 'var(--text-muted)' }}>
                 Nhà xuất bản uy tín chính hãng
               </p>

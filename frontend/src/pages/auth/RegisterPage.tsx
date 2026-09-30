@@ -105,7 +105,7 @@ export const RegisterPage: React.FC = () => {
           />
 
           <Input
-            label="Sá»‘ Ä‘iá»‡n thoại"
+            label="Số điện thoại"
             type="tel"
             placeholder="09xx xxx xxx"
             value={phone}
@@ -115,7 +115,7 @@ export const RegisterPage: React.FC = () => {
           <Input
             label="Mật khẩu *"
             type="password"
-            placeholder="Tá»‘i thiá»ƒu 6 ký tự"
+            placeholder="Tối thiểu 6 ký tự"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}

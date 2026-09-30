@@ -216,7 +216,7 @@ export const CheckoutPage: React.FC = () => {
           >
             2
           </div>
-          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>2. Thông tin & Thanh toán</span>
+          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>2. Thông tin & thanh toán</span>
         </div>
         <div style={{ width: '40px', height: '2px', backgroundColor: 'var(--border)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
@@ -372,7 +372,7 @@ export const CheckoutPage: React.FC = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Ghi chú đơn hàng (Tùy chọn)</label>
+                <label className="form-label">Ghi chú đơn hàng (tùy chọn)</label>
                 <textarea
                   placeholder="Ghi chú về thời gian giao hàng, chỉ dẫn địa chỉ..."
                   value={note}
@@ -450,7 +450,7 @@ export const CheckoutPage: React.FC = () => {
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                      Chuyển khoản Ngân hàng (Mã QR VietQR)
+                      Chuyển khoản ngân hàng (mã QR VietQR)
                     </div>
                     <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
                       Quét mã QR tự động xác nhận thanh toán qua ứng dụng ngân hàng di động.
@@ -480,7 +480,7 @@ export const CheckoutPage: React.FC = () => {
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                      Thẻ tín dụng / Ghi nợ quốc tế (Visa, Mastercard)
+                      Thẻ tín dụng / ghi nợ quốc tế (Visa, Mastercard)
                     </div>
                     <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
                       Bảo mật chuẩn mã hóa PCI-DSS quốc tế.

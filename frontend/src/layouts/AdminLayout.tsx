@@ -28,7 +28,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/books', label: 'Quản lý Sách', icon: BookOpen },
+    { path: '/admin/books', label: 'Quản lý sách', icon: BookOpen },
     { path: '/admin/categories', label: 'Danh mục', icon: FolderTree },
     { path: '/admin/orders', label: 'Đơn hàng', icon: ShoppingBag },
     { path: '/admin/authors', label: 'Tác giả & NXB', icon: Feather },
@@ -246,7 +246,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-              Hệ thống Quản trị BookStore
+              Hệ thống quản trị BookStore
             </h2>
           </div>
 

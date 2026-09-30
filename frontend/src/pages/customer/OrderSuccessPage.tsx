@@ -88,22 +88,22 @@ export const OrderSuccessPage: React.FC = () => {
 
         {isGuestOrder || !isAuthenticated ? (
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-            H?y l?u m? tra c?u <strong>#{id}</strong> ?? li?n h? c?a h?ng khi c?n ki?m tra ??n h?ng.
+            Hãy lưu mã tra cứu <strong>#{id}</strong> để liên hệ cửa hàng khi cần kiểm tra đơn hàng.
           </p>
         ) : null}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           {isAuthenticated && !isGuestOrder && (
             <Link to="/orders" className="btn btn-secondary">
-              <ShoppingBag size={18} /> Xem l?ch s? ??n h?ng
+              <ShoppingBag size={18} /> Xem lịch sử đơn hàng
             </Link>
           )}
           {isGuestOrder && (
             <Link to="/track-order" className="btn btn-secondary">
-              <Search size={18} /> Tra c?u ??n h?ng
+              <Search size={18} /> Tra cứu đơn hàng
             </Link>
           )}
           <Link to="/" className="btn btn-primary">
-            <Home size={18} /> Ti?p t?c mua s?m
+            <Home size={18} /> Tiếp tục mua sắm
           </Link>
         </div>
       </div>

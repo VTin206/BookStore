@@ -29,7 +29,7 @@ it('stops selling a book from the admin page', async () => {
 });
 
 it('shows a backend reason when status update fails', async () => {
-  vi.mocked(bookService.setActive).mockRejectedValue({ response: { data: { message: 'Kh?ng th? c?p nh?t tr?ng th?i.' } } });
+  vi.mocked(bookService.setActive).mockRejectedValue({ response: { data: { message: 'Không thể cập nhật trạng thái.' } } });
   render(<AdminBooksPage />);
   fireEvent.click(await screen.findByRole('button', { name: /ng.*b.*n/i }));
   await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));

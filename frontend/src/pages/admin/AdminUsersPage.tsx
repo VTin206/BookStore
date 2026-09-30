@@ -46,7 +46,7 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div className="admin-users-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div>
         <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý người dùng</h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -59,7 +59,7 @@ export const AdminUsersPage: React.FC = () => {
           <TableSkeleton rows={4} />
         </div>
       ) : users.length > 0 ? (
-        <div className="table-container">
+        <div className="table-container admin-users-table">
           <table className="table">
             <thead>
               <tr>
@@ -82,24 +82,24 @@ export const AdminUsersPage: React.FC = () => {
                   </td>
                   <td>{user.fullName}</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="user-inline-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Mail size={14} color="var(--text-muted)" />
                       {user.email}
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="user-inline-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Phone size={14} color="var(--text-muted)" />
                       {user.phone || '—'}
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="user-role-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Badge variant={user.role === 'ADMIN' ? 'delivered' : 'primary'}>
-                        {user.role}
+                        {user.role === 'ADMIN' ? 'Quản trị viên' : 'Khách hàng'}
                       </Badge>
                       <select
-                        className="form-select"
+                        className="form-select user-role-select"
                         value={user.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER'}
                         disabled={updatingUserId === user.id}
                         onChange={(event) =>
@@ -108,8 +108,8 @@ export const AdminUsersPage: React.FC = () => {
                         aria-label={`Vai trò của ${user.username}`}
                         style={{ width: '130px' }}
                       >
-                        <option value="CUSTOMER">CUSTOMER</option>
-                        <option value="ADMIN">ADMIN</option>
+                        <option value="CUSTOMER">Khách hàng</option>
+                        <option value="ADMIN">Quản trị viên</option>
                       </select>
                     </div>
                   </td>

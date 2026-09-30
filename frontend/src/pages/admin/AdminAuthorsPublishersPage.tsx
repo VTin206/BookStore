@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { authorService } from '../../services/authorService';
 import { publisherService } from '../../services/publisherService';
 import { Author, Publisher } from '../../types';
@@ -111,7 +112,8 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
       await loadData();
     } catch (err) {
       console.error('Failed to save author', err);
-      error('Không thể lưu tác giả.');
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể lưu tác giả.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +144,8 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
       await loadData();
     } catch (err) {
       console.error('Failed to save publisher', err);
-      error('Không thể lưu nhà xuất bản.');
+      const message = isAxiosError(err) ? err.response?.data?.message : undefined;
+      error(typeof message === 'string' && message.trim() ? message : 'Không thể lưu nhà xuất bản.');
     } finally {
       setIsSubmitting(false);
     }
@@ -197,7 +200,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <div className="admin-catalog-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Tác giả và nhà xuất bản</h1>
@@ -214,24 +217,24 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
         </Button>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', gap: '1rem' }}>
-        <button className="tab-button" onClick={() => setActiveTab('authors')}>
+      <div className="admin-catalog-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border)', gap: '1rem' }}>
+        <button className={`tab-button ${activeTab === 'authors' ? 'is-active' : ''}`} onClick={() => setActiveTab('authors')}>
           <Feather size={18} /> Tác giả ({authors.length})
         </button>
-        <button className="tab-button" onClick={() => setActiveTab('publishers')}>
+        <button className={`tab-button ${activeTab === 'publishers' ? 'is-active' : ''}`} onClick={() => setActiveTab('publishers')}>
           <Building size={18} /> Nhà xuất bản ({publishers.length})
         </button>
       </div>
 
-      {selectedIds.length > 0 && <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem' }}><span>Đã chọn <strong>{selectedIds.length}</strong> m?c</span><Button variant="secondary" size="sm" onClick={() => { const setter = activeTab === 'authors' ? setSelectedAuthorIds : setSelectedPublisherIds; setter(allCurrentSelected ? [] : currentItems.map((item) => item.id)); }}>{allCurrentSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>Xóa đã chọn</Button></div>}
+      {selectedIds.length > 0 && <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem' }}><span>Đã chọn <strong>{selectedIds.length}</strong> mục</span><Button variant="secondary" size="sm" onClick={() => { const setter = activeTab === 'authors' ? setSelectedAuthorIds : setSelectedPublisherIds; setter(allCurrentSelected ? [] : currentItems.map((item) => item.id)); }}>{allCurrentSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}</Button><Button variant="danger" size="sm" onClick={() => setIsBulkConfirmOpen(true)} isLoading={isBulkDeleting} leftIcon={<Trash2 size={14} />}>Xóa đã chọn</Button></div>}
 
       {isLoading ? (
         <div className="card"><TableSkeleton rows={4} /></div>
       ) : activeTab === 'authors' ? (
-        <div className="table-container">
+        <div className="table-container admin-catalog-table">
           <table className="table">
             <thead>
-              <tr><th>ID</th><th>Tên tác giả</th><th>Tiểu sử</th><th>Thao tác</th></tr>
+              <tr><th className="catalog-select-column" aria-label="Chọn"><span className="sr-only">Chọn</span></th><th>ID</th><th>Tên tác giả</th><th>Tiểu sử</th><th>Thao tác</th></tr>
             </thead>
             <tbody>
               {authors.map((author) => (
@@ -241,7 +244,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
                   <td><strong>{author.name}</strong></td>
                   <td>{author.biography || '—'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="catalog-row-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                       <Button variant="secondary" size="sm" onClick={() => openEditAuthor(author)} leftIcon={<Edit2 size={14} />}>Sửa</Button>
                       <Button variant="danger" size="sm" onClick={() => setDeleteTarget({ type: 'author', id: author.id, name: author.name })} leftIcon={<Trash2 size={14} />}>Xóa</Button>
                     </div>
@@ -252,10 +255,10 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
           </table>
         </div>
       ) : (
-        <div className="table-container">
+        <div className="table-container admin-catalog-table">
           <table className="table">
             <thead>
-              <tr><th>ID</th><th>Nhà xuất bản</th><th>Địa chỉ</th><th>Website</th><th>Thao tác</th></tr>
+              <tr><th className="catalog-select-column" aria-label="Chọn"><span className="sr-only">Chọn</span></th><th>ID</th><th>Nhà xuất bản</th><th>Địa chỉ</th><th>Website</th><th>Thao tác</th></tr>
             </thead>
             <tbody>
               {publishers.map((publisher) => (
@@ -266,7 +269,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
                   <td>{publisher.address || '—'}</td>
                   <td>{publisher.website ? <a href={publisher.website} target="_blank" rel="noreferrer">{publisher.website}</a> : '—'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="catalog-row-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                       <Button variant="secondary" size="sm" onClick={() => openEditPublisher(publisher)} leftIcon={<Edit2 size={14} />}>Sửa</Button>
                       <Button variant="danger" size="sm" onClick={() => setDeleteTarget({ type: 'publisher', id: publisher.id, name: publisher.name })} leftIcon={<Trash2 size={14} />}>Xóa</Button>
                     </div>
@@ -288,7 +291,7 @@ export const AdminAuthorsPublishersPage: React.FC = () => {
           <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label" htmlFor="author-biography">Tiểu sử</label>
             <textarea id="author-biography" className="form-textarea" rows={5} placeholder="Giới thiệu ngắn về tác giả (không bắt buộc)" value={authorBio} onChange={(event) => setAuthorBio(event.target.value)} />
-            <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{authorBio.length}/500 k? t?</span>
+            <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{authorBio.length}/500 ký tự</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.25rem', borderTop: '1px solid var(--border)' }}>
             <Button type="button" variant="ghost" onClick={() => setIsAuthorModalOpen(false)} disabled={isSubmitting}>Hủy</Button>

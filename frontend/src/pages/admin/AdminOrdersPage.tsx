@@ -87,7 +87,7 @@ export const AdminOrdersPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       <div>
-        <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý Đơn hàng</h1>
+        <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý đơn hàng</h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
           Theo dõi và xử lý tiến độ các đơn hàng bán ra ({orders.length} đơn)
         </p>
