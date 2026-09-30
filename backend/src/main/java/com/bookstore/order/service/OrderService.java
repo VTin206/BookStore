@@ -79,7 +79,7 @@ public class OrderService {
       }
       var book = bookRepository.findByIdForUpdate(itemRequest.bookId()).orElseThrow();
       if (!book.isActive()) {
-        throw new IllegalStateException("S?ch n?y hi?n ?? ng?ng b?n: " + book.getTitle());
+        throw new IllegalStateException("Sách này hiện đã ngừng bán: " + book.getTitle());
       }
       if (book.getStock() < itemRequest.quantity()) {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
@@ -160,7 +160,7 @@ public class OrderService {
   @Transactional(readOnly = true)
   public com.bookstore.order.dto.OrderTrackingResponse lookup(String trackingCode) {
     if (trackingCode == null || trackingCode.isBlank()) {
-      throw new IllegalArgumentException("M? tra c?u kh?ng h?p l?");
+      throw new IllegalArgumentException("Mã tra cứu không hợp lệ");
     }
     var order = orderRepository.findByTrackingCode(trackingCode.trim().toUpperCase()).orElseThrow();
     return new com.bookstore.order.dto.OrderTrackingResponse(

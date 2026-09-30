@@ -36,7 +36,7 @@ public class CartService {
     var cart = get(username);
     var book = bookRepository.findById(request.bookId()).orElseThrow();
     if (!book.isActive()) {
-      throw new IllegalStateException("S?ch n?y hi?n ?? ng?ng b?n");
+      throw new IllegalStateException("Sách này hiện đã ngừng bán");
     }
     var item =
         cart.getItems().stream()

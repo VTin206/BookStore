@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.access.AccessDeniedException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -38,6 +39,12 @@ public class ApiExceptionHandler {
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .orElse("Request validation failed");
     return ResponseEntity.badRequest().body(Map.of("message", message));
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  ResponseEntity<Map<String, String>> accessDenied(AccessDeniedException exception) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(Map.of("message", "Bạn cần quyền quản trị viên để thực hiện thao tác này."));
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
