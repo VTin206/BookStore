@@ -26,6 +26,7 @@ import com.bookstore.category.repository.CategoryRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -136,6 +137,22 @@ class BookServiceTest {
     org.junit.jupiter.api.Assertions.assertNull(result.getCategory());
     org.junit.jupiter.api.Assertions.assertNull(result.getAuthorRef());
     org.junit.jupiter.api.Assertions.assertNull(result.getPublisher());
+  }
+
+  @Test
+  void createDeduplicatesPrimaryAndAdditionalCategories() {
+    var category = new Category();
+    category.setName("Fiction");
+    when(categories.findById(1L)).thenReturn(Optional.of(category));
+    when(books.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = service.create(new BookRequest(
+        "Book", "Author", BigDecimal.TEN, 1, 1L, null, null, null, null, null, null,
+        List.of(1L, 1L)));
+
+    assertEquals(category, result.getCategory());
+    assertEquals(1, result.getCategories().size());
+    verify(categories).findById(1L);
   }
 
   @Test

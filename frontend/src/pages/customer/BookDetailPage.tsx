@@ -62,7 +62,18 @@ export const BookDetailPage: React.FC = () => {
 
         // Fetch related books
         const allBooks = await bookService.getAll();
-        const related = allBooks.filter((b) => b.id.toString() !== id && b.category?.id === data.category?.id);
+        const dataCategories = data.categories?.length ? data.categories : data.category ? [data.category] : [];
+        const related = allBooks.filter((candidate) => {
+          if (candidate.id.toString() === id) return false;
+          const candidateCategories = candidate.categories?.length
+            ? candidate.categories
+            : candidate.category
+              ? [candidate.category]
+              : [];
+          return candidateCategories.some((candidateCategory) =>
+            dataCategories.some((dataCategory) => dataCategory.id === candidateCategory.id),
+          );
+        });
         setRelatedBooks(related.slice(0, 4));
       } catch (err) {
         console.error('Failed to load book detail', err);
@@ -117,7 +128,9 @@ export const BookDetailPage: React.FC = () => {
     );
   }
 
-  const coverUrl = getBookCover(book.title, book.category?.name, book.imageUrl);
+  const bookCategories = book.categories?.length ? book.categories : book.category ? [book.category] : [];
+  const categoryLabel = bookCategories.map((category) => category.name).join(', ');
+  const coverUrl = getBookCover(book.title, bookCategories[0]?.name, book.imageUrl);
   const isDiscontinued = book.active === false;
   const isOutOfStock = book.stock <= 0;
 
@@ -259,7 +272,7 @@ export const BookDetailPage: React.FC = () => {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
+                objectFit: 'contain',
                 filter: isDiscontinued ? 'grayscale(1) opacity(0.58)' : 'none',
               }}
             />
@@ -272,21 +285,25 @@ export const BookDetailPage: React.FC = () => {
         {/* Book Info & Purchase Controls */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            {book.category && (
-              <span
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: 'var(--primary-light)',
-                  color: 'var(--primary)',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  padding: '4px 10px',
-                  borderRadius: 'var(--radius-full)',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                {book.category.name}
-              </span>
+            {bookCategories.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                {bookCategories.map((category) => (
+                  <span
+                    key={category.id}
+                    style={{
+                      display: 'inline-block',
+                      backgroundColor: 'var(--primary-light)',
+                      color: 'var(--primary)',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-full)',
+                    }}
+                  >
+                    {category.name}
+                  </span>
+                ))}
+              </div>
             )}
 
             <h1
@@ -503,7 +520,7 @@ export const BookDetailPage: React.FC = () => {
             <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Giới thiệu tác phẩm</h3>
             <div style={{ lineHeight: 1.8, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
               <p style={{ marginBottom: '1.25rem' }}>
-                Tác phẩm <strong>"{book.title}"</strong> của tác giả <strong>{book.author}</strong> là một trong những cuốn sách tiêu biểu thuộc thể loại {book.category?.name || 'sách hay'}. Tác phẩm mang đến cho người đọc những góc nhìn sâu sắc, mở rộng hiểu biết và gợi mở nhiều chiêm nghiệm giá trị về cuộc sống và công việc.
+                Tác phẩm <strong>"{book.title}"</strong> của tác giả <strong>{book.author}</strong> là một trong những cuốn sách tiêu biểu thuộc thể loại {categoryLabel || 'sách hay'}. Tác phẩm mang đến cho người đọc những góc nhìn sâu sắc, mở rộng hiểu biết và gợi mở nhiều chiêm nghiệm giá trị về cuộc sống và công việc.
               </p>
               <p>
                 Với văn phong lôi cuốn, cô đọng nhưng không kém phần truyền cảm hứng, cuốn sách xứng đáng có một vị trí trang trọng trong tủ sách gia đình cũng như đồng hành cùng độc giả trên hành trình trau dồi tri thức mỗi ngày.
@@ -526,7 +543,7 @@ export const BookDetailPage: React.FC = () => {
                   </tr>
                   <tr>
                     <td style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Thể loại</td>
-                    <td>{book.category?.name || 'Chung'}</td>
+                    <td>{categoryLabel || 'Chung'}</td>
                   </tr>
                   <tr>
                     <td style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Mã ISBN</td>

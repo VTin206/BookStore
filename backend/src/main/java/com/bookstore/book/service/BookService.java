@@ -10,8 +10,8 @@ import com.bookstore.category.repository.CategoryRepository;
 import com.bookstore.common.exception.ConflictException;
 import com.bookstore.common.exception.ResourceNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedHashSet;
+import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -114,15 +114,20 @@ public class BookService {
     book.setAuthor(request.author());
     book.setPrice(request.price());
     book.setStock(request.stock());
-    var primaryCategory = request.categoryId() == null
-        ? null
-        : categoryRepository.findById(request.categoryId()).orElseThrow();
-    var categoryIds = request.categoryIds() == null ? List.<Long>of() : request.categoryIds();
-    var selectedCategories = new LinkedHashSet<Category>();
-    for (var categoryId : categoryIds) {
-      selectedCategories.add(categoryRepository.findById(categoryId).orElseThrow());
+    var selectedCategoryIds = new LinkedHashSet<Long>();
+    if (request.categoryId() != null) selectedCategoryIds.add(request.categoryId());
+    if (request.categoryIds() != null) {
+      request.categoryIds().stream()
+          .filter(categoryId -> categoryId != null)
+          .forEach(selectedCategoryIds::add);
     }
-    if (primaryCategory != null) selectedCategories.add(primaryCategory);
+    var selectedCategories = new LinkedHashSet<Category>();
+    Category primaryCategory = null;
+    for (var categoryId : selectedCategoryIds) {
+      var category = categoryRepository.findById(categoryId).orElseThrow();
+      selectedCategories.add(category);
+      if (categoryId.equals(request.categoryId())) primaryCategory = category;
+    }
     book.setCategory(primaryCategory != null ? primaryCategory : selectedCategories.stream().findFirst().orElse(null));
     book.setCategories(selectedCategories);
     book.setAuthorRef(

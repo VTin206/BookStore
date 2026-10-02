@@ -16,6 +16,9 @@ const formatPriceLimit = (thousandVnd: number) => thousandVnd >= 1000
   ? (thousandVnd / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' triệu VNĐ'
   : thousandVnd.toLocaleString('vi-VN') + ' nghìn VNĐ';
 
+const getBookCategories = (book: Book): Category[] =>
+  book.categories?.length ? book.categories : book.category ? [book.category] : [];
+
 export const BookListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get('search') || '';
@@ -62,7 +65,13 @@ export const BookListPage: React.FC = () => {
   const filteredBooks = useMemo(() => {
     let result = [...books];
 
-    if (selectedCategories.length) result = result.filter((b) => selectedCategories.includes(b.category?.id?.toString() || '') || selectedCategories.includes(b.category?.name || ''));
+    if (selectedCategories.length) {
+      result = result.filter((book) =>
+        getBookCategories(book).some((category) =>
+          selectedCategories.includes(category.id.toString()) || selectedCategories.includes(category.name),
+        ),
+      );
+    }
     if (maxPrice > 0) result = result.filter((b) => Number(b.price) <= maxPrice * 1000);
     if (condition !== 'all') result = result.filter((b) => ((b as Book & { condition?: string }).condition || 'new') === condition);
 
