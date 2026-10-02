@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService, LoginData, RegisterData } from '../services/authService';
 import { AuthResponse } from '../types';
 
@@ -14,6 +14,18 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const getTokenExpiry = (value: string): number | null => {
+  try {
+    const payload = value.split('.')[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const claims = JSON.parse(window.atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')));
+    return typeof claims.exp === 'number' ? claims.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
@@ -60,14 +72,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return res;
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     authService.logout();
     setToken(null);
     setUsername(null);
     setRole('CUSTOMER');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const expiresAt = getTokenExpiry(token);
+    if (expiresAt === null || expiresAt <= Date.now()) {
+      logout();
+      return;
+    }
+
+    const timeout = window.setTimeout(logout, expiresAt - Date.now());
+    return () => window.clearTimeout(timeout);
+  }, [token, logout]);
+
+  useEffect(() => {
+    const handleExpired = () => logout();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'token' && !event.newValue) logout();
+    };
+
+    window.addEventListener('auth:expired', handleExpired);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('auth:expired', handleExpired);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [logout]);
 
   const isAuthenticated = !!token;
   const isAdmin = role?.toUpperCase() === 'ADMIN';

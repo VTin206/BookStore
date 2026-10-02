@@ -20,10 +20,14 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token might be expired or invalid
-      // We don't forcefully wipe token immediately on any 401 if it's a guest cart attempt,
-      // but if on protected pages, callers can handle appropriately.
+    const requestUrl = String(error.config?.url || '');
+    const isAuthRequest = /\/auth\/(login|register)(?:\?|$)/.test(requestUrl);
+    if (error.response?.status === 401 && !isAuthRequest && localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user_info');
+      window.dispatchEvent(new Event('auth:expired'));
     }
     return Promise.reject(error);
   }

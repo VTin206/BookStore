@@ -44,6 +44,14 @@ const AuthProbe: React.FC = () => {
   );
 };
 
+const createTestToken = () => {
+  const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return `header.${payload}.signature`;
+};
+
 describe('AuthContext', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -51,7 +59,7 @@ describe('AuthContext', () => {
   });
 
   it('restores authentication and admin role from storage', () => {
-    localStorage.setItem('token', 'stored-token');
+    localStorage.setItem('token', createTestToken());
     localStorage.setItem('username', 'admin');
     localStorage.setItem('role', 'ADMIN');
 
@@ -67,8 +75,9 @@ describe('AuthContext', () => {
   });
 
   it('stores login response and clears it on logout', async () => {
+    const loginToken = createTestToken();
     vi.mocked(authService.login).mockResolvedValue({
-      token: 'login-token',
+      token: loginToken,
       username: 'alice',
       role: 'CUSTOMER',
     });
@@ -82,7 +91,7 @@ describe('AuthContext', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
-      expect(localStorage.getItem('token')).toBe('login-token');
+      expect(localStorage.getItem('token')).toBe(loginToken);
       expect(localStorage.getItem('username')).toBe('alice');
       expect(localStorage.getItem('role')).toBe('CUSTOMER');
     });
@@ -94,8 +103,9 @@ describe('AuthContext', () => {
   });
 
   it('stores registration response and recognizes an admin role', async () => {
+    const registrationToken = createTestToken();
     vi.mocked(authService.register).mockResolvedValue({
-      token: 'admin-token',
+      token: registrationToken,
       username: 'new-user',
       role: 'ADMIN',
     });
@@ -108,7 +118,7 @@ describe('AuthContext', () => {
     fireEvent.click(screen.getByText('register'));
 
     await waitFor(() => expect(screen.getByTestId('admin')).toHaveTextContent('true'));
-    expect(localStorage.getItem('token')).toBe('admin-token');
+    expect(localStorage.getItem('token')).toBe(registrationToken);
     expect(localStorage.getItem('role')).toBe('ADMIN');
   });
 });
