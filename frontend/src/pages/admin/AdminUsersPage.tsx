@@ -94,19 +94,19 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
                   </td>
                   <td>
-                    <div className="user-role-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="user-role-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap', minWidth: '320px' }}>
                       <Badge variant={user.role === 'ADMIN' ? 'delivered' : 'primary'}>
                         {user.role === 'ADMIN' ? 'Quản trị viên' : 'Khách hàng'}
                       </Badge>
-                      <select
-                        className="form-select user-role-select"
+                <select
+                  className="form-select user-role-select"
+                  style={{ width: '160px', minWidth: '160px', flex: '0 0 160px' }}
                         value={user.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER'}
                         disabled={updatingUserId === user.id}
                         onChange={(event) =>
                           handleRoleChange(user.id, event.target.value as 'ADMIN' | 'CUSTOMER')
                         }
                         aria-label={`Vai trò của ${user.username}`}
-                        style={{ width: '130px' }}
                       >
                         <option value="CUSTOMER">Khách hàng</option>
                         <option value="ADMIN">Quản trị viên</option>

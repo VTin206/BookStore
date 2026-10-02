@@ -33,15 +33,15 @@ export const Logo: React.FC<LogoProps> = ({
 
   // Sizing definitions
   const dimensions = {
-    sm: { iconSize: 32, fontSize: '1.05rem', subSize: '0.62rem', gap: '8px' },
-    md: { iconSize: 42, fontSize: '1.35rem', subSize: '0.72rem', gap: '10px' },
+    sm: { iconSize: 32, fontSize: '1.05rem', subSize: '0.75rem', gap: '8px' },
+    md: { iconSize: 42, fontSize: '1.35rem', subSize: '0.75rem', gap: '10px' },
     lg: { iconSize: 52, fontSize: '1.65rem', subSize: '0.82rem', gap: '12px' },
     xl: { iconSize: 72, fontSize: '2.1rem', subSize: '0.95rem', gap: '14px' },
   }[size];
 
   // Brand colors from the logo
   const bookBlue = '#4A85B6';
-  const leafGreen = '#549662';
+  const leafGreen = '#3F7E4F';
   const textDark = '#1E2D3D';
   const textLight = '#FFFFFF';
 

@@ -448,12 +448,12 @@ export const AdminBooksPage: React.FC = () => {
                     <td>
                       <div className="book-category-badges">{(b.categories?.length ? b.categories : b.category ? [b.category] : []).map((category) => <span key={category.id} className="badge badge-primary">{category.name}</span>)}</div>
                     </td>
-                    <td>
+                    <td className="book-price-cell">
                       <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                         {Number(b.price).toLocaleString('vi-VN')} ₫
                       </span>
                     </td>
-                    <td>
+                    <td className="book-stock-cell">
                       {b.stock <= 0 ? (
                         <span className="badge badge-outofstock">Hết hàng</span>
                       ) : b.stock < 10 ? (

@@ -53,7 +53,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="store-shell" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Top Notification Announcement Bar */}
       <div
         style={{
@@ -79,6 +79,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
 
       {/* Main Header */}
       <header
+        className="store-header"
         style={{
           backgroundColor: 'var(--surface)',
           borderBottom: '1px solid var(--border)',
@@ -413,6 +414,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
 
         {/* Secondary Category Navigation Bar */}
         <nav
+          className="store-nav"
           style={{
             backgroundColor: '#ffffff',
             borderTop: '1px solid var(--border-light)',
@@ -459,6 +461,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
 
       {/* Footer */}
       <footer
+        className="store-footer"
         style={{
           backgroundColor: 'var(--surface-dark, #16222E)',
           color: '#94a3b8',

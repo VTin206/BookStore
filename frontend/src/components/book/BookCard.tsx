@@ -105,20 +105,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             >
               HẾT HÀNG
             </span>
-          ) : book.category ? (
-            <span
-              style={{
-                backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                color: '#ffffff',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-sm)',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              {book.category.name}
-            </span>
           ) : null}
         </div>
       </Link>

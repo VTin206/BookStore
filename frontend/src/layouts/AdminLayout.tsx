@@ -49,7 +49,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+    <div className="admin-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
       {/* Sidebar Desktop */}
       <aside
         style={{
@@ -233,6 +233,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Admin Header */}
         <header
+          className="admin-header"
           style={{
             height: '68px',
             backgroundColor: 'var(--surface)',
@@ -282,7 +283,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
         </header>
 
         {/* Content Body */}
-        <main style={{ padding: '2rem', flex: 1 }}>{children}</main>
+        <main className="admin-main" style={{ padding: '2rem', flex: 1 }}>{children}</main>
       </div>
     </div>
   );
