@@ -26,6 +26,10 @@ export const authService = {
   },
 
   logout(): void {
+    const token = localStorage.getItem('token');
+    if (token) void apiClient.post('/users/me/logout', null, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => { /* Local logout remains available offline. */ });
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('role');

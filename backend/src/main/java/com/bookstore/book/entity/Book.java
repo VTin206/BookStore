@@ -17,6 +17,11 @@ public class Book {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  @Version
+  @Column(name = "row_version", nullable = false)
+  private long rowVersion;
+
   @Column(nullable = false)
   private String title;
 
@@ -167,8 +172,15 @@ public class Book {
     this.description = description;
   }
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
   public String getImageUrl() {
     return imageUrl;
+  }
+
+  @com.fasterxml.jackson.annotation.JsonProperty("imageUrl")
+  public String getPublicImageUrl() {
+    return imageUrl != null && imageUrl.startsWith("data:") && id != null
+        ? "/api/books/" + id + "/cover" : imageUrl;
   }
 
   public void setImageUrl(String imageUrl) {

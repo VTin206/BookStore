@@ -8,5 +8,6 @@ spring:
     open-in-view: false
   flyway.enabled: true
 server.port: 8080
-app.jwt.secret: ${JWT_SECRET:book-store-dev-secret-key-32-characters}
+app.jwt.secret: ${JWT_SECRET}
+app.orders.pending-ttl-hours: 24
 app.cors.allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}

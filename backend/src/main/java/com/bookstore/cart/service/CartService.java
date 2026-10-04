@@ -26,13 +26,15 @@ public class CartService {
 
   @Transactional
   public Cart get(String username) {
+    var user = userRepository.findByUsernameForUpdate(username).orElseThrow();
     return cartRepository
         .findByUserUsername(username)
-        .orElseGet(() -> cartRepository.save(new Cart(userRepository.findByUsername(username).orElseThrow())));
+        .orElseGet(() -> cartRepository.save(new Cart(user)));
   }
 
   @Transactional
   public Cart add(String username, CartItemRequest request) {
+    validateQuantity(request.quantity());
     var cart = get(username);
     var book = bookRepository.findById(request.bookId()).orElseThrow();
     if (!book.isActive()) {
@@ -45,12 +47,14 @@ public class CartService {
             .orElse(null);
     var newQuantity = request.quantity();
     if (item == null) {
+      if (cart.getItems().size() >= 100) throw new IllegalArgumentException("Giỏ hàng tối đa 100 đầu sách");
       if (newQuantity > book.getStock()) {
         throw new IllegalArgumentException("Số lượng vượt quá tồn kho");
       }
       cart.getItems().add(new CartItem(cart, book, newQuantity));
     } else {
-      newQuantity += item.getQuantity();
+      newQuantity = Math.addExact(newQuantity, item.getQuantity());
+      validateQuantity(newQuantity);
       if (newQuantity > book.getStock()) {
         throw new IllegalArgumentException("Số lượng vượt quá tồn kho");
       }
@@ -61,8 +65,9 @@ public class CartService {
 
   @Transactional
   public Cart update(String username, Long itemId, Integer quantity) {
+    validateQuantity(quantity);
     var item = getOwnedItem(username, itemId);
-    if (quantity > item.getBook().getStock()) {
+    if (!item.getBook().isActive() || quantity > item.getBook().getStock()) {
       throw new IllegalArgumentException("Số lượng vượt quá tồn kho");
     }
     item.setQuantity(quantity);
@@ -84,10 +89,15 @@ public class CartService {
   }
 
   private CartItem getOwnedItem(String username, Long itemId) {
+    userRepository.findByUsernameForUpdate(username).orElseThrow();
     var item = cartItemRepository.findById(itemId).orElseThrow();
     if (!item.getCart().getUser().getUsername().equals(username)) {
       throw new IllegalArgumentException("Bạn không có quyền thao tác giỏ hàng này");
     }
     return item;
+  }
+
+  private void validateQuantity(Integer quantity) {
+    if (quantity == null || quantity < 1 || quantity > 1000) throw new IllegalArgumentException("Số lượng phải từ 1 đến 1.000");
   }
 }

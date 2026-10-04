@@ -81,7 +81,8 @@ export const ProfilePage: React.FC = () => {
     }
     try {
       await userService.changePassword({ currentPassword, newPassword });
-      success('Đã thay đổi mật khẩu thành công!');
+      success('Đã đổi mật khẩu. Vui lòng đăng nhập lại.');
+      logout();
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

@@ -14,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BookService {
@@ -42,7 +43,7 @@ public class BookService {
   }
 
   public List<Book> search(String search) {
-    return search == null || search.isBlank() ? bookRepository.findAllByActiveTrue() : bookRepository.search(search.trim());
+    return search == null || search.isBlank() ? bookRepository.findAllByActiveTrue() : bookRepository.searchActive(search.trim());
   }
 
   public List<Book> byFilter(String search, String filter) {
@@ -64,12 +65,18 @@ public class BookService {
     return save(new Book(), request);
   }
 
-  public Book update(Long id, BookRequest request) {
-    return save(bookRepository.findById(id).orElseThrow(), request);
+  public BookCover cover(Long id) {
+    return BookCover.decode(byId(id).getImageUrl());
   }
 
+  @Transactional
+  public Book update(Long id, BookRequest request) {
+    return save(bookRepository.findByIdForUpdate(id).orElseThrow(), request);
+  }
+
+  @Transactional
   public Book setActive(Long id, boolean active) {
-    var book = bookRepository.findById(id).orElseThrow();
+    var book = bookRepository.findByIdForUpdate(id).orElseThrow();
     book.setActive(active);
     return bookRepository.save(book);
   }
@@ -100,8 +107,9 @@ public class BookService {
     }
   }
 
+  @Transactional
   public Book adjustStock(Long id, Integer stock) {
-    var book = bookRepository.findById(id).orElseThrow();
+    var book = bookRepository.findByIdForUpdate(id).orElseThrow();
     if (stock < 0) {
       throw new IllegalArgumentException("Stock cannot be negative");
     }
@@ -138,7 +146,10 @@ public class BookService {
             : publisherRepository.findById(request.publisherId()).orElseThrow());
     book.setIsbn(request.isbn());
     book.setDescription(request.description());
-    book.setImageUrl(request.imageUrl());
+    if (!(book.getId() != null && ("/api/books/" + book.getId() + "/cover").equals(request.imageUrl()))) {
+      BookCover.validate(request.imageUrl());
+      book.setImageUrl(request.imageUrl());
+    }
     book.setPublicationDate(request.publicationDate());
     return bookRepository.save(book);
   }

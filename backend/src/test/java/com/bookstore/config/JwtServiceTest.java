@@ -12,18 +12,19 @@ class JwtServiceTest {
 
   @Test
   void createAndParsePreservesSubjectAndRole() {
-    var token = service.create("alice", "ADMIN");
+    var token = service.create("alice", "ADMIN", 2);
     var claims = service.parse(token);
 
     assertEquals("alice", claims.getSubject());
     assertEquals("ADMIN", claims.get("role"));
+    assertEquals(2, claims.get("version"));
     assertNotNull(claims.getIssuedAt());
     assertNotNull(claims.getExpiration());
   }
 
   @Test
   void parseRejectsTamperedToken() {
-    var token = service.create("alice", "CUSTOMER");
+    var token = service.create("alice", "CUSTOMER", 0);
     var parts = token.split("\\.");
     var signature = parts[2];
     var changedFirstCharacter = signature.charAt(0) == 'A' ? 'B' : 'A';

@@ -22,7 +22,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-book_store}
       DB_USERNAME: ${POSTGRES_USER:-bookstore}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-bookstore}
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET of at least 32 bytes}
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     depends_on:
       postgres:

@@ -12,7 +12,6 @@ import com.bookstore.user.repository.UserRepository;
 import com.bookstore.voucher.service.VoucherService;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +25,7 @@ public class OrderService {
 
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
-  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "CARD");
+  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD");
   private static final String TRACKING_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   private static final SecureRandom TRACKING_CODE_RANDOM = new SecureRandom();
 
@@ -61,7 +60,7 @@ public class OrderService {
 
     var order = new Order();
     if (username != null && !username.isBlank()) {
-      order.setUser(userRepository.findByUsername(username).orElseThrow());
+      order.setUser(userRepository.findByUsernameForUpdate(username).orElseThrow());
     }
     order.setCustomerName(request.customerName());
     order.setCustomerEmail(request.customerEmail());
@@ -73,7 +72,7 @@ public class OrderService {
 
     var subtotal = BigDecimal.ZERO;
     Set<Long> requestedBookIds = new HashSet<>();
-    for (var itemRequest : request.items()) {
+    for (var itemRequest : request.items().stream().sorted(java.util.Comparator.comparing(OrderRequest.Item::bookId)).toList()) {
       if (!requestedBookIds.add(itemRequest.bookId())) {
         throw new IllegalArgumentException("Không được lặp sách trong đơn hàng");
       }
@@ -96,10 +95,10 @@ public class OrderService {
     }
 
     var shippingFee = calculateShippingFee(subtotal);
-    var discountAmount = voucherService != null ? voucherService.apply(order.getCouponCode(), subtotal) : legacyTestDiscount(order.getCouponCode(), subtotal);
+    var discountAmount = voucherService.apply(order.getCouponCode(), subtotal);
     order.setShippingFee(shippingFee);
     order.setDiscountAmount(discountAmount);
-    order.setTotalAmount(subtotal.add(shippingFee).subtract(discountAmount));
+    order.setTotalAmount(validateTotal(subtotal.add(shippingFee).subtract(discountAmount)));
     var saved = orderRepository.save(order);
 
     var payment = new Payment();
@@ -128,16 +127,34 @@ public class OrderService {
     return code.toString();
   }
 
+  @Transactional(readOnly = true)
+  public com.bookstore.order.dto.OrderQuote quote(com.bookstore.order.dto.OrderQuoteRequest request) {
+    var subtotal = BigDecimal.ZERO;
+    Set<Long> ids = new HashSet<>();
+    for (var item : request.items()) {
+      if (!ids.add(item.bookId())) throw new IllegalArgumentException("Không được lặp sách trong đơn hàng");
+      var book = bookRepository.findById(item.bookId()).orElseThrow();
+      if (!book.isActive() || book.getStock() < item.quantity()) {
+        throw new IllegalArgumentException("Sách ngừng bán hoặc không đủ tồn kho: " + book.getTitle());
+      }
+      subtotal = subtotal.add(book.getPrice().multiply(BigDecimal.valueOf(item.quantity())));
+    }
+    var shipping = calculateShippingFee(subtotal);
+    var discount = voucherService.preview(request.couponCode(), subtotal);
+    return new com.bookstore.order.dto.OrderQuote(subtotal, shipping, discount, validateTotal(subtotal.add(shipping).subtract(discount)));
+  }
+
+  private BigDecimal validateTotal(BigDecimal total) {
+    if (total.signum() < 0 || total.compareTo(new BigDecimal("9999999999.99")) > 0) {
+      throw new IllegalArgumentException("Tổng giá trị đơn hàng vượt giới hạn cho phép");
+    }
+    return total;
+  }
+
   private BigDecimal calculateShippingFee(BigDecimal subtotal) {
     return subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
         ? BigDecimal.ZERO
         : STANDARD_SHIPPING_FEE;
-  }
-
-  private BigDecimal legacyTestDiscount(String code, BigDecimal subtotal) {
-    if (code == null) return BigDecimal.ZERO;
-    if (!code.equals("TRIAN30")) throw new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn");
-    return subtotal.multiply(new BigDecimal("0.30")).setScale(0, RoundingMode.HALF_UP);
   }
 
   private String normalizeCoupon(String couponCode) {
@@ -148,13 +165,13 @@ public class OrderService {
   }
 
   @Transactional(readOnly = true)
-  public List<Order> allForAdmin() {
-    return orderRepository.findAll();
+  public org.springframework.data.domain.Page<com.bookstore.order.dto.OrderResponse> allForAdmin(org.springframework.data.domain.Pageable pageable) {
+    return orderRepository.findAll(pageable).map(com.bookstore.order.dto.OrderResponse::from);
   }
 
   @Transactional(readOnly = true)
-  public List<Order> allForUser(String username) {
-    return orderRepository.findByUserUsername(username);
+  public org.springframework.data.domain.Page<com.bookstore.order.dto.OrderResponse> allForUser(String username, org.springframework.data.domain.Pageable pageable) {
+    return orderRepository.findByUserUsername(username, pageable).map(com.bookstore.order.dto.OrderResponse::from);
   }
 
   @Transactional(readOnly = true)
@@ -173,27 +190,49 @@ public class OrderService {
     if (!VALID_STATUSES.contains(normalized)) {
       throw new IllegalArgumentException("Trạng thái đơn hàng không hợp lệ");
     }
-    var order = orderRepository.findById(id).orElseThrow();
+    var order = orderRepository.findByIdForUpdate(id).orElseThrow();
+    return transition(order, normalized);
+  }
+
+  private Order transition(Order order, String normalized) {
     validateTransition(order.getStatus(), normalized);
     if ("CANCELLED".equals(normalized) && !"CANCELLED".equals(order.getStatus())) {
-      order.getItems().forEach(item -> {
-        var book = item.getBook();
-        book.setStock(book.getStock() + item.getQuantity());
+      order.getItems().stream().sorted(java.util.Comparator.comparing(item -> item.getBook().getId())).forEach(item -> {
+        var book = bookRepository.findByIdForUpdate(item.getBook().getId()).orElseThrow();
+        book.setStock(Math.addExact(book.getStock(), item.getQuantity()));
       });
+      voucherService.release(order.getCouponCode());
     }
     order.setStatus(normalized);
     var saved = orderRepository.save(order);
-    paymentRepository.findByOrderId(id).ifPresent(payment -> {
+    paymentRepository.findByOrderId(order.getId()).ifPresent(payment -> {
       if ("CANCELLED".equals(normalized)) {
         payment.setStatus("CANCELLED");
         payment.setPaid(false);
-      } else if ("DELIVERED".equals(normalized)) {
+      } else if ("DELIVERED".equals(normalized) && "COD".equals(payment.getMethod())) {
         payment.setStatus("PAID");
         payment.setPaid(true);
       }
       paymentRepository.save(payment);
     });
     return saved;
+  }
+
+  @Transactional
+  public com.bookstore.order.dto.OrderResponse createResponse(String username, OrderRequest request) {
+    return com.bookstore.order.dto.OrderResponse.from(create(username, request));
+  }
+
+  @Transactional
+  public com.bookstore.order.dto.OrderResponse updateStatusResponse(Long id, String status) {
+    return com.bookstore.order.dto.OrderResponse.from(updateStatus(id, status));
+  }
+
+  @Transactional
+  public void expirePendingOrder(Long id, java.time.LocalDateTime cutoff) {
+    orderRepository.findByIdForUpdate(id).ifPresent(order -> {
+      if ("PENDING".equals(order.getStatus()) && order.getCreatedAt().isBefore(cutoff)) transition(order, "CANCELLED");
+    });
   }
 
   private void validateTransition(String current, String next) {

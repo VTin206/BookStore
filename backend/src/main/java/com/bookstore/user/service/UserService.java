@@ -52,15 +52,30 @@ public class UserService {
     }
 
     user.setRole(normalizedRole);
+    user.revokeTokens();
     return userRepository.save(user);
   }
   @Transactional
   public void changePassword(String username, ChangePasswordRequest request) {
+    PasswordPolicy.validate(request.newPassword());
     var user = getByUsername(username);
     if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
       throw new IllegalArgumentException("Mật khẩu hiện tại không đúng");
     }
     user.setPassword(passwordEncoder.encode(request.newPassword()));
+    user.revokeTokens();
+    userRepository.save(user);
+  }
+
+  @Transactional(readOnly = true)
+  public java.util.List<User> all() {
+    return userRepository.findAll();
+  }
+
+  @Transactional
+  public void revokeSessions(String username) {
+    var user = getByUsername(username);
+    user.revokeTokens();
     userRepository.save(user);
   }
 }

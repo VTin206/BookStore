@@ -3,7 +3,6 @@ package com.bookstore.user.controller;
 import com.bookstore.user.dto.ChangePasswordRequest;
 import com.bookstore.user.dto.ProfileUpdateRequest;
 import com.bookstore.user.entity.User;
-import com.bookstore.user.repository.UserRepository;
 import com.bookstore.user.service.UserService;
 import com.bookstore.wishlist.entity.WishlistItem;
 import com.bookstore.wishlist.service.WishlistService;
@@ -25,12 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-  private final UserRepository userRepository;
   private final UserService userService;
   private final WishlistService wishlistService;
 
-  public UserController(UserRepository userRepository, UserService userService, WishlistService wishlistService) {
-    this.userRepository = userRepository;
+  public UserController(UserService userService, WishlistService wishlistService) {
     this.userService = userService;
     this.wishlistService = wishlistService;
   }
@@ -52,17 +49,17 @@ public class UserController {
     userService.changePassword(authentication.getName(), request);
   }
 
-  @GetMapping("/me/wishlistService")
+  @GetMapping("/me/wishlist")
   public List<WishlistItem> wishlist(Authentication authentication) {
     return wishlistService.getAll(authentication.getName());
   }
 
-  @PostMapping("/me/wishlistService/{bookId}")
+  @PostMapping("/me/wishlist/{bookId}")
   public WishlistItem addWishlist(Authentication authentication, @PathVariable Long bookId) {
     return wishlistService.add(authentication.getName(), bookId);
   }
 
-  @DeleteMapping("/me/wishlistService/{bookId}")
+  @DeleteMapping("/me/wishlist/{bookId}")
   public void removeWishlist(Authentication authentication, @PathVariable Long bookId) {
     wishlistService.remove(authentication.getName(), bookId);
   }
@@ -70,13 +67,18 @@ public class UserController {
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{id}/role")
   public User updateRole(
-      Authentication authentication, @PathVariable Long id, @RequestParam String role) {
+      Authentication authentication, @PathVariable Long id, @RequestParam("role") String role) {
     return userService.updateRole(authentication.getName(), id, role);
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping
   public List<User> all() {
-    return userRepository.findAll();
+    return userService.all();
+  }
+
+  @PostMapping("/me/logout")
+  public void logout(Authentication authentication) {
+    userService.revokeSessions(authentication.getName());
   }
 }

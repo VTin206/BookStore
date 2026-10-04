@@ -51,7 +51,10 @@ Services:
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - PostgreSQL: localhost:5432
 
-For separate development, start PostgreSQL with docker compose up -d postgres, then run mvn spring-boot:run in backend/ and npm install && npm run dev in frontend/.
+For separate development, set a private `JWT_SECRET` (at least 32 bytes) in the
+environment before starting the backend. Never use the placeholder in `.env.example`.
+Then start PostgreSQL with `docker compose up -d postgres`, run `mvn spring-boot:run`
+in `backend/`, and `npm install && npm run dev` in `frontend/`.
 
 ### Validation
 
@@ -59,6 +62,9 @@ For separate development, start PostgreSQL with docker compose up -d postgres, t
 cd backend && mvn test
 cd frontend && npm test && npm run build
 ~~~
+
+Order lists are paginated, checkout supports COD only until payment integration
+is added, and the database migration invalidates existing JWT sessions.
 
 
 

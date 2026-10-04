@@ -13,7 +13,7 @@ import { getCommunesByDistrictId } from 'vietnam-divisions-js/districts';
 vi.mock('../context/CartContext', () => ({ useCart: vi.fn() }));
 vi.mock('../context/AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('../context/ToastContext', () => ({ useToast: vi.fn() }));
-vi.mock('../services/orderService', () => ({ orderService: { create: vi.fn() } }));
+vi.mock('../services/orderService', () => ({ orderService: { create: vi.fn(), quote: vi.fn() } }));
 vi.mock('vietnam-divisions-js/provinces', () => ({
   getAllProvincesSorted: vi.fn(),
   getDistrictsByProvinceId: vi.fn(),
@@ -46,6 +46,7 @@ describe('Checkout address', () => {
         ? [{ idDistrict: '001', idCommune: '00001', name: 'Phường Phúc Xá' }]
         : [{ idDistrict: '760', idCommune: '26734', name: 'Phường Bến Nghé' }]
     );
+    vi.mocked(orderService.quote).mockResolvedValue({ subtotal: 100000, shippingFee: 30000, discountAmount: 0, totalAmount: 130000 });
     vi.mocked(orderService.create).mockResolvedValue({ id: 42 } as Awaited<ReturnType<typeof orderService.create>>);
   });
 

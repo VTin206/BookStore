@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useOrderQuote } from '../../hooks/useOrderQuote';
 import { orderService } from '../../services/orderService';
 import { getBookCover } from '../../utils/bookCovers';
 import { Button } from '../../components/ui/Button';
@@ -16,7 +17,6 @@ import {
   CheckCircle,
   Truck,
   CreditCard,
-  Building,
   ShieldCheck,
   ArrowRight,
   ArrowLeft,
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, clearCart } = useCart();
   const { username, isAuthenticated } = useAuth();
   const { error, success } = useToast();
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export const CheckoutPage: React.FC = () => {
   const [phone, setPhone] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank' | 'card'>('cod');
+  const paymentMethod = 'cod';
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -52,9 +52,11 @@ export const CheckoutPage: React.FC = () => {
   const [isLoadingCommunes, setIsLoadingCommunes] = useState(false);
   const [locationError, setLocationError] = useState(false);
 
-  const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
-  const discountAmount = checkoutState?.discountAmount || 0;
-  const finalTotal = totalAmount + shippingFee - discountAmount;
+  const { quote, quoteError } = useOrderQuote(items, couponCode);
+  const totalAmount = Number(quote?.subtotal || 0);
+  const shippingFee = Number(quote?.shippingFee || 0);
+  const discountAmount = Number(quote?.discountAmount || 0);
+  const finalTotal = Number(quote?.totalAmount || 0);
 
   useEffect(() => {
     let active = true;
@@ -131,6 +133,7 @@ export const CheckoutPage: React.FC = () => {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!quote || isSubmitting) return;
     if (!customerName.trim()) {
       error('Vui lòng nhập họ và tên người nhận.');
       return;
@@ -147,6 +150,11 @@ export const CheckoutPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
+      const currentQuote = await orderService.quote(items.map(item => ({ bookId: item.book.id, quantity: item.quantity })), couponCode);
+      if (Number(currentQuote.totalAmount) !== finalTotal) {
+        error('Giá đơn hàng đã thay đổi. Vui lòng tải lại trang để xác nhận số tiền mới.');
+        return;
+      }
       const orderPayload = {
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim(),
@@ -416,7 +424,7 @@ export const CheckoutPage: React.FC = () => {
                     type="radio"
                     name="payment"
                     checked={paymentMethod === 'cod'}
-                    onChange={() => setPaymentMethod('cod')}
+                    readOnly
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
@@ -428,65 +436,7 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </label>
 
-                {/* Method 2: Bank Transfer */}
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-lg)',
-                    border: `1.5px solid ${paymentMethod === 'bank' ? 'var(--primary)' : 'var(--border)'}`,
-                    backgroundColor: paymentMethod === 'bank' ? 'var(--primary-light)' : 'var(--surface)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'bank'}
-                    onChange={() => setPaymentMethod('bank')}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                      Chuyển khoản ngân hàng (mã QR VietQR)
-                    </div>
-                    <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-                      Quét mã QR tự động xác nhận thanh toán qua ứng dụng ngân hàng di động.
-                    </div>
-                  </div>
-                </label>
-
-                {/* Method 3: Card */}
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-lg)',
-                    border: `1.5px solid ${paymentMethod === 'card' ? 'var(--primary)' : 'var(--border)'}`,
-                    backgroundColor: paymentMethod === 'card' ? 'var(--primary-light)' : 'var(--surface)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'card'}
-                    onChange={() => setPaymentMethod('card')}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                      Thẻ tín dụng / ghi nợ quốc tế (Visa, Mastercard)
-                    </div>
-                    <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-                      Bảo mật chuẩn mã hóa PCI-DSS quốc tế.
-                    </div>
-                  </div>
-                </label>
+                <p>Hiện chỉ hỗ trợ thanh toán khi nhận hàng.</p>
               </div>
             </div>
           </div>
@@ -503,7 +453,9 @@ export const CheckoutPage: React.FC = () => {
               top: '90px',
             }}
           >
+            {!quote && <p role={quoteError ? 'alert' : 'status'}>{quoteError || 'Đang kiểm tra giá và tồn kho…'}</p>}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              {!quote && <p role={quoteError ? 'alert' : 'status'}>{quoteError || 'Đang kiểm tra giá và tồn kho…'}</p>}
               <h3 style={{ fontSize: '1.15rem', margin: 0 }}>Đơn hàng ({items.length} món)</h3>
               <Link to="/cart" style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>
                 Sửa giỏ hàng
@@ -596,6 +548,7 @@ export const CheckoutPage: React.FC = () => {
                 variant="primary"
                 size="lg"
                 isLoading={isSubmitting}
+                disabled={!quote || isSubmitting}
                 style={{ width: '100%', fontWeight: 700 }}
               >
                 Đặt hàng ngay <ArrowRight size={18} />

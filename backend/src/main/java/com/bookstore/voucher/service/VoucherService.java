@@ -91,6 +91,14 @@ public class VoucherService {
     return voucherRepository.save(voucher);
   }
 
+  @Transactional
+  public void release(String code) {
+    if (code == null || code.isBlank()) return;
+    voucherRepository.findByCodeForUpdate(normalizeCode(code)).ifPresent(voucher -> {
+      if (voucher.getUsedCount() > 0) voucher.setUsedCount(voucher.getUsedCount() - 1);
+    });
+  }
+
   private Voucher findActiveVoucher(String code) {
     return voucherRepository.findByCodeIgnoreCase(normalizeCode(code))
         .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn"));

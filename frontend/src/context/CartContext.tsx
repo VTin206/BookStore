@@ -19,34 +19,50 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>(() => cartService.getLocalCart());
+  const { isAuthenticated, username, token } = useAuth();
+  const [items, setItems] = useState<CartItem[]>(() => isAuthenticated ? [] : cartService.getLocalCart());
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const cartMutationVersion = useRef(0);
-  const { isAuthenticated, logout } = useAuth();
+  const identity = `${isAuthenticated}:${username}:${token}`;
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
+  const persistedIdentity = useRef(identity);
+  const mutationQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueue = <T,>(action: () => Promise<T>): Promise<T> => {
+    const result = mutationQueue.current.then(() => {
+      if (identityRef.current !== identity) throw new Error('Session changed');
+      return action();
+    });
+    mutationQueue.current = result.catch(() => undefined);
+    return result;
+  };
   const { success, error } = useToast();
 
   // Load from backend if logged in, otherwise local storage
   const refreshCart = useCallback(async () => {
+    cartMutationVersion.current += 1;
     const startedAtVersion = cartMutationVersion.current;
     if (isAuthenticated) {
+      setItems([]);
+      cartService.clearLocalCart();
       try {
         setIsLoading(true);
         const remoteCart = await cartService.getRemoteCart();
         if (startedAtVersion === cartMutationVersion.current) {
           setItems(remoteCart.items);
-          cartService.setLocalCart(remoteCart.items);
         }
       } catch {
         if (startedAtVersion === cartMutationVersion.current) {
-          setItems(cartService.getLocalCart());
+          error('Không thể tải giỏ hàng. Vui lòng thử lại.');
         }
       } finally {
-        setIsLoading(false);
+        if (startedAtVersion === cartMutationVersion.current) setIsLoading(false);
       }
     } else {
+      setIsLoading(false);
       setItems(cartService.getLocalCart());
     }
-  }, [isAuthenticated]);
+  }, [identity]);
 
   useEffect(() => {
     refreshCart();
@@ -54,29 +70,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Persist to local cart whenever items change
   useEffect(() => {
-    cartService.setLocalCart(items);
-  }, [items]);
+    if (persistedIdentity.current === identity && !isAuthenticated) cartService.setLocalCart(items);
+    persistedIdentity.current = identity;
+  }, [items, identity, isAuthenticated]);
 
   const addToCart = async (book: Book, quantity: number = 1): Promise<boolean> => {
-    if (book.stock <= 0) {
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 1000 || book.stock < quantity) {
       error(`Sách "${book.title}" hiện đã hết hàng.`);
       return false;
     }
 
     if (isAuthenticated) {
       cartMutationVersion.current += 1;
+      const version = cartMutationVersion.current;
       try {
-        const remoteCart = await cartService.addToRemoteCart(book.id, quantity);
+        const remoteCart = await enqueue(() => cartService.addToRemoteCart(book.id, quantity));
         if (!remoteCart.items.some((item) => item.book.id === book.id)) {
           throw new Error('Added book missing from cart response');
         }
+        if (identityRef.current !== identity || version !== cartMutationVersion.current) return false;
+        setIsLoading(false);
         setItems(remoteCart.items);
         success(`Đã thêm "${book.title}" vào giỏ hàng!`);
         return true;
       } catch (requestError) {
+        if (identityRef.current !== identity) return false;
+        setIsLoading(false);
         if (isAxiosError(requestError)) {
-          if (requestError.response?.status === 401 || requestError.response?.status === 403) {
-            logout();
+          if (requestError.response?.status === 401) {
             error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           } else if (requestError.response?.status === 400 || requestError.response?.status === 409) {
             error(requestError.response.data?.message || 'Không thể thêm sách vào giỏ hàng.');
@@ -110,26 +131,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = async (cartItemId: number | string, quantity: number) => {
+    if (!Number.isInteger(quantity) || quantity < 0 || quantity > 1000) {
+      error('Số lượng không hợp lệ.');
+      return;
+    }
     if (quantity <= 0) {
       await removeFromCart(cartItemId);
       return;
     }
 
     if (isAuthenticated && typeof cartItemId === 'number') {
+      const version = ++cartMutationVersion.current;
       try {
-        const remoteCart = await cartService.updateRemoteCart(cartItemId, quantity);
-        setItems(remoteCart.items);
-        cartService.setLocalCart(remoteCart.items);
+        const remoteCart = await enqueue(() => cartService.updateRemoteCart(cartItemId, quantity));
+        if (identityRef.current === identity && version === cartMutationVersion.current) setItems(remoteCart.items);
         return;
       } catch {
-        // Fall back to local state if the remote cart is unavailable.
+        error('Không thể cập nhật giỏ hàng. Vui lòng thử lại.');
+        return;
       }
     }
 
     setItems((prev) =>
       prev.map((item) => {
-        if (item.id === cartItemId || item.book.id === cartItemId) {
-          const maxStock = item.book.stock || 999;
+        if (item.id === cartItemId) {
+          const maxStock = item.book.stock;
           return { ...item, quantity: Math.min(quantity, maxStock) };
         }
         return item;
@@ -138,15 +164,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = async (cartItemId: number | string) => {
+    ++cartMutationVersion.current;
     try {
       if (isAuthenticated && typeof cartItemId === 'number') {
         try {
-          await cartService.removeFromRemoteCart(cartItemId);
+          await enqueue(() => cartService.removeFromRemoteCart(cartItemId));
         } catch {
-          // continue to remove locally
+          error('Không thể xóa sách khỏi giỏ hàng. Vui lòng thử lại.');
+          return;
         }
       }
-      setItems((prev) => prev.filter((item) => item.id !== cartItemId && item.book.id !== cartItemId));
+      if (identityRef.current !== identity) return;
+      setItems((prev) => prev.filter((item) => item.id !== cartItemId));
       success('Đã xóa sách khỏi giỏ hàng.');
     } catch {
       error('Không thể xóa sản phẩm khỏi giỏ.');
@@ -154,13 +183,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
+    ++cartMutationVersion.current;
     if (isAuthenticated) {
       try {
-        await cartService.clearRemoteCart();
+        await enqueue(() => cartService.clearRemoteCart());
       } catch {
-        // Keep the local cart usable if the remote cart is unavailable.
+        error('Không thể xóa giỏ hàng. Vui lòng thử lại.');
+        return;
       }
     }
+    if (identityRef.current !== identity) return;
     setItems([]);
     cartService.clearLocalCart();
   };

@@ -12,6 +12,12 @@ import org.springframework.security.access.AccessDeniedException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+  @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
+      org.springframework.dao.PessimisticLockingFailureException.class})
+  ResponseEntity<Map<String, String>> concurrentUpdate(RuntimeException exception) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message",
+        "Dữ liệu vừa thay đổi. Vui lòng tải lại và thử lại."));
+  }
   @ExceptionHandler(ApiException.class)
   ResponseEntity<Map<String, String>> api(ApiException exception) {
     return ResponseEntity.status(exception.getStatus()).body(Map.of("message", exception.getMessage()));

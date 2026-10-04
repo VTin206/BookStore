@@ -36,7 +36,7 @@ class CartServiceTest {
   void getCreatesCartForExistingUserWhenMissing() {
     var user = user("alice");
     when(carts.findByUserUsername("alice")).thenReturn(Optional.empty());
-    when(users.findByUsername("alice")).thenReturn(Optional.of(user));
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
     when(carts.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     var result = service.get("alice");
@@ -47,6 +47,7 @@ class CartServiceTest {
 
   @Test
   void addCreatesItemWhenBookIsInStock() throws Exception {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("alice"));
     var book = book(10L, "Book", 5, new BigDecimal("100"));
     when(carts.findByUserUsername("alice")).thenReturn(Optional.of(cart));
@@ -61,6 +62,7 @@ class CartServiceTest {
 
   @Test
   void addRejectsQuantityAboveStock() {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("alice"));
     var book = book(10L, "Book", 2, BigDecimal.TEN);
     when(carts.findByUserUsername("alice")).thenReturn(Optional.of(cart));
@@ -72,6 +74,7 @@ class CartServiceTest {
 
   @Test
   void addMergesExistingItemAndChecksCombinedStock() throws Exception {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("alice"));
     var book = book(10L, "Book", 5, BigDecimal.TEN);
     var existing = new CartItem(cart, book, 2);
@@ -87,6 +90,7 @@ class CartServiceTest {
 
   @Test
   void updateRejectsItemOwnedByAnotherUser() throws Exception {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("bob"));
     var item = new CartItem(cart, book(10L, "Book", 5, BigDecimal.TEN), 1);
     setId(item, 20L);
@@ -97,6 +101,7 @@ class CartServiceTest {
 
   @Test
   void updateChangesOwnedItemQuantity() throws Exception {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("alice"));
     var item = new CartItem(cart, book(10L, "Book", 5, BigDecimal.TEN), 1);
     setId(item, 20L);
@@ -111,6 +116,7 @@ class CartServiceTest {
 
   @Test
   void removeDeletesOnlyOwnedItem() throws Exception {
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user("alice")));
     var cart = new Cart(user("alice"));
     var item = new CartItem(cart, book(10L, "Book", 5, BigDecimal.TEN), 1);
     setId(item, 20L);

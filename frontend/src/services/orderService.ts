@@ -1,20 +1,32 @@
 import { apiClient } from './apiClient';
 import { CreateOrderRequest, Order, OrderStatus } from '../types';
 
+async function getOrders(path: string): Promise<Order[]> {
+  const orders: Order[] = [];
+  for (let page = 0; ; page++) {
+    const { data } = await apiClient.get<{ content: Order[]; last: boolean }>(path, { params: { page, size: 100 } });
+    orders.push(...data.content);
+    if (data.last) return orders;
+  }
+}
+
 export const orderService = {
+  async quote(items: { bookId: number; quantity: number }[], couponCode?: string) {
+    return (await apiClient.post<{ subtotal: number; shippingFee: number; discountAmount: number; totalAmount: number }>(
+      '/orders/quote', { items, couponCode },
+    )).data;
+  },
   async getAll(): Promise<Order[]> {
-    const res = await apiClient.get<Order[]>('/orders');
-    return res.data;
+    return getOrders('/orders');
   },
 
   async getAllAdmin(): Promise<Order[]> {
-    const res = await apiClient.get<Order[]>('/orders/admin');
-    return res.data;
+    return getOrders('/orders/admin');
   },
 
   async updateStatus(id: number, status: OrderStatus): Promise<Order> {
     const res = await apiClient.patch<Order>(`/orders/admin/${id}/status`, null, {
-      params: { value: status },
+      params: { orderStatus: status },
     });
     return res.data;
   },

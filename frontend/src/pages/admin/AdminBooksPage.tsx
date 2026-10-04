@@ -628,7 +628,7 @@ export const AdminBooksPage: React.FC = () => {
               }} />
               <Button type="button" variant="secondary" onClick={() => coverInputRef.current?.click()} leftIcon={<Plus size={16} />}>Tải ảnh lên</Button>
             </div>
-            {form.imageUrl && <img className="cover-upload-preview" src={form.imageUrl} alt="Xem trước ảnh bìa" />}
+            {form.imageUrl && <img className="cover-upload-preview" src={getBookCover(form.title, undefined, form.imageUrl)} alt="Xem trước ảnh bìa" />}
           </div>
 
           <div className="form-group">

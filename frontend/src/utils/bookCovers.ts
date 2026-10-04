@@ -23,6 +23,9 @@ const PALETTES = [
 ];
 
 export function getBookCover(title: string, categoryName?: string, customUrl?: string): string {
+  if (customUrl && /^\/api\/books\/\d+\/cover$/.test(customUrl)) {
+    return new URL(customUrl, new URL(import.meta.env.VITE_API_URL || 'http://localhost:8080/api', window.location.origin)).href;
+  }
   if (customUrl && (customUrl.startsWith('http://') || customUrl.startsWith('https://') || customUrl.startsWith('data:image/'))) {
     return customUrl;
   }

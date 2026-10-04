@@ -94,6 +94,6 @@ class AuthServiceTest {
     when(encoder.matches("wrong", "hashed")).thenReturn(false);
 
     assertThrows(
-        IllegalArgumentException.class, () -> service.login(new AuthRequest("alice", "wrong")));
+        com.bookstore.common.exception.UnauthorizedException.class, () -> service.login(new AuthRequest("alice", "wrong")));
   }
 }

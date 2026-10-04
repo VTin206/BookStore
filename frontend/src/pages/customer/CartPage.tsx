@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { getBookCover } from '../../utils/bookCovers';
-import { voucherService } from '../../services/voucherService';
+import { orderService } from '../../services/orderService';
+import { useOrderQuote } from '../../hooks/useOrderQuote';
 import { Button } from '../../components/ui/Button';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import {
@@ -19,26 +20,34 @@ import {
 } from 'lucide-react';
 
 export const CartPage: React.FC = () => {
-  const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart, clearCart } = useCart();
   const { success, warning } = useToast();
   const navigate = useNavigate();
 
   const [itemToDelete, setItemToDelete] = useState<number | string | null>(null);
   const [couponCode, setCouponCode] = useState<string>('');
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<string>();
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const { quote, quoteError } = useOrderQuote(items, appliedCoupon);
+  const totalAmount = Number(quote?.subtotal || 0);
+  const discountAmount = Number(quote?.discountAmount || 0);
+  const shippingFee = Number(quote?.shippingFee || 0);
+  const finalTotal = Number(quote?.totalAmount || 0);
 
-  const shippingFee = totalAmount >= 250000 || totalAmount === 0 ? 0 : 30000;
-  const finalTotal = Math.max(0, totalAmount + shippingFee - discountAmount);
-
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === 'TRIAN30') {
-      const discount = Math.round(totalAmount * 0.3);
-      setDiscountAmount(discount);
-      success('Áp dụng thành công mã giảm giá 30%!');
-    } else if (couponCode.trim()) {
-      setDiscountAmount(0);
+    if (applyingCoupon) return;
+    setApplyingCoupon(true);
+    try {
+      const code = couponCode.trim().toUpperCase();
+      await orderService.quote(items.map(item => ({ bookId: item.book.id, quantity: item.quantity })), code);
+      setAppliedCoupon(code || undefined);
+      success(code ? 'Áp dụng mã giảm giá thành công!' : 'Đã bỏ mã giảm giá.');
+    } catch {
+      setAppliedCoupon(undefined);
       warning('Mã giảm giá không hợp lệ hoặc đã hết hạn.');
+    } finally {
+      setApplyingCoupon(false);
     }
   };
 
@@ -327,6 +336,7 @@ export const CartPage: React.FC = () => {
           }}
         >
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem' }}>Tóm tắt đơn hàng</h3>
+          {!quote && <p role={quoteError ? 'alert' : 'status'}>{quoteError || 'Đang kiểm tra giá và tồn kho…'}</p>}
 
           {/* Coupon Form */}
           <form onSubmit={handleApplyCoupon} style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem' }}>
@@ -387,7 +397,8 @@ export const CartPage: React.FC = () => {
               variant="primary"
               size="lg"
               style={{ width: '100%', fontWeight: 700 }}
-              onClick={() => navigate('/checkout', { state: { couponCode: couponCode.trim().toUpperCase() || undefined, discountAmount } })}
+              disabled={!quote || applyingCoupon}
+              onClick={() => navigate('/checkout', { state: { couponCode: appliedCoupon } })}
             >
               Tiến hành thanh toán <ArrowRight size={18} />
             </Button>

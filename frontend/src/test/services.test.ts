@@ -88,15 +88,15 @@ describe('API services', () => {
   });
 
   it('loads admin orders and updates order status', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [{ id: 9, status: 'PENDING' }] });
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { content: [{ id: 9, status: 'PENDING' }], last: true } });
     vi.mocked(apiClient.patch).mockResolvedValue({ data: { id: 9, status: 'SHIPPING' } });
 
     await expect(orderService.getAllAdmin()).resolves.toEqual([{ id: 9, status: 'PENDING' }]);
     await expect(orderService.updateStatus(9, 'SHIPPING')).resolves.toEqual({ id: 9, status: 'SHIPPING' });
 
-    expect(apiClient.get).toHaveBeenCalledWith('/orders/admin');
+    expect(apiClient.get).toHaveBeenCalledWith('/orders/admin', { params: { page: 0, size: 100 } });
     expect(apiClient.patch).toHaveBeenCalledWith('/orders/admin/9/status', null, {
-      params: { value: 'SHIPPING' },
+      params: { orderStatus: 'SHIPPING' },
     });
   });
 
@@ -112,7 +112,7 @@ describe('API services', () => {
     await userService.updateRole(4, 'ADMIN');
 
     expect(apiClient.patch).toHaveBeenCalledWith('/users/4/role', null, {
-      params: { value: 'ADMIN' },
+      params: { role: 'ADMIN' },
     });
   });
 });

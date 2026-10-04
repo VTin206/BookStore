@@ -158,7 +158,7 @@ class BookServiceTest {
   @Test
   void adjustStockRejectsNegativeValue() {
     var book = new Book();
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(book));
 
     assertThrows(IllegalArgumentException.class, () -> service.adjustStock(1L, -1));
   }
@@ -167,7 +167,7 @@ class BookServiceTest {
   void adjustStockPersistsValidValue() {
     var book = new Book();
     book.setStock(2);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(book));
     when(books.save(book)).thenReturn(book);
 
     var result = service.adjustStock(1L, 10);

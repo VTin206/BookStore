@@ -32,48 +32,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [username, setUsername] = useState<string | null>(() => localStorage.getItem('username'));
   const [role, setRole] = useState<string | null>(() => localStorage.getItem('role') || 'CUSTOMER');
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
+  const synchronize = useCallback(() => {
+    const storedToken = localStorage.getItem('token');
+    const expiry = storedToken ? getTokenExpiry(storedToken) : null;
+    if (storedToken && (expiry === null || expiry <= Date.now())) {
+      ['token', 'username', 'role', 'user_info'].forEach(key => localStorage.removeItem(key));
     }
-  }, [token]);
+    setToken(localStorage.getItem('token'));
+    setUsername(localStorage.getItem('username'));
+    setRole(localStorage.getItem('role') || 'CUSTOMER');
+  }, []);
 
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem('username', username);
-    } else {
-      localStorage.removeItem('username');
-    }
-  }, [username]);
-
-  useEffect(() => {
-    if (role) {
-      localStorage.setItem('role', role);
-    } else {
-      localStorage.removeItem('role');
-    }
-  }, [role]);
+  const saveSession = (res: AuthResponse) => {
+    localStorage.setItem('username', res.username);
+    localStorage.setItem('role', res.role || 'CUSTOMER');
+    localStorage.setItem('token', res.token);
+    synchronize();
+  };
 
   const login = async (data: LoginData): Promise<AuthResponse> => {
     const res = await authService.login(data);
-    setToken(res.token);
-    setUsername(res.username);
-    setRole(res.role || 'CUSTOMER');
+    saveSession(res);
     return res;
   };
 
   const register = async (data: RegisterData): Promise<AuthResponse> => {
     const res = await authService.register(data);
-    setToken(res.token);
-    setUsername(res.username);
-    setRole(res.role || 'CUSTOMER');
+    saveSession(res);
     return res;
   };
 
   const logout = useCallback(() => {
     authService.logout();
+    localStorage.removeItem('token');
     setToken(null);
     setUsername(null);
     setRole('CUSTOMER');
@@ -86,30 +77,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const expiresAt = getTokenExpiry(token);
     if (expiresAt === null || expiresAt <= Date.now()) {
-      logout();
+      synchronize();
       return;
     }
 
-    const timeout = window.setTimeout(logout, expiresAt - Date.now());
+    const timeout = window.setTimeout(synchronize, Math.min(expiresAt - Date.now(), 2147483647));
     return () => window.clearTimeout(timeout);
-  }, [token, logout]);
+  }, [token, synchronize]);
 
   useEffect(() => {
-    const handleExpired = () => logout();
+    const handleExpired = () => synchronize();
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'token' && !event.newValue) logout();
+      if (event.key === 'token' || event.key === null) synchronize();
     };
 
     window.addEventListener('auth:expired', handleExpired);
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', synchronize);
+    document.addEventListener('visibilitychange', synchronize);
     return () => {
       window.removeEventListener('auth:expired', handleExpired);
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', synchronize);
+      document.removeEventListener('visibilitychange', synchronize);
     };
-  }, [logout]);
+  }, [synchronize]);
 
-  const isAuthenticated = !!token;
-  const isAdmin = role?.toUpperCase() === 'ADMIN';
+  const isAuthenticated = !!token && (getTokenExpiry(token) || 0) > Date.now();
+  const isAdmin = isAuthenticated && role?.toUpperCase() === 'ADMIN';
 
   return (
     <AuthContext.Provider

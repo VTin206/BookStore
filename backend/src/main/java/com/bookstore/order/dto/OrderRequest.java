@@ -7,19 +7,22 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Digits;
 import java.math.BigDecimal;
 import java.util.List;
 
 public record OrderRequest(
-    @NotBlank String customerName,
-    @Email @NotBlank String customerEmail,
-    @NotBlank String shippingAddress,
-    @NotBlank String phone,
-    String note,
-    @NotNull @PositiveOrZero BigDecimal shippingFee,
-    @NotBlank String paymentMethod,
-    @NotEmpty List<@Valid Item> items,
-    String couponCode) {
+    @NotBlank @Size(max = 150) String customerName,
+    @Email @NotBlank @Size(max = 255) String customerEmail,
+    @NotBlank @Size(max = 255) String shippingAddress,
+    @NotBlank @Size(max = 30) String phone,
+    @Size(max = 2000) String note,
+    @NotNull @PositiveOrZero @Digits(integer = 10, fraction = 2) BigDecimal shippingFee,
+    @NotBlank @Size(max = 20) String paymentMethod,
+    @NotEmpty @Size(max = 100) List<@NotNull @Valid Item> items,
+    @Size(max = 50) String couponCode) {
 
   public OrderRequest(
       String customerName,
@@ -34,6 +37,6 @@ public record OrderRequest(
   }
 
   public record Item(
-      @NotNull Long bookId,
-      @NotNull @Positive Integer quantity) {}
+      @NotNull @Positive Long bookId,
+      @NotNull @Positive @Max(1000) Integer quantity) {}
 }

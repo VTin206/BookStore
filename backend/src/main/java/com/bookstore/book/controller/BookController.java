@@ -18,6 +18,7 @@ public class BookController {
   }
 
   @GetMapping
+  @PreAuthorize("!#includeInactive or hasRole('ADMIN')")
   public List<Book> all(
       @RequestParam(required = false) String search,
       @RequestParam(required = false) String filter,
@@ -26,8 +27,19 @@ public class BookController {
   }
 
   @GetMapping("/{id}")
+  @org.springframework.security.access.prepost.PostAuthorize("returnObject.active or hasRole('ADMIN')")
   public Book byId(@PathVariable Long id) {
     return bookService.byId(id);
+  }
+
+  @GetMapping("/{id}/cover")
+  public org.springframework.http.ResponseEntity<byte[]> cover(@PathVariable Long id) {
+    var cover = bookService.cover(id);
+    return org.springframework.http.ResponseEntity.ok()
+        .contentType(org.springframework.http.MediaType.parseMediaType(cover.contentType()))
+        .header("X-Content-Type-Options", "nosniff")
+        .cacheControl(org.springframework.http.CacheControl.noCache())
+        .body(cover.bytes());
   }
 
   @PreAuthorize("hasRole('ADMIN')")

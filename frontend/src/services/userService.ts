@@ -20,7 +20,7 @@ export const userService = {
   },
 
   async updateRole(id: number, role: 'ADMIN' | 'CUSTOMER'): Promise<User> {
-    const res = await apiClient.patch<User>('/users/' + id + '/role', null, { params: { value: role } });
+    const res = await apiClient.patch<User>('/users/' + id + '/role', null, { params: { role } });
     return res.data;
   },
   async getMe(): Promise<User> {

@@ -35,6 +35,8 @@ class OrderServiceTest {
   @Mock private UserRepository users;
   @Mock private CartRepository carts;
   @Mock private PaymentRepository payments;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private com.bookstore.voucher.service.VoucherService vouchers;
   @InjectMocks private OrderService service;
 
   @Test
@@ -44,11 +46,12 @@ class OrderServiceTest {
     var book = book(7L, "Book", 10, new BigDecimal("25"));
     var cart = new Cart(user);
     cart.getItems().add(new com.bookstore.cart.entity.CartItem(cart, book, 1));
-    when(users.findByUsername("alice")).thenReturn(Optional.of(user));
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
     when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     when(orders.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(carts.findByUserUsername("alice")).thenReturn(Optional.of(cart));
     when(carts.save(cart)).thenReturn(cart);
+    when(vouchers.apply(null, new BigDecimal("50"))).thenReturn(BigDecimal.ZERO);
 
     var request =
         new OrderRequest(
@@ -58,7 +61,7 @@ class OrderServiceTest {
             "0900000000",
             "Leave at door",
             new BigDecimal("5"),
-            " bank ",
+            " cod ",
             List.of(new OrderRequest.Item(7L, 2)));
 
     var result = service.create("alice", request);
@@ -75,7 +78,7 @@ class OrderServiceTest {
     verify(payments).save(paymentCaptor.capture());
     assertEquals(result, readField(paymentCaptor.getValue(), "order"));
     assertEquals(new BigDecimal("30050"), readField(paymentCaptor.getValue(), "amount"));
-    assertEquals("BANK", readField(paymentCaptor.getValue(), "method"));
+    assertEquals("COD", readField(paymentCaptor.getValue(), "method"));
     assertEquals("PENDING", readField(paymentCaptor.getValue(), "status"));
   }
 
@@ -99,7 +102,7 @@ class OrderServiceTest {
   void createRejectsInsufficientStockBeforeSavingOrder() {
     var user = new User();
     var book = book(7L, "Book", 1, BigDecimal.TEN);
-    when(users.findByUsername("alice")).thenReturn(Optional.of(user));
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
     when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     var request =
         new OrderRequest(
@@ -120,7 +123,7 @@ class OrderServiceTest {
   void createAppliesCouponAndIgnoresClientShippingFee() {
     var user = new User();
     var book = book(7L, "Book", 10, new BigDecimal("100000"));
-    when(users.findByUsername("alice")).thenReturn(Optional.of(user));
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
     when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
     when(orders.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -136,6 +139,7 @@ class OrderServiceTest {
             List.of(new OrderRequest.Item(7L, 2)),
             " trian30 ");
 
+    when(vouchers.apply("TRIAN30", new BigDecimal("200000"))).thenReturn(new BigDecimal("60000"));
     var result = service.create("alice", request);
 
     assertEquals(new BigDecimal("170000"), result.getTotalAmount());
@@ -147,8 +151,9 @@ class OrderServiceTest {
   @Test
   void updateStatusNormalizesAndPersistsSupportedStatus() {
     var order = new Order();
+    setId(order, 4L);
     order.setStatus("SHIPPING");
-    when(orders.findById(4L)).thenReturn(Optional.of(order));
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
     when(orders.save(order)).thenReturn(order);
 
     var result = service.updateStatus(4L, " delivered ");
@@ -164,12 +169,14 @@ class OrderServiceTest {
   @Test
   void cancelRestoresStockAndMarksPaymentCancelled() {
     var order = new Order();
+    setId(order, 4L);
     var book = book(7L, "Book", 3, BigDecimal.TEN);
     var item = new com.bookstore.order.entity.OrderItem();
     item.setBook(book);
     item.setQuantity(2);
     order.getItems().add(item);
-    when(orders.findById(4L)).thenReturn(Optional.of(order));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
     when(orders.save(order)).thenReturn(order);
     var payment = new Payment();
     when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
@@ -190,6 +197,44 @@ class OrderServiceTest {
     book.setStock(stock);
     book.setPrice(price);
     return book;
+  }
+
+  @Test
+  void quoteUsesCurrentBookPriceAndVoucherWithoutReservingStock() {
+    var book = book(7L, "Book", 10, new BigDecimal("100000"));
+    when(books.findById(7L)).thenReturn(Optional.of(book));
+    when(vouchers.preview("TEST", new BigDecimal("200000"))).thenReturn(new BigDecimal("10000"));
+    var quote = service.quote(new com.bookstore.order.dto.OrderQuoteRequest(List.of(new OrderRequest.Item(7L, 2)), "TEST"));
+    assertEquals(new BigDecimal("220000"), quote.totalAmount());
+    assertEquals(10, book.getStock());
+    org.mockito.Mockito.verifyNoInteractions(orders, payments);
+  }
+
+  @Test
+  void repeatedCancellationDoesNotRestoreStockAgain() {
+    var order = new Order();
+    setId(order, 4L);
+    order.setStatus("CANCELLED");
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
+    when(orders.save(order)).thenReturn(order);
+    service.updateStatus(4L, "CANCELLED");
+    org.mockito.Mockito.verifyNoInteractions(books, vouchers);
+  }
+
+  @Test
+  void legacyBankPaymentIsNotMarkedPaidOnDelivery() {
+    var order = new Order();
+    setId(order, 4L);
+    order.setStatus("SHIPPING");
+    var payment = new Payment();
+    payment.setMethod("BANK");
+    payment.setStatus("PENDING");
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
+    when(orders.save(order)).thenReturn(order);
+    when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
+    service.updateStatus(4L, "DELIVERED");
+    assertEquals("PENDING", payment.getStatus());
+    org.junit.jupiter.api.Assertions.assertFalse(payment.isPaid());
   }
 
   private static Object readField(Object target, String name) throws Exception {

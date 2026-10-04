@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
@@ -53,6 +53,24 @@ const createTestToken = () => {
 };
 
 describe('AuthContext', () => {
+  it('discards an expired token immediately', () => {
+    localStorage.setItem('token', `header.${btoa(JSON.stringify({ exp: 1 }))}.signature`);
+    render(<AuthProvider><AuthProbe /></AuthProvider>);
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('synchronizes a replacement session from another tab', () => {
+    render(<AuthProvider><AuthProbe /></AuthProvider>);
+    act(() => {
+      localStorage.setItem('username', 'another-user');
+      localStorage.setItem('role', 'CUSTOMER');
+      localStorage.setItem('token', createTestToken());
+      window.dispatchEvent(new StorageEvent('storage', { key: 'token', newValue: localStorage.getItem('token') }));
+    });
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+    expect(screen.getByTestId('username')).toHaveTextContent('another-user');
+  });
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();

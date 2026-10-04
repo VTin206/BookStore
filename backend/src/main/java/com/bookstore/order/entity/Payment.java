@@ -49,6 +49,8 @@ public class Payment {
     return status;
   }
 
+  public String getMethod() { return method; }
+
   public boolean isPaid() {
     return paid;
   }

@@ -30,6 +30,18 @@ public class User {
   @Column(nullable = false)
   private String role = "CUSTOMER";
 
+  @JsonIgnore
+  @Column(name = "token_version", nullable = false)
+  private long tokenVersion;
+
+  @JsonIgnore
+  @Version
+  @Column(name = "row_version", nullable = false)
+  private long rowVersion;
+
+  public long getTokenVersion() { return tokenVersion; }
+  public void revokeTokens() { tokenVersion++; }
+
   @Column(name = "created_at")
   private LocalDateTime createdAt = LocalDateTime.now();
 

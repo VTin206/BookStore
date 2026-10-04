@@ -16,6 +16,11 @@ public class Voucher {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  @jakarta.persistence.Version
+  @Column(name = "row_version", nullable = false)
+  private long rowVersion;
+
   @Column(nullable = false, unique = true, length = 50)
   private String code;
 

@@ -50,11 +50,46 @@ const CartProbe: React.FC = () => {
       <button onClick={() => void cart.updateQuantity('local-1', 20)}>update</button>
       <button onClick={() => void cart.updateQuantity(4, 3)}>remote-update</button>
       <button onClick={() => void cart.removeFromCart('local-1')}>remove</button>
+      <button onClick={() => void cart.removeFromCart(4)}>remote-remove</button>
     </div>
   );
 };
 
 describe('CartContext', () => {
+  it('does not remove another line whose book id matches the removed item id', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.getRemoteCart).mockResolvedValue({ items: [
+      { id: 4, book, quantity: 1 }, { id: 9, book: { ...book, id: 4 }, quantity: 2 },
+    ] });
+    vi.mocked(cartService.removeFromRemoteCart).mockResolvedValue(undefined);
+    render(<CartProvider><CartProbe /></CartProvider>);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('3'));
+    fireEvent.click(screen.getByText('remote-remove'));
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('2'));
+  });
+
+  it('keeps the remote quantity unchanged after a failed update', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.getRemoteCart).mockResolvedValue({ items: [{ id: 4, book, quantity: 1 }] });
+    vi.mocked(cartService.updateRemoteCart).mockRejectedValue(new Error('offline'));
+    render(<CartProvider><CartProbe /></CartProvider>);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('1'));
+    fireEvent.click(screen.getByText('remote-update'));
+    await waitFor(() => expect(useToast().error).toHaveBeenCalled());
+    expect(screen.getByTestId('count')).toHaveTextContent('1');
+  });
+
+  it('does not persist the previous account cart when logging out', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true, username: 'alice' } as ReturnType<typeof useAuth>);
+    vi.mocked(cartService.getLocalCart).mockReturnValue([]);
+    vi.mocked(cartService.getRemoteCart).mockResolvedValue({ items: [{ id: 4, book, quantity: 3 }] });
+    const view = render(<CartProvider><CartProbe /></CartProvider>);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('3'));
+    vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as ReturnType<typeof useAuth>);
+    view.rerender(<CartProvider><CartProbe /></CartProvider>);
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('0'));
+    expect(cartService.setLocalCart).not.toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ id: 4 })]));
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     delete document.body.dataset.cartAdded;
@@ -109,7 +144,7 @@ describe('CartContext', () => {
     fireEvent.click(screen.getByText('buy'));
 
     await waitFor(() => expect(document.body.dataset.cartAdded).toBe('false'));
-    expect(screen.getByTestId('count')).toHaveTextContent('2');
+    expect(screen.getByTestId('count')).toHaveTextContent('0');
     expect(useToast().error).toHaveBeenCalled();
   });
 
@@ -142,7 +177,7 @@ describe('CartContext', () => {
     expect(cartService.getRemoteCart).toHaveBeenCalledOnce();
 
     // The probe uses a local id; this assertion verifies remote loading and persistence.
-    expect(cartService.setLocalCart).toHaveBeenCalledWith([remoteItem]);
+    expect(cartService.setLocalCart).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByText('remote-update'));
     await waitFor(() => expect(cartService.updateRemoteCart).toHaveBeenCalledWith(4, 3));

@@ -34,7 +34,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
       """)
   List<Book> search(@Param("search") String search);
 
-  @Query("select distinct b from Book b left join b.authorRef a left join b.category c where b.active = true and (lower(b.title) like lower(concat('%', :search, '%')) or lower(b.author) like lower(concat('%', :search, '%')) or lower(a.name) like lower(concat('%', :search, '%')) or lower(c.name) like lower(concat('%', :search, '%')))")
+  @Query("select distinct b from Book b left join b.authorRef a left join b.categories c where b.active = true and (lower(b.title) like lower(concat('%', :search, '%')) or lower(b.author) like lower(concat('%', :search, '%')) or lower(a.name) like lower(concat('%', :search, '%')) or lower(c.name) like lower(concat('%', :search, '%')))")
   List<Book> searchActive(@Param("search") String search);
 
   List<Book> findAllByOrderByPublicationDateDescCreatedAtDesc();
@@ -51,7 +51,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
   @Query("select b from Book b left join OrderItem oi on oi.book = b where b.active = true group by b order by coalesce(sum(case when oi.order.status <> 'CANCELLED' then oi.quantity else 0 end), 0) desc, b.title asc")
   List<Book> findActiveBestSellers();
 
-  @Query("select count(b) > 0 from Book b where b.category.id = :categoryId")
+  @Query("select count(distinct b) > 0 from Book b left join b.categories c where b.category.id = :categoryId or c.id = :categoryId")
   boolean existsByCategoryId(@Param("categoryId") Long categoryId);
 
   @Query("select count(b) > 0 from Book b where b.authorRef.id = :authorId")
