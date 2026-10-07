@@ -10,6 +10,7 @@ import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.user.repository.UserRepository;
 import com.bookstore.voucher.service.VoucherService;
+import com.bookstore.inventory.service.InventoryService;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,6 +39,7 @@ public class OrderService {
   private final CartRepository cartRepository;
   private final PaymentRepository paymentRepository;
   private final VoucherService voucherService;
+  private final InventoryService inventoryService;
 
   public OrderService(
       OrderRepository orderRepository,
@@ -45,13 +47,15 @@ public class OrderService {
       UserRepository userRepository,
       CartRepository cartRepository,
       PaymentRepository paymentRepository,
-      VoucherService voucherService) {
+      VoucherService voucherService,
+      InventoryService inventoryService) {
     this.orderRepository = orderRepository;
     this.bookRepository = bookRepository;
     this.userRepository = userRepository;
     this.cartRepository = cartRepository;
     this.paymentRepository = paymentRepository;
     this.voucherService = voucherService;
+    this.inventoryService = inventoryService;
   }
 
   @Transactional
@@ -89,6 +93,7 @@ public class OrderService {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
       }
       book.setStock(book.getStock() - itemRequest.quantity());
+      if (inventoryService != null) inventoryService.recordExistingChange(book, -itemRequest.quantity(), "SALE", "Bán hàng", "ORDER", order.getId(), username);
 
       var item = new OrderItem();
       item.setOrder(order);
@@ -217,6 +222,7 @@ public class OrderService {
       order.getItems().stream().sorted(java.util.Comparator.comparing(item -> item.getBook().getId())).forEach(item -> {
         var book = bookRepository.findByIdForUpdate(item.getBook().getId()).orElseThrow();
         book.setStock(Math.addExact(book.getStock(), item.getQuantity()));
+        if (inventoryService != null) inventoryService.recordExistingChange(book, item.getQuantity(), "RETURN", "Hoàn tồn do hủy đơn", "ORDER", order.getId(), null);
       });
       voucherService.release(order.getCouponCode());
     }

@@ -122,6 +122,8 @@ public class BookService {
     book.setAuthor(request.author());
     book.setPrice(request.price());
     book.setStock(request.stock());
+    if (request.costPrice() != null) book.setCostPrice(request.costPrice());
+    if (request.minimumStock() != null) book.setMinimumStock(request.minimumStock());
     var selectedCategoryIds = new LinkedHashSet<Long>();
     if (request.categoryId() != null) selectedCategoryIds.add(request.categoryId());
     if (request.categoryIds() != null) {

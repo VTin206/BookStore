@@ -34,6 +34,12 @@ public class Book {
   @Column(nullable = false)
   private Integer stock;
 
+  @Column(name = "cost_price", nullable = false, precision = 12, scale = 2)
+  private BigDecimal costPrice = BigDecimal.ZERO;
+
+  @Column(name = "minimum_stock", nullable = false)
+  private Integer minimumStock = 10;
+
   @Column(nullable = false)
   private boolean active = true;
 
@@ -107,6 +113,11 @@ public class Book {
   public void setStock(Integer stock) {
     this.stock = stock;
   }
+
+  public BigDecimal getCostPrice() { return costPrice; }
+  public void setCostPrice(BigDecimal costPrice) { this.costPrice = costPrice == null ? BigDecimal.ZERO : costPrice; }
+  public Integer getMinimumStock() { return minimumStock; }
+  public void setMinimumStock(Integer minimumStock) { this.minimumStock = minimumStock == null ? 10 : minimumStock; }
 
   public boolean isActive() {
     return active;

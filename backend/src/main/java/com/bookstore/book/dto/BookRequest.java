@@ -15,6 +15,8 @@ public record BookRequest(
     @NotBlank @Size(max = 200) String author,
     @NotNull @PositiveOrZero @Digits(integer = 10, fraction = 2) BigDecimal price,
     @NotNull @PositiveOrZero Integer stock,
+    @PositiveOrZero @Digits(integer = 10, fraction = 2) BigDecimal costPrice,
+    @PositiveOrZero Integer minimumStock,
     Long categoryId,
     Long authorId,
     Long publisherId,
@@ -26,6 +28,13 @@ public record BookRequest(
   public BookRequest(
       String title, String author, BigDecimal price, Integer stock, Long categoryId, Long authorId,
       Long publisherId, String isbn, String description, String imageUrl, LocalDate publicationDate) {
-    this(title, author, price, stock, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, null);
+    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, null);
+  }
+
+  public BookRequest(
+      String title, String author, BigDecimal price, Integer stock, Long categoryId, Long authorId,
+      Long publisherId, String isbn, String description, String imageUrl, LocalDate publicationDate,
+      List<@NotNull @Positive Long> categoryIds) {
+    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, categoryIds);
   }
 }

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
   List<Book> findAllByActiveTrue();
+  List<Book> findAllByOrderByStockAscTitleAsc();
   List<Book> findAllByActiveTrueOrderByPublicationDateDescCreatedAtDesc();
   @Query(value = "select exists(select 1 from order_items where book_id = :bookId)", nativeQuery = true)
   boolean hasOrderItems(@Param("bookId") Long bookId);

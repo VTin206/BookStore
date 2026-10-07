@@ -3,18 +3,22 @@ package com.bookstore.book.controller;
 import com.bookstore.book.dto.BookRequest;
 import com.bookstore.book.entity.Book;
 import com.bookstore.book.service.BookService;
+import com.bookstore.inventory.service.InventoryService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
   private final BookService bookService;
+  private final InventoryService inventoryService;
 
-  public BookController(BookService bookService) {
+  public BookController(BookService bookService, InventoryService inventoryService) {
     this.bookService = bookService;
+    this.inventoryService = inventoryService;
   }
 
   @GetMapping
@@ -56,8 +60,8 @@ public class BookController {
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{id}/stock")
-  public Book stock(@PathVariable Long id, @RequestParam Integer stockDelta) {
-    return bookService.adjustStock(id, stockDelta);
+  public Book stock(Authentication authentication, @PathVariable Long id, @RequestParam Integer stockDelta) {
+    return inventoryService.adjustAbsolute(id, stockDelta, authentication.getName());
   }
 
   @PreAuthorize("hasRole('ADMIN')")
