@@ -42,6 +42,5 @@ public class InventoryTransaction {
   public void setReferenceId(Long referenceId) { this.referenceId = referenceId; }
   public String getCreatedBy() { return createdBy; }
   public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
-  public String getCreatedBy() { return createdBy; }
   public LocalDateTime getCreatedAt() { return createdAt; }
 }
