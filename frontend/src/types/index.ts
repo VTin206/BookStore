@@ -18,6 +18,8 @@ export interface Book {
   author: string;
   price: number;
   stock: number;
+  costPrice?: number;
+  minimumStock?: number;
   active?: boolean;
   category?: Category | null;
   categories?: Category[];
@@ -36,6 +38,8 @@ export interface BookRequest {
   author: string;
   price: number;
   stock: number;
+  costPrice?: number;
+  minimumStock?: number;
   categoryId?: number | null;
   categoryIds?: number[];
   authorId?: number | null;

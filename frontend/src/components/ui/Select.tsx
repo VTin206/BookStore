@@ -8,7 +8,7 @@ interface Option {
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: Option[];
+  options?: Option[];
   placeholder?: string;
 }
 
@@ -26,7 +26,7 @@ export const Select: React.FC<SelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const selectedValues = Array.isArray(props.value) ? props.value.map(String) : [];
-  const selectedLabels = options.filter((option) => selectedValues.includes(String(option.value))).map((option) => option.label);
+  const selectedLabels = (options || []).filter((option) => selectedValues.includes(String(option.value))).map((option) => option.label);
 
   useEffect(() => {
     if (!isMultiple) return;
@@ -41,7 +41,7 @@ export const Select: React.FC<SelectProps> = ({
     const nextValues = selectedValues.includes(value)
       ? selectedValues.filter((item) => item !== value)
       : [...selectedValues, value];
-    const selectedOptions = options
+    const selectedOptions = (options || [])
       .filter((option) => nextValues.includes(String(option.value)))
       .map((option) => ({ value: String(option.value), label: option.label }));
     props.onChange?.({ target: { selectedOptions } } as unknown as React.ChangeEvent<HTMLSelectElement>);
@@ -64,7 +64,7 @@ export const Select: React.FC<SelectProps> = ({
           </button>
           {isOpen && (
             <div className="multi-select-menu">
-              {options.map((option) => {
+              {(options || []).map((option) => {
                 const optionValue = String(option.value);
                 return (
                   <label className="multi-select-option" key={optionValue}>
@@ -88,7 +88,7 @@ export const Select: React.FC<SelectProps> = ({
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}
-          {options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          {props.children || (options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
       )}
       {error && <p className="form-error">{error}</p>}

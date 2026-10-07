@@ -29,6 +29,7 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminAuthorsPublishersPage } from './pages/admin/AdminAuthorsPublishersPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminVouchersPage } from './pages/admin/AdminVouchersPage';
+import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -193,7 +194,16 @@ export default function App() {
                   <AdminVouchersPage />
                 </AdminLayout>
               }
-            />            {/* Fallback to Home */}
+            />
+            <Route
+              path="/admin/inventory"
+              element={
+                <AdminLayout>
+                  <AdminInventoryPage />
+                </AdminLayout>
+              }
+            />
+            {/* Fallback to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </CartProvider>
