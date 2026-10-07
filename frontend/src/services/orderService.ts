@@ -31,6 +31,10 @@ export const orderService = {
     return res.data;
   },
 
+  async cancel(id: number): Promise<Order> {
+    return (await apiClient.patch<Order>(`/orders/${id}/cancel`)).data;
+  },
+
   async lookup(trackingCode: string): Promise<Pick<Order, 'trackingCode' | 'status' | 'totalAmount' | 'createdAt'>> {
     const res = await apiClient.get('/orders/lookup', { params: { code: trackingCode } });
     return res.data;

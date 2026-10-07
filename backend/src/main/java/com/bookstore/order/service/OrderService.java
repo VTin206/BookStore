@@ -246,6 +246,18 @@ public class OrderService {
   }
 
   @Transactional
+  public com.bookstore.order.dto.OrderResponse cancelForUser(String username, Long id) {
+    var order = orderRepository.findByIdForUpdate(id).orElseThrow();
+    if (order.getUser() == null || !username.equals(order.getUser().getUsername())) {
+      throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền hủy đơn hàng này");
+    }
+    if (!List.of("PENDING", "CONFIRMED").contains(order.getStatus())) {
+      throw new IllegalArgumentException("Đơn hàng chỉ có thể hủy khi chưa được đóng gói");
+    }
+    return com.bookstore.order.dto.OrderResponse.from(transition(order, "CANCELLED"));
+  }
+
+  @Transactional
   public void expirePendingOrder(Long id, java.time.LocalDateTime cutoff) {
     orderRepository.findByIdForUpdate(id).ifPresent(order -> {
       if ("PENDING".equals(order.getStatus()) && order.getCreatedAt().isBefore(cutoff)) transition(order, "CANCELLED");

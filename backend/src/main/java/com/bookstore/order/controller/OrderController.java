@@ -40,6 +40,12 @@ public class OrderController {
     return orderService.quote(request);
   }
 
+  @PreAuthorize("isAuthenticated()")
+  @PatchMapping("/{id}/cancel")
+  public com.bookstore.order.dto.OrderResponse cancel(Authentication authentication, @PathVariable Long id) {
+    return orderService.cancelForUser(authentication.getName(), id);
+  }
+
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/admin")
   public org.springframework.data.domain.Page<com.bookstore.order.dto.OrderResponse> allForAdmin(

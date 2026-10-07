@@ -12,6 +12,7 @@ export const OrderHistoryPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -45,6 +46,21 @@ export const OrderHistoryPage: React.FC = () => {
         return <Badge variant="cancelled">Đã hủy</Badge>;
       default:
         return <Badge variant="primary">{status}</Badge>;
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!selectedOrder || isCancelling) return;
+    if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này không?')) return;
+    try {
+      setIsCancelling(true);
+      const cancelled = await orderService.cancel(selectedOrder.id);
+      setOrders((current) => current.map((order) => order.id === cancelled.id ? cancelled : order));
+      setSelectedOrder(cancelled);
+    } catch (error: any) {
+      window.alert(error.response?.data?.message || 'Không thể hủy đơn hàng. Vui lòng thử lại.');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -195,7 +211,12 @@ export const OrderHistoryPage: React.FC = () => {
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              {['PENDING', 'CONFIRMED'].includes(selectedOrder.status.toUpperCase()) && (
+                <Button variant="danger" isLoading={isCancelling} onClick={handleCancel}>
+                  Hủy đơn hàng
+                </Button>
+              )}
               <Button variant="secondary" onClick={() => setSelectedOrder(null)}>
                 Đóng
               </Button>
