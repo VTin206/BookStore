@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   ShoppingBag,
 } from 'lucide-react';
+import type { PaymentMethod, ShippingMethod } from '../../types';
 
 export const CheckoutPage: React.FC = () => {
   const { items, clearCart } = useCart();
@@ -38,7 +39,8 @@ export const CheckoutPage: React.FC = () => {
   const [phone, setPhone] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
-  const paymentMethod = 'cod';
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('STANDARD');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -52,7 +54,7 @@ export const CheckoutPage: React.FC = () => {
   const [isLoadingCommunes, setIsLoadingCommunes] = useState(false);
   const [locationError, setLocationError] = useState(false);
 
-  const { quote, quoteError } = useOrderQuote(items, couponCode);
+  const { quote, quoteError } = useOrderQuote(items, couponCode, shippingMethod);
   const totalAmount = Number(quote?.subtotal || 0);
   const shippingFee = Number(quote?.shippingFee || 0);
   const discountAmount = Number(quote?.discountAmount || 0);
@@ -150,7 +152,7 @@ export const CheckoutPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      const currentQuote = await orderService.quote(items.map(item => ({ bookId: item.book.id, quantity: item.quantity })), couponCode);
+      const currentQuote = await orderService.quote(items.map(item => ({ bookId: item.book.id, quantity: item.quantity })), couponCode, shippingMethod);
       if (Number(currentQuote.totalAmount) !== finalTotal) {
         error('Giá đơn hàng đã thay đổi. Vui lòng tải lại trang để xác nhận số tiền mới.');
         return;
@@ -162,8 +164,9 @@ export const CheckoutPage: React.FC = () => {
         phone: phone.trim(),
         note: note.trim(),
         shippingFee,
+        shippingMethod,
         couponCode,
-        paymentMethod: paymentMethod.toUpperCase() as 'COD' | 'BANK' | 'CARD',
+        paymentMethod,
         items: items.map((i) => ({
           bookId: Number(i.book.id),
           quantity: i.quantity,
@@ -391,6 +394,22 @@ export const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
+            <div className="card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Phương thức giao hàng</h2>
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                {([
+                  ['STANDARD', 'Tiết kiệm', 'Miễn phí từ 250.000đ, 30.000đ dưới ngưỡng'],
+                  ['EXPRESS', 'Nhanh', 'Dự kiến 1–2 ngày, 45.000đ'],
+                  ['SAME_DAY', 'Hỏa tốc', 'Giao trong ngày tại khu vực hỗ trợ, 60.000đ'],
+                ] as const).map(([value, label, description]) => (
+                  <label key={value} style={{ display: 'flex', gap: '0.75rem', padding: '1rem', border: `1.5px solid ${shippingMethod === value ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
+                    <input type="radio" name="shippingMethod" checked={shippingMethod === value} onChange={() => setShippingMethod(value)} />
+                    <span><strong>{label}</strong><br /><small>{description}</small></span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {/* Payment Method Section */}
             <div
               style={{
@@ -414,8 +433,8 @@ export const CheckoutPage: React.FC = () => {
                     gap: '1rem',
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-lg)',
-                    border: `1.5px solid ${paymentMethod === 'cod' ? 'var(--primary)' : 'var(--border)'}`,
-                    backgroundColor: paymentMethod === 'cod' ? 'var(--primary-light)' : 'var(--surface)',
+                    border: `1.5px solid ${paymentMethod === 'COD' ? 'var(--primary)' : 'var(--border)'}`,
+                    backgroundColor: paymentMethod === 'COD' ? 'var(--primary-light)' : 'var(--surface)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
@@ -423,8 +442,8 @@ export const CheckoutPage: React.FC = () => {
                   <input
                     type="radio"
                     name="payment"
-                    checked={paymentMethod === 'cod'}
-                    readOnly
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
                   />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
@@ -436,7 +455,14 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </label>
 
-                <p>Hiện chỉ hỗ trợ thanh toán khi nhận hàng.</p>
+                {(['BANK', 'MOMO', 'VNPAY', 'CARD'] as const).map((method) => (
+                  <label key={method} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1.5px solid ${paymentMethod === method ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
+                    <input type="radio" name="payment" checked={paymentMethod === method} onChange={() => setPaymentMethod(method)} />
+                    <span><strong>{method === 'BANK' ? 'Chuyển khoản QR' : method === 'MOMO' ? 'Ví MoMo' : method === 'VNPAY' ? 'Ví VNPay' : 'Thẻ ngân hàng'}</strong><br /><small>Đơn sẽ chờ xác nhận thanh toán từ cổng tích hợp.</small></span>
+                  </label>
+                ))}
+
+                <p>COD hoàn tất ngay khi đặt hàng; thanh toán online sẽ chờ xác nhận từ cổng thanh toán.</p>
               </div>
             </div>
           </div>

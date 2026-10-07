@@ -20,6 +20,7 @@ public record OrderRequest(
     @NotBlank @Size(max = 30) String phone,
     @Size(max = 2000) String note,
     @NotNull @PositiveOrZero @Digits(integer = 10, fraction = 2) BigDecimal shippingFee,
+    @NotBlank @Size(max = 30) String shippingMethod,
     @NotBlank @Size(max = 20) String paymentMethod,
     @NotEmpty @Size(max = 100) List<@NotNull @Valid Item> items,
     @Size(max = 50) String couponCode) {
@@ -33,7 +34,13 @@ public record OrderRequest(
       BigDecimal shippingFee,
       String paymentMethod,
       List<@Valid Item> items) {
-    this(customerName, customerEmail, shippingAddress, phone, note, shippingFee, paymentMethod, items, null);
+    this(customerName, customerEmail, shippingAddress, phone, note, shippingFee, "STANDARD", paymentMethod, items, null);
+  }
+
+  public OrderRequest(
+      String customerName, String customerEmail, String shippingAddress, String phone, String note,
+      BigDecimal shippingFee, String paymentMethod, List<@Valid Item> items, String couponCode) {
+    this(customerName, customerEmail, shippingAddress, phone, note, shippingFee, "STANDARD", paymentMethod, items, couponCode);
   }
 
   public record Item(

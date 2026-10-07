@@ -86,6 +86,9 @@ export type OrderStatus =
   | 'DELIVERED'
   | 'CANCELLED';
 
+export type ShippingMethod = 'STANDARD' | 'EXPRESS' | 'SAME_DAY';
+export type PaymentMethod = 'COD' | 'BANK' | 'MOMO' | 'VNPAY' | 'CARD';
+
 export interface Order {
   id: number;
   trackingCode?: string;
@@ -94,6 +97,7 @@ export interface Order {
   totalAmount: number;
   shippingFee?: number;
   discountAmount?: number;
+  shippingMethod?: ShippingMethod | string;
   couponCode?: string;
   note?: string;
   status: OrderStatus | string;
@@ -110,7 +114,8 @@ export interface CreateOrderRequest {
   phone?: string;
   note?: string;
   shippingFee: number;
-  paymentMethod: 'COD' | 'BANK' | 'CARD';
+  shippingMethod: ShippingMethod;
+  paymentMethod: PaymentMethod;
   items: { bookId: number; quantity: number }[];
   couponCode?: string;
 }

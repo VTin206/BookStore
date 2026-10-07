@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { CreateOrderRequest, Order, OrderStatus } from '../types';
+import { CreateOrderRequest, Order, OrderStatus, ShippingMethod } from '../types';
 
 async function getOrders(path: string): Promise<Order[]> {
   const orders: Order[] = [];
@@ -11,9 +11,9 @@ async function getOrders(path: string): Promise<Order[]> {
 }
 
 export const orderService = {
-  async quote(items: { bookId: number; quantity: number }[], couponCode?: string) {
+  async quote(items: { bookId: number; quantity: number }[], couponCode?: string, shippingMethod: ShippingMethod = 'STANDARD') {
     return (await apiClient.post<{ subtotal: number; shippingFee: number; discountAmount: number; totalAmount: number }>(
-      '/orders/quote', { items, couponCode },
+      '/orders/quote', { items, couponCode, shippingMethod },
     )).data;
   },
   async getAll(): Promise<Order[]> {

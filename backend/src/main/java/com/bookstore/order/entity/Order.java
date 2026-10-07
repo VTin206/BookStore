@@ -35,6 +35,9 @@ public class Order {
   @Column(name = "shipping_fee", nullable = false)
   private BigDecimal shippingFee = BigDecimal.ZERO;
 
+  @Column(name = "shipping_method", nullable = false)
+  private String shippingMethod = "STANDARD";
+
   @Column(name = "discount_amount", nullable = false)
   private BigDecimal discountAmount = BigDecimal.ZERO;
 
@@ -71,6 +74,8 @@ public class Order {
   public void setNote(String note) { this.note = note; }
   public BigDecimal getShippingFee() { return shippingFee; }
   public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
+  public String getShippingMethod() { return shippingMethod; }
+  public void setShippingMethod(String shippingMethod) { this.shippingMethod = shippingMethod; }
   public BigDecimal getDiscountAmount() { return discountAmount; }
   public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
   public String getCouponCode() { return couponCode; }

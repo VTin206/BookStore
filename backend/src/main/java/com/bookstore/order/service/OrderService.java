@@ -22,10 +22,13 @@ import org.springframework.stereotype.Service;
 public class OrderService {
   private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("250000");
   private static final BigDecimal STANDARD_SHIPPING_FEE = new BigDecimal("30000");
+  private static final BigDecimal EXPRESS_SHIPPING_FEE = new BigDecimal("45000");
+  private static final BigDecimal SAME_DAY_SHIPPING_FEE = new BigDecimal("60000");
 
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
-  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD");
+  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "MOMO", "VNPAY", "CARD");
+  private static final List<String> VALID_SHIPPING_METHODS = List.of("STANDARD", "EXPRESS", "SAME_DAY");
   private static final String TRACKING_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   private static final SecureRandom TRACKING_CODE_RANDOM = new SecureRandom();
 
@@ -59,6 +62,7 @@ public class OrderService {
     }
 
     var order = new Order();
+    var shippingMethod = normalizeShippingMethod(request.shippingMethod());
     if (username != null && !username.isBlank()) {
       order.setUser(userRepository.findByUsernameForUpdate(username).orElseThrow());
     }
@@ -67,6 +71,7 @@ public class OrderService {
     order.setShippingAddress(request.shippingAddress());
     order.setPhone(request.phone());
     order.setNote(request.note());
+    order.setShippingMethod(shippingMethod);
     order.setCouponCode(normalizeCoupon(request.couponCode()));
     order.setTrackingCode(generateTrackingCode());
 
@@ -94,7 +99,7 @@ public class OrderService {
       subtotal = subtotal.add(book.getPrice().multiply(BigDecimal.valueOf(itemRequest.quantity())));
     }
 
-    var shippingFee = calculateShippingFee(subtotal);
+    var shippingFee = calculateShippingFee(subtotal, shippingMethod);
     var discountAmount = voucherService.apply(order.getCouponCode(), subtotal);
     order.setShippingFee(shippingFee);
     order.setDiscountAmount(discountAmount);
@@ -139,7 +144,7 @@ public class OrderService {
       }
       subtotal = subtotal.add(book.getPrice().multiply(BigDecimal.valueOf(item.quantity())));
     }
-    var shipping = calculateShippingFee(subtotal);
+    var shipping = calculateShippingFee(subtotal, normalizeShippingMethod(request.shippingMethod()));
     var discount = voucherService.preview(request.couponCode(), subtotal);
     return new com.bookstore.order.dto.OrderQuote(subtotal, shipping, discount, validateTotal(subtotal.add(shipping).subtract(discount)));
   }
@@ -151,10 +156,22 @@ public class OrderService {
     return total;
   }
 
-  private BigDecimal calculateShippingFee(BigDecimal subtotal) {
-    return subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
-        ? BigDecimal.ZERO
-        : STANDARD_SHIPPING_FEE;
+  private BigDecimal calculateShippingFee(BigDecimal subtotal, String shippingMethod) {
+    return switch (shippingMethod) {
+      case "EXPRESS" -> EXPRESS_SHIPPING_FEE;
+      case "SAME_DAY" -> SAME_DAY_SHIPPING_FEE;
+      default -> subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
+          ? BigDecimal.ZERO
+          : STANDARD_SHIPPING_FEE;
+    };
+  }
+
+  private String normalizeShippingMethod(String shippingMethod) {
+    var normalized = shippingMethod == null ? "STANDARD" : shippingMethod.trim().toUpperCase();
+    if (!VALID_SHIPPING_METHODS.contains(normalized)) {
+      throw new IllegalArgumentException("Invalid shipping method");
+    }
+    return normalized;
   }
 
   private String normalizeCoupon(String couponCode) {
