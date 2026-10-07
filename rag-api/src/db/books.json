@@ -1,0 +1,112 @@
+[
+  {
+    "id": "BOOK_01",
+    "title": "Nhà giả kim",
+    "author": "Paulo Coelho",
+    "price": 79000,
+    "stock": 24,
+    "cover_image": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Văn học", "Tiểu thuyết"],
+    "summary": "Hành trình theo đuổi kho báu và lắng nghe tiếng gọi của ước mơ.",
+    "tags": ["kinh điển", "truyền cảm hứng", "trưởng thành"]
+  },
+  {
+    "id": "BOOK_02",
+    "title": "Sapiens: Lược sử loài người",
+    "author": "Yuval Noah Harari",
+    "price": 189000,
+    "stock": 12,
+    "cover_image": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Lịch sử", "Khoa học xã hội"],
+    "summary": "Một góc nhìn rộng về lịch sử, tư duy và những cuộc cách mạng đã định hình loài người.",
+    "tags": ["lịch sử", "tư duy", "xã hội"]
+  },
+  {
+    "id": "BOOK_03",
+    "title": "Atomic Habits",
+    "author": "James Clear",
+    "price": 159000,
+    "stock": 18,
+    "cover_image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Kỹ năng sống", "Phát triển bản thân"],
+    "summary": "Phương pháp thực tế để xây dựng thói quen tốt bằng những thay đổi nhỏ và bền vững.",
+    "tags": ["thói quen", "năng suất", "tự phát triển"]
+  },
+  {
+    "id": "BOOK_04",
+    "title": "Dế Mèn phiêu lưu ký",
+    "author": "Tô Hoài",
+    "price": 68000,
+    "stock": 31,
+    "cover_image": "https://images.unsplash.com/photo-1629992101753-56d196c8aabb?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Thiếu nhi", "Văn học Việt Nam"],
+    "summary": "Cuộc phiêu lưu giàu trải nghiệm của chú Dế Mèn qua những vùng đất và tình bạn đáng nhớ.",
+    "tags": ["thiếu nhi", "Việt Nam", "phiêu lưu"]
+  },
+  {
+    "id": "BOOK_05",
+    "title": "Tư duy nhanh và chậm",
+    "author": "Daniel Kahneman",
+    "price": 215000,
+    "stock": 9,
+    "cover_image": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Tâm lý học", "Kinh tế"],
+    "summary": "Khám phá hai hệ thống tư duy và những thiên kiến ảnh hưởng đến quyết định hằng ngày.",
+    "tags": ["tâm lý", "ra quyết định", "kinh tế học"]
+  },
+  {
+    "id": "BOOK_06",
+    "title": "The Little Prince",
+    "author": "Antoine de Saint-Exupéry",
+    "price": 99000,
+    "stock": 0,
+    "cover_image": "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Văn học", "Thiếu nhi", "Ngoại văn"],
+    "summary": "Một câu chuyện giàu chất thơ về tình yêu, tình bạn và cách nhìn thế giới của trẻ thơ.",
+    "tags": ["ngoại văn", "kinh điển", "gia đình"]
+  },
+  {
+    "id": "BOOK_07",
+    "title": "Đi tìm lẽ sống",
+    "author": "Viktor E. Frankl",
+    "price": 108000,
+    "stock": 15,
+    "cover_image": "https://images.unsplash.com/photo-1516979187457-637ABB4f9353?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Tâm lý học", "Phát triển bản thân"],
+    "summary": "Suy ngẫm về nghị lực, ý nghĩa và khả năng lựa chọn thái độ trước nghịch cảnh.",
+    "tags": ["ý nghĩa sống", "nghị lực", "tâm lý"]
+  },
+  {
+    "id": "BOOK_08",
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "price": 299000,
+    "stock": 7,
+    "cover_image": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Công nghệ", "Lập trình"],
+    "summary": "Các nguyên tắc và thực hành giúp viết mã nguồn dễ đọc, dễ bảo trì và có chất lượng hơn.",
+    "tags": ["lập trình", "software engineering", "developer"]
+  },
+  {
+    "id": "BOOK_09",
+    "title": "Mắt biếc",
+    "author": "Nguyễn Nhật Ánh",
+    "price": 125000,
+    "stock": 20,
+    "cover_image": "https://images.unsplash.com/photo-1511108690759-009c4a3f8f1c?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Văn học Việt Nam", "Tình cảm"],
+    "summary": "Câu chuyện tình yêu trong trẻo, day dứt và những ký ức không dễ phai của tuổi thơ.",
+    "tags": ["tuổi trẻ", "tình cảm", "Nguyễn Nhật Ánh"]
+  },
+  {
+    "id": "BOOK_10",
+    "title": "Muôn kiếp nhân sinh",
+    "author": "Nguyên Phong",
+    "price": 148000,
+    "stock": 11,
+    "cover_image": "https://images.unsplash.com/photo-1510172951991-856a65465e3f?auto=format&fit=crop&w=600&q=80",
+    "categories": ["Tâm linh", "Chiêm nghiệm"],
+    "summary": "Những câu chuyện chiêm nghiệm về nhân quả, lựa chọn và hành trình hiểu chính mình.",
+    "tags": ["chiêm nghiệm", "nhân quả", "tâm linh"]
+  }
+]
