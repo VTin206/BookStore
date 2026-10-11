@@ -13,7 +13,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "axios": "latest",
-    "lucide-react": "^1.47.0",
+    "lucide-react": "0.468.0",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",
