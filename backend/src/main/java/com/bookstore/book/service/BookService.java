@@ -81,8 +81,12 @@ public class BookService {
     return bookRepository.save(book);
   }
 
+  @Transactional
   public void delete(Long id) {
-    if (!bookRepository.existsById(id)) {
+    // Keep the row lock while checking references and deleting. PostgreSQL's
+    // foreign-key checks then cannot add a new reference between the checks
+    // and the delete.
+    if (bookRepository.findByIdForUpdate(id).isEmpty()) {
       throw new ResourceNotFoundException("Sách không còn tồn tại. Vui lòng tải lại danh sách.");
     }
     var reasons = new ArrayList<String>();

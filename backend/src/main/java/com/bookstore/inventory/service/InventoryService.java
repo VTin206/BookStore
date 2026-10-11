@@ -80,7 +80,11 @@ public class InventoryService {
     if (request.publisherId() != null) receipt.setPublisher(publishers.findById(request.publisherId()).orElseThrow());
     var total = BigDecimal.ZERO;
     var savedReceipt = receipts.save(receipt);
-    for (var input : request.items()) {
+    // Always acquire book row locks in a stable order. Order creation and
+    // cancellation use the same ordering to reduce multi-book deadlocks.
+    for (var input : request.items().stream()
+        .sorted(java.util.Comparator.comparing(InventoryRequests.ReceiptItem::bookId))
+        .toList()) {
       var book = books.findByIdForUpdate(input.bookId()).orElseThrow();
       var before = book.getStock();
       book.setStock(Math.addExact(before, input.quantity())); book.setCostPrice(input.unitCost()); books.save(book);
@@ -106,7 +110,10 @@ public class InventoryService {
   public StocktakeView createStocktake(String username, StocktakeRequest request) {
     if (stocktakes.existsByStocktakeNumber(request.stocktakeNumber().trim())) throw new IllegalArgumentException("Số phiếu kiểm kê đã tồn tại");
     var stocktake = new Stocktake(); stocktake.setStocktakeNumber(request.stocktakeNumber().trim()); stocktake.setNote(request.note()); stocktake.setCreatedBy(username);
-    for (var input : request.items()) {
+    // Match the lock ordering used by order processing.
+    for (var input : request.items().stream()
+        .sorted(java.util.Comparator.comparing(InventoryRequests.StocktakeItemRequest::bookId))
+        .toList()) {
       var book = books.findById(input.bookId()).orElseThrow();
       var item = new StocktakeItem(); item.setStocktake(stocktake); item.setBook(book); item.setSystemQuantity(book.getStock()); item.setCountedQuantity(input.countedQuantity()); item.setDelta(input.countedQuantity() - book.getStock()); item.setReason(input.reason()); stocktake.getItems().add(item);
     }
@@ -117,7 +124,9 @@ public class InventoryService {
   public StocktakeView completeStocktake(String username, Long id) {
     var stocktake = stocktakes.findWithItemsById(id).orElseThrow();
     if (!"DRAFT".equals(stocktake.getStatus())) throw new IllegalArgumentException("Phiếu kiểm kê đã được hoàn tất");
-    for (var item : stocktake.getItems()) {
+    for (var item : stocktake.getItems().stream()
+        .sorted(java.util.Comparator.comparing(item -> item.getBook().getId()))
+        .toList()) {
       var book = books.findByIdForUpdate(item.getBook().getId()).orElseThrow();
       var before = book.getStock(); var delta = item.getCountedQuantity() - before;
       if (delta != 0) { book.setStock(item.getCountedQuantity()); books.save(book); record(book, "STOCKTAKE", delta, before, item.getCountedQuantity(), book.getCostPrice(), item.getReason() == null ? "Điều chỉnh theo kiểm kê" : item.getReason(), "STOCKTAKE", stocktake.getId(), username); }

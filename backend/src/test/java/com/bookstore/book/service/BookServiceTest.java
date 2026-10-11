@@ -49,7 +49,7 @@ class BookServiceTest {
     "true,true,true,đã có trong đơn hàng (kể cả đơn đã hủy); đang có trong giỏ hàng của khách hàng; đã có đánh giá của khách hàng"
   })
   void deleteReportsRelatedData(boolean orders, boolean carts, boolean reviews, String reason) {
-    when(books.existsById(1L)).thenReturn(true);
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(new Book()));
     when(books.hasOrderItems(1L)).thenReturn(orders);
     when(books.hasCartItems(1L)).thenReturn(carts);
     when(books.hasReviews(1L)).thenReturn(reviews);
@@ -61,20 +61,21 @@ class BookServiceTest {
 
   @Test
   void deleteAllowsBookWithoutRelatedData() {
-    when(books.existsById(1L)).thenReturn(true);
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(new Book()));
     service.delete(1L);
     verify(books).deleteById(1L);
   }
 
   @Test
   void deleteReportsMissingBook() {
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
     verify(books, never()).deleteById(any());
   }
 
   @Test
   void deleteHandlesReferenceAddedAfterChecks() {
-    when(books.existsById(1L)).thenReturn(true);
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(new Book()));
     doThrow(new DataIntegrityViolationException("constraint")).when(books).deleteById(1L);
     var exception = assertThrows(ConflictException.class, () -> service.delete(1L));
     assertEquals(
