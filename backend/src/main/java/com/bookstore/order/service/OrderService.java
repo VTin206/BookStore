@@ -28,7 +28,7 @@ public class OrderService {
 
   private static final List<String> VALID_STATUSES =
       List.of("PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED", "CANCELLED");
-  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK", "MOMO", "VNPAY", "CARD");
+  private static final List<String> VALID_PAYMENT_METHODS = List.of("COD", "BANK");
   private static final List<String> VALID_SHIPPING_METHODS = List.of("STANDARD", "EXPRESS", "SAME_DAY");
   private static final String TRACKING_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   private static final SecureRandom TRACKING_CODE_RANDOM = new SecureRandom();
@@ -93,7 +93,6 @@ public class OrderService {
         throw new IllegalArgumentException("Sách không đủ tồn kho: " + book.getTitle());
       }
       book.setStock(book.getStock() - itemRequest.quantity());
-      if (inventoryService != null) inventoryService.recordExistingChange(book, -itemRequest.quantity(), "SALE", "Bán hàng", "ORDER", order.getId(), username);
 
       var item = new OrderItem();
       item.setOrder(order);
@@ -110,6 +109,21 @@ public class OrderService {
     order.setDiscountAmount(discountAmount);
     order.setTotalAmount(validateTotal(subtotal.add(shippingFee).subtract(discountAmount)));
     var saved = orderRepository.save(order);
+
+    // The order ID is generated on save. Record the stock movements afterwards
+    // so the audit trail can point back to the order that caused each change.
+    if (inventoryService != null) {
+      for (var item : saved.getItems()) {
+        inventoryService.recordExistingChange(
+            item.getBook(),
+            -item.getQuantity(),
+            "SALE",
+            "Bán hàng",
+            "ORDER",
+            saved.getId(),
+            username);
+      }
+    }
 
     var payment = new Payment();
     payment.setOrder(saved);

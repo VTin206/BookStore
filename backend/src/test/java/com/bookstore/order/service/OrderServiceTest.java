@@ -15,6 +15,7 @@ import com.bookstore.order.entity.Payment;
 import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.cart.repository.CartRepository;
+import com.bookstore.inventory.service.InventoryService;
 import com.bookstore.user.entity.User;
 import com.bookstore.user.repository.UserRepository;
 import java.lang.reflect.Field;
@@ -35,6 +36,8 @@ class OrderServiceTest {
   @Mock private UserRepository users;
   @Mock private CartRepository carts;
   @Mock private PaymentRepository payments;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private InventoryService inventory;
   @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
   private com.bookstore.voucher.service.VoucherService vouchers;
   @InjectMocks private OrderService service;
@@ -146,6 +149,30 @@ class OrderServiceTest {
     assertEquals(new BigDecimal("60000"), result.getDiscountAmount());
     assertEquals(new BigDecimal("30000"), result.getShippingFee());
     assertEquals("TRIAN30", result.getCouponCode());
+  }
+
+  @Test
+  void createRecordsSaleAgainstPersistedOrderId() {
+    var user = new User();
+    user.setUsername("alice");
+    var book = book(7L, "Book", 4, new BigDecimal("100000"));
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
+    when(vouchers.apply(null, new BigDecimal("200000"))).thenReturn(BigDecimal.ZERO);
+    when(orders.save(any(Order.class))).thenAnswer(invocation -> {
+      var saved = invocation.getArgument(0, Order.class);
+      setId(saved, 99L);
+      return saved;
+    });
+
+    service.create(
+        "alice",
+        new OrderRequest(
+            "Alice", "alice@example.com", "Address", null, null, BigDecimal.ZERO,
+            "COD", List.of(new OrderRequest.Item(7L, 2))));
+
+    verify(inventory).recordExistingChange(
+        book, -2, "SALE", "Bán hàng", "ORDER", 99L, "alice");
   }
 
   @Test
