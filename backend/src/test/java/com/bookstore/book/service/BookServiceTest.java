@@ -37,10 +37,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
-  @Mock private BookRepository books;
-  @Mock private CategoryRepository categories;
-  @Mock private AuthorRepository authors;
-  @Mock private PublisherRepository publishers;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private BookRepository books;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private CategoryRepository categories;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private AuthorRepository authors;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private PublisherRepository publishers;
   @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
   private InventoryService inventory;
   @InjectMocks private BookService service;
