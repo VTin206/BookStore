@@ -26,8 +26,11 @@ public class OrderController {
   }
 
   @PostMapping
-  public com.bookstore.order.dto.OrderResponse create(Authentication authentication, @Valid @RequestBody OrderRequest request) {
-    return orderService.createResponse(authentication == null ? null : authentication.getName(), request);
+  public com.bookstore.order.dto.OrderResponse create(Authentication authentication,
+      @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody OrderRequest request) {
+    return orderService.createResponse(
+        authentication == null ? null : authentication.getName(), request, idempotencyKey);
   }
 
   @GetMapping("/lookup")

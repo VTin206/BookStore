@@ -41,7 +41,9 @@ export const orderService = {
   },
 
   async create(data: CreateOrderRequest): Promise<Order> {
-    const res = await apiClient.post<Order>('/orders', data);
+    const res = await apiClient.post<Order>('/orders', data, {
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
+    });
     return res.data;
   },
 };

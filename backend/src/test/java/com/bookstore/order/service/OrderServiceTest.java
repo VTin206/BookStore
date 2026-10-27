@@ -11,7 +11,9 @@ import com.bookstore.book.repository.BookRepository;
 import com.bookstore.cart.entity.Cart;
 import com.bookstore.order.dto.OrderRequest;
 import com.bookstore.order.entity.Order;
+import com.bookstore.order.entity.OrderIdempotency;
 import com.bookstore.order.entity.Payment;
+import com.bookstore.order.repository.OrderIdempotencyRepository;
 import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.cart.repository.CartRepository;
@@ -36,6 +38,7 @@ class OrderServiceTest {
   @Mock private UserRepository users;
   @Mock private CartRepository carts;
   @Mock private PaymentRepository payments;
+  @Mock private OrderIdempotencyRepository idempotency;
   @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
   private InventoryService inventory;
   @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
@@ -173,6 +176,53 @@ class OrderServiceTest {
 
     verify(inventory).recordExistingChange(
         book, -2, "SALE", "Bán hàng", "ORDER", 99L, "alice");
+  }
+
+  @Test
+  void repeatedIdempotencyKeyReturnsTheOriginalOrder() {
+    var user = new User();
+    user.setUsername("alice");
+    when(users.findByUsernameForUpdate("alice")).thenReturn(Optional.of(user));
+    var book = book(7L, "Book", 4, new BigDecimal("10"));
+    when(books.findByIdForUpdate(7L)).thenReturn(Optional.of(book));
+    when(vouchers.apply(null, new BigDecimal("20"))).thenReturn(BigDecimal.ZERO);
+    when(orders.save(any(Order.class))).thenAnswer(invocation -> {
+      var saved = invocation.getArgument(0, Order.class);
+      setId(saved, 99L);
+      return saved;
+    });
+
+    var request = new OrderRequest(
+        "Alice", "alice@example.com", "Address", null, null, BigDecimal.ZERO,
+        "COD", List.of(new OrderRequest.Item(7L, 2)));
+    when(idempotency.findByScopeKeyAndIdempotencyKey("alice", "order-1"))
+        .thenReturn(Optional.empty());
+
+    var first = service.create("alice", request, "order-1");
+    var recordCaptor = ArgumentCaptor.forClass(OrderIdempotency.class);
+    verify(idempotency).save(recordCaptor.capture());
+    when(idempotency.findByScopeKeyAndIdempotencyKey("alice", "order-1"))
+        .thenReturn(Optional.of(recordCaptor.getValue()));
+
+    var replay = service.create("alice", request, "order-1");
+
+    assertEquals(first, replay);
+    org.mockito.Mockito.verify(books, org.mockito.Mockito.times(1)).findByIdForUpdate(7L);
+  }
+
+  @Test
+  void reusedIdempotencyKeyWithDifferentRequestIsRejected() {
+    var record = new OrderIdempotency();
+    record.setRequestHash("different-request");
+    when(idempotency.findByScopeKeyAndIdempotencyKey("alice", "order-1"))
+        .thenReturn(Optional.of(record));
+
+    var request = new OrderRequest(
+        "Alice", "alice@example.com", "Address", null, null, BigDecimal.ZERO,
+        "COD", List.of(new OrderRequest.Item(7L, 1)));
+
+    assertThrows(IllegalArgumentException.class, () -> service.create("alice", request, "order-1"));
+    org.mockito.Mockito.verifyNoInteractions(books, orders, payments);
   }
 
   @Test

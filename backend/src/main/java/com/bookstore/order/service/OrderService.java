@@ -6,6 +6,8 @@ import com.bookstore.order.dto.OrderRequest;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderItem;
 import com.bookstore.order.entity.Payment;
+import com.bookstore.order.entity.OrderIdempotency;
+import com.bookstore.order.repository.OrderIdempotencyRepository;
 import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentRepository;
 import com.bookstore.user.repository.UserRepository;
@@ -13,10 +15,16 @@ import com.bookstore.voucher.service.VoucherService;
 import com.bookstore.inventory.service.InventoryService;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Locale;
 import java.security.SecureRandom;
+import java.util.HexFormat;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,6 +46,7 @@ public class OrderService {
   private final UserRepository userRepository;
   private final CartRepository cartRepository;
   private final PaymentRepository paymentRepository;
+  private final OrderIdempotencyRepository orderIdempotencyRepository;
   private final VoucherService voucherService;
   private final InventoryService inventoryService;
 
@@ -47,6 +56,7 @@ public class OrderService {
       UserRepository userRepository,
       CartRepository cartRepository,
       PaymentRepository paymentRepository,
+      OrderIdempotencyRepository orderIdempotencyRepository,
       VoucherService voucherService,
       InventoryService inventoryService) {
     this.orderRepository = orderRepository;
@@ -54,12 +64,32 @@ public class OrderService {
     this.userRepository = userRepository;
     this.cartRepository = cartRepository;
     this.paymentRepository = paymentRepository;
+    this.orderIdempotencyRepository = orderIdempotencyRepository;
     this.voucherService = voucherService;
     this.inventoryService = inventoryService;
   }
 
   @Transactional
   public Order create(String username, OrderRequest request) {
+    return create(username, request, null);
+  }
+
+  @Transactional
+  public Order create(String username, OrderRequest request, String idempotencyKey) {
+    var normalizedIdempotencyKey = normalizeIdempotencyKey(idempotencyKey);
+    var requestHash = normalizedIdempotencyKey == null ? null : requestHash(request);
+    var scopeKey = normalizedIdempotencyKey == null ? null : scopeKey(username);
+    if (normalizedIdempotencyKey != null) {
+      orderIdempotencyRepository.acquireRequestLock(scopeKey, normalizedIdempotencyKey);
+      var existing = orderIdempotencyRepository.findByScopeKeyAndIdempotencyKey(scopeKey, normalizedIdempotencyKey);
+      if (existing.isPresent()) {
+        if (!existing.get().getRequestHash().equals(requestHash)) {
+          throw new IllegalArgumentException("Idempotency-Key đã được dùng cho request khác");
+        }
+        return existing.get().getOrder();
+      }
+    }
+
     var paymentMethod = request.paymentMethod().trim().toUpperCase();
     if (!VALID_PAYMENT_METHODS.contains(paymentMethod)) {
       throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ");
@@ -140,7 +170,51 @@ public class OrderService {
                 cartRepository.save(cart);
               });
     }
+    if (normalizedIdempotencyKey != null) {
+      var record = new OrderIdempotency();
+      record.setScopeKey(scopeKey);
+      record.setIdempotencyKey(normalizedIdempotencyKey);
+      record.setRequestHash(requestHash);
+      record.setOrder(saved);
+      orderIdempotencyRepository.save(record);
+    }
     return saved;
+  }
+
+  private String normalizeIdempotencyKey(String idempotencyKey) {
+    if (idempotencyKey == null || idempotencyKey.isBlank()) {
+      return null;
+    }
+    var normalized = idempotencyKey.trim();
+    if (normalized.length() > 100) {
+      throw new IllegalArgumentException("Idempotency-Key không được vượt quá 100 ký tự");
+    }
+    return normalized;
+  }
+
+  private String scopeKey(String username) {
+    return username == null || username.isBlank() ? "anonymous" : username.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private String requestHash(OrderRequest request) {
+    var items = request.items().stream()
+        .sorted(java.util.Comparator.comparing(OrderRequest.Item::bookId))
+        .map(item -> item.bookId() + ":" + item.quantity())
+        .collect(Collectors.joining(","));
+    var payload = String.join("\u001F",
+        value(request.customerName()), value(request.customerEmail()), value(request.shippingAddress()),
+        value(request.phone()), value(request.note()), value(request.shippingFee()), value(request.shippingMethod()),
+        value(request.paymentMethod()), items, value(request.couponCode()));
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+          .digest(payload.getBytes(StandardCharsets.UTF_8)));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("Không thể tạo mã kiểm tra request", exception);
+    }
+  }
+
+  private String value(Object value) {
+    return value == null ? "" : value.toString();
   }
 
   private String generateTrackingCode() {
@@ -258,6 +332,12 @@ public class OrderService {
   @Transactional
   public com.bookstore.order.dto.OrderResponse createResponse(String username, OrderRequest request) {
     return com.bookstore.order.dto.OrderResponse.from(create(username, request));
+  }
+
+  @Transactional
+  public com.bookstore.order.dto.OrderResponse createResponse(
+      String username, OrderRequest request, String idempotencyKey) {
+    return com.bookstore.order.dto.OrderResponse.from(create(username, request, idempotencyKey));
   }
 
   @Transactional
