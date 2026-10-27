@@ -21,8 +21,10 @@ Roles are `CUSTOMER` and `ADMIN`; new registrations are `CUSTOMER` by default.
 
 Checkout pricing is calculated by the backend. Shipping is free for item totals
 from 250,000 VND; otherwise it is 30,000 VND. The quote endpoint and order
-creation use the same calculation. Only COD is accepted until a real payment
-provider integration is enabled.
+creation use the same calculation. COD is supported end to end. BANK orders
+can be created as pending manual bank-transfer orders, but there is no provider
+webhook, automatic payment verification, or refund flow yet; do not treat a
+BANK order as paid until an administrator verifies it outside this API.
 
 JWT signing requires `JWT_SECRET` to be a private value of at least 32 bytes.
 Password or role changes invalidate existing sessions. Pending anonymous orders

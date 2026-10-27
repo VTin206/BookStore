@@ -63,8 +63,9 @@ cd backend && mvn test
 cd frontend && npm test && npm run build
 ~~~
 
-Order lists are paginated, checkout supports COD only until payment integration
-is added, and the database migration invalidates existing JWT sessions.
+Order lists are paginated. Checkout supports COD end to end; BANK orders remain
+pending manual verification until a real payment integration is added. The
+database migration invalidates existing JWT sessions.
 
 
 
