@@ -20,7 +20,7 @@ public record BookRequest(
     Long categoryId,
     Long authorId,
     Long publisherId,
-    @Size(max = 255) String isbn,
+    @Size(max = 30) String isbn,
     @Size(max = 20000) String description,
     @Size(max = 2800000) String imageUrl,
     LocalDate publicationDate,

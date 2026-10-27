@@ -5,6 +5,7 @@ import com.bookstore.catalog.entity.Publisher;
 import com.bookstore.catalog.service.CatalogService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 record CatalogRequest(
-    @NotBlank String name, String biography, String address, String website) {}
+    @NotBlank @Size(max = 200) String name,
+    @Size(max = 20000) String biography,
+    @Size(max = 500) String address,
+    @Size(max = 300) String website) {}
 
 @RestController
 @RequestMapping("/api")

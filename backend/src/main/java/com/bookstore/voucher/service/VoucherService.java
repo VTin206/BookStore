@@ -111,6 +111,9 @@ public class VoucherService {
   }
 
   private void validateVoucher(Voucher voucher, BigDecimal subtotal) {
+    if (subtotal == null || subtotal.signum() < 0) {
+      throw new IllegalArgumentException("Giá trị đơn hàng không hợp lệ");
+    }
     boolean expired = voucher.getExpiresAt() != null
         && voucher.getExpiresAt().isBefore(LocalDateTime.now());
     boolean usageLimitReached = voucher.getUsageLimit() != null

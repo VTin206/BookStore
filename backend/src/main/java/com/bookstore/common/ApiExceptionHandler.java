@@ -9,9 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
   @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
       org.springframework.dao.PessimisticLockingFailureException.class})
   ResponseEntity<Map<String, String>> concurrentUpdate(RuntimeException exception) {
@@ -57,5 +62,17 @@ public class ApiExceptionHandler {
   ResponseEntity<Map<String, String>> conflict(DataIntegrityViolationException exception) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(Map.of("message", "Resource conflicts with existing data"));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  ResponseEntity<Map<String, String>> malformedRequest(HttpMessageNotReadableException exception) {
+    return ResponseEntity.badRequest().body(Map.of("message", "Dữ liệu yêu cầu không hợp lệ"));
+  }
+
+  @ExceptionHandler(Exception.class)
+  ResponseEntity<Map<String, String>> unexpected(Exception exception) {
+    LOG.error("Unhandled request error", exception);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(Map.of("message", "Đã xảy ra lỗi máy chủ. Vui lòng thử lại sau."));
   }
 }
