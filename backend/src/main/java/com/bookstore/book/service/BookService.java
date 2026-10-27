@@ -9,6 +9,7 @@ import com.bookstore.category.entity.Category;
 import com.bookstore.category.repository.CategoryRepository;
 import com.bookstore.common.exception.ConflictException;
 import com.bookstore.common.exception.ResourceNotFoundException;
+import com.bookstore.inventory.service.InventoryService;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ public class BookService {
   private final CategoryRepository categoryRepository;
   private final AuthorRepository authorRepository;
   private final PublisherRepository publisherRepository;
+  private InventoryService inventoryService;
 
   public BookService(
       BookRepository bookRepository,
@@ -32,6 +34,11 @@ public class BookService {
     this.categoryRepository = categoryRepository;
     this.authorRepository = authorRepository;
     this.publisherRepository = publisherRepository;
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
+  void setInventoryService(InventoryService inventoryService) {
+    this.inventoryService = inventoryService;
   }
 
   public List<Book> all() {
@@ -117,11 +124,16 @@ public class BookService {
     if (stock < 0) {
       throw new IllegalArgumentException("Stock cannot be negative");
     }
+    var before = book.getStock();
     book.setStock(stock);
-    return bookRepository.save(book);
+    var saved = bookRepository.save(book);
+    recordStockChange(saved, before, "BOOK_UPDATE", "Cập nhật tồn kho từ thông tin sách");
+    return saved;
   }
 
   private Book save(Book book, BookRequest request) {
+    var existingBook = book.getId() != null;
+    var beforeStock = book.getStock();
     book.setTitle(request.title());
     book.setAuthor(request.author());
     book.setPrice(request.price());
@@ -157,6 +169,19 @@ public class BookService {
       book.setImageUrl(request.imageUrl());
     }
     book.setPublicationDate(request.publicationDate());
-    return bookRepository.save(book);
+    var saved = bookRepository.save(book);
+    if (existingBook) {
+      recordStockChange(saved, beforeStock, "BOOK_UPDATE", "Cập nhật tồn kho từ thông tin sách");
+    }
+    return saved;
+  }
+
+  private void recordStockChange(Book book, Integer beforeStock, String referenceType, String reason) {
+    if (inventoryService == null || beforeStock == null || beforeStock.equals(book.getStock())) {
+      return;
+    }
+    var delta = Math.subtractExact(book.getStock(), beforeStock);
+    inventoryService.recordExistingChange(
+        book, delta, "ADJUSTMENT", reason, referenceType, book.getId(), null);
   }
 }

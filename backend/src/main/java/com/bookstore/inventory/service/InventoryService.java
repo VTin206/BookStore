@@ -12,7 +12,9 @@ import jakarta.transaction.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -80,11 +82,15 @@ public class InventoryService {
     if (request.publisherId() != null) receipt.setPublisher(publishers.findById(request.publisherId()).orElseThrow());
     var total = BigDecimal.ZERO;
     var savedReceipt = receipts.save(receipt);
+    var bookIds = new HashSet<Long>();
     // Always acquire book row locks in a stable order. Order creation and
     // cancellation use the same ordering to reduce multi-book deadlocks.
     for (var input : request.items().stream()
         .sorted(java.util.Comparator.comparing(InventoryRequests.ReceiptItem::bookId))
         .toList()) {
+      if (!bookIds.add(input.bookId())) {
+        throw new IllegalArgumentException("Không được lặp sách trong phiếu nhập");
+      }
       var book = books.findByIdForUpdate(input.bookId()).orElseThrow();
       var before = book.getStock();
       book.setStock(Math.addExact(before, input.quantity())); book.setCostPrice(input.unitCost()); books.save(book);
@@ -99,23 +105,37 @@ public class InventoryService {
   @Transactional
   public TransactionView adjust(String username, AdjustmentRequest request) {
     if (request.quantityDelta() == 0) throw new IllegalArgumentException("Số lượng điều chỉnh không được bằng 0");
+    var type = request.type() == null ? "ADJUSTMENT" : request.type().trim().toUpperCase();
+    if (!Set.of("DAMAGE", "LOSS", "ADJUSTMENT", "RETURN").contains(type)) {
+      throw new IllegalArgumentException("Loại điều chỉnh tồn kho không hợp lệ");
+    }
     var book = books.findByIdForUpdate(request.bookId()).orElseThrow();
-    var before = book.getStock(); var after = before + request.quantityDelta();
+    var before = book.getStock();
+    final int after;
+    try {
+      after = Math.addExact(before, request.quantityDelta());
+    } catch (ArithmeticException exception) {
+      throw new IllegalArgumentException("Tồn kho vượt giới hạn cho phép", exception);
+    }
     if (after < 0) throw new IllegalArgumentException("Tồn kho không thể âm");
     book.setStock(after); if (request.unitCost() != null) book.setCostPrice(request.unitCost()); books.save(book);
-    return TransactionView.from(record(book, request.type() == null ? "ADJUSTMENT" : request.type().toUpperCase(), request.quantityDelta(), before, after, request.unitCost() == null ? book.getCostPrice() : request.unitCost(), request.reason(), "MANUAL", null, username));
+    return TransactionView.from(record(book, type, request.quantityDelta(), before, after, request.unitCost() == null ? book.getCostPrice() : request.unitCost(), request.reason(), "MANUAL", null, username));
   }
 
   @Transactional
   public StocktakeView createStocktake(String username, StocktakeRequest request) {
     if (stocktakes.existsByStocktakeNumber(request.stocktakeNumber().trim())) throw new IllegalArgumentException("Số phiếu kiểm kê đã tồn tại");
     var stocktake = new Stocktake(); stocktake.setStocktakeNumber(request.stocktakeNumber().trim()); stocktake.setNote(request.note()); stocktake.setCreatedBy(username);
+    var bookIds = new HashSet<Long>();
     // Match the lock ordering used by order processing.
     for (var input : request.items().stream()
         .sorted(java.util.Comparator.comparing(InventoryRequests.StocktakeItemRequest::bookId))
         .toList()) {
-      var book = books.findById(input.bookId()).orElseThrow();
-      var item = new StocktakeItem(); item.setStocktake(stocktake); item.setBook(book); item.setSystemQuantity(book.getStock()); item.setCountedQuantity(input.countedQuantity()); item.setDelta(input.countedQuantity() - book.getStock()); item.setReason(input.reason()); stocktake.getItems().add(item);
+      if (!bookIds.add(input.bookId())) {
+        throw new IllegalArgumentException("Không được lặp sách trong phiếu kiểm kê");
+      }
+      var book = books.findByIdForUpdate(input.bookId()).orElseThrow();
+      var item = new StocktakeItem(); item.setStocktake(stocktake); item.setBook(book); item.setSystemQuantity(book.getStock()); item.setCountedQuantity(input.countedQuantity()); item.setDelta(Math.subtractExact(input.countedQuantity(), book.getStock())); item.setReason(input.reason()); stocktake.getItems().add(item);
     }
     return StocktakeView.from(stocktakes.save(stocktake));
   }
@@ -128,7 +148,7 @@ public class InventoryService {
         .sorted(java.util.Comparator.comparing(item -> item.getBook().getId()))
         .toList()) {
       var book = books.findByIdForUpdate(item.getBook().getId()).orElseThrow();
-      var before = book.getStock(); var delta = item.getCountedQuantity() - before;
+      var before = book.getStock(); var delta = Math.subtractExact(item.getCountedQuantity(), before);
       if (delta != 0) { book.setStock(item.getCountedQuantity()); books.save(book); record(book, "STOCKTAKE", delta, before, item.getCountedQuantity(), book.getCostPrice(), item.getReason() == null ? "Điều chỉnh theo kiểm kê" : item.getReason(), "STOCKTAKE", stocktake.getId(), username); }
       item.setSystemQuantity(before); item.setDelta(delta);
     }

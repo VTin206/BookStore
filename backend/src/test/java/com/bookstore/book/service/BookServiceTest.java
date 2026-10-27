@@ -23,6 +23,7 @@ import com.bookstore.catalog.repository.AuthorRepository;
 import com.bookstore.catalog.repository.PublisherRepository;
 import com.bookstore.category.entity.Category;
 import com.bookstore.category.repository.CategoryRepository;
+import com.bookstore.inventory.service.InventoryService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
@@ -39,7 +41,14 @@ class BookServiceTest {
   @Mock private CategoryRepository categories;
   @Mock private AuthorRepository authors;
   @Mock private PublisherRepository publishers;
+  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
+  private InventoryService inventory;
   @InjectMocks private BookService service;
+
+  @org.junit.jupiter.api.BeforeEach
+  void injectInventoryService() {
+    ReflectionTestUtils.setField(service, "inventoryService", inventory);
+  }
 
   @ParameterizedTest
   @CsvSource({
@@ -174,5 +183,26 @@ class BookServiceTest {
     var result = service.adjustStock(1L, 10);
 
     assertEquals(10, result.getStock());
+  }
+
+  @Test
+  void updateAuditsStockChange() throws Exception {
+    var book = new Book();
+    var idField = Book.class.getDeclaredField("id");
+    idField.setAccessible(true);
+    idField.set(book, 1L);
+    book.setTitle("Book");
+    book.setAuthor("Author");
+    book.setPrice(BigDecimal.TEN);
+    book.setStock(3);
+    when(books.findByIdForUpdate(1L)).thenReturn(Optional.of(book));
+    when(books.save(book)).thenReturn(book);
+
+    service.update(
+        1L,
+        new BookRequest("Book", "Author", BigDecimal.TEN, 5, null, null, null, null, null, null, null));
+
+    verify(inventory).recordExistingChange(
+        book, 2, "ADJUSTMENT", "Cập nhật tồn kho từ thông tin sách", "BOOK_UPDATE", 1L, null);
   }
 }
