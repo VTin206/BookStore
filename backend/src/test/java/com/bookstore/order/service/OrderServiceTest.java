@@ -33,22 +33,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private OrderRepository orders;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private BookRepository books;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private UserRepository users;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private CartRepository carts;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private PaymentRepository payments;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private OrderIdempotencyRepository idempotency;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private InventoryService inventory;
-  @Mock(mockMaker = org.mockito.MockMakers.SUBCLASS)
-  private com.bookstore.voucher.service.VoucherService vouchers;
+  @Mock private OrderRepository orders;
+  @Mock private BookRepository books;
+  @Mock private UserRepository users;
+  @Mock private CartRepository carts;
+  @Mock private PaymentRepository payments;
+  @Mock private OrderIdempotencyRepository idempotency;
+  @Mock private InventoryService inventory;
+  @Mock private com.bookstore.voucher.service.VoucherService vouchers;
   @InjectMocks private OrderService service;
 
   @Test
