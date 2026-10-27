@@ -44,10 +44,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const saveSession = (res: AuthResponse) => {
+    if (!res.token || !res.username) {
+      throw new Error('Phản hồi đăng nhập không hợp lệ.');
+    }
     localStorage.setItem('username', res.username);
     localStorage.setItem('role', res.role || 'CUSTOMER');
     localStorage.setItem('token', res.token);
-    synchronize();
+    setToken(res.token);
+    setUsername(res.username);
+    setRole(res.role || 'CUSTOMER');
   };
 
   const login = async (data: LoginData): Promise<AuthResponse> => {

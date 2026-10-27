@@ -455,14 +455,12 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </label>
 
-                {(['BANK', 'MOMO', 'VNPAY', 'CARD'] as const).map((method) => (
-                  <label key={method} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1.5px solid ${paymentMethod === method ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
-                    <input type="radio" name="payment" checked={paymentMethod === method} onChange={() => setPaymentMethod(method)} />
-                    <span><strong>{method === 'BANK' ? 'Chuyển khoản QR' : method === 'MOMO' ? 'Ví MoMo' : method === 'VNPAY' ? 'Ví VNPay' : 'Thẻ ngân hàng'}</strong><br /><small>Đơn sẽ chờ xác nhận thanh toán từ cổng tích hợp.</small></span>
-                  </label>
-                ))}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1.5px solid ${paymentMethod === 'BANK' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
+                  <input type="radio" name="payment" checked={paymentMethod === 'BANK'} onChange={() => setPaymentMethod('BANK')} />
+                  <span><strong>Chuyển khoản</strong><br /><small>Đơn sẽ chờ xác nhận thanh toán chuyển khoản.</small></span>
+                </label>
 
-                <p>COD hoàn tất ngay khi đặt hàng; thanh toán online sẽ chờ xác nhận từ cổng thanh toán.</p>
+                <p>COD hoàn tất khi nhận hàng; chuyển khoản sẽ chờ xác nhận thanh toán.</p>
               </div>
             </div>
           </div>

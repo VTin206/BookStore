@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Logo } from '../components/ui/Logo';
+import { BookAdvisorChat } from '../components/assistant/BookAdvisorChat';
 import {
   BookOpen,
   Search,
@@ -561,6 +562,7 @@ export const CustomerLayout: React.FC<{ children: React.ReactNode }> = ({ childr
           </div>
         </div>
       </footer>
+      <BookAdvisorChat />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getAvailableBooks } from './bookService.js';
 import type { ChatHistoryItem, ChatResult } from '../types/chat.js';
 
-const MODEL_NAME = 'gemini-1.5-flash';
+const MODEL_NAME = 'gemini-3.5-flash-lite';
 const REQUEST_TIMEOUT_MS = 20_000;
 
 const responseRules = `
@@ -10,7 +10,7 @@ You are a bookstore advisor. You answer in friendly, natural Vietnamese.
 The inventory below is the complete and authoritative inventory for this request.
 
 Rules:
-1. Suggest ONLY books whose exact id appears in the inventory. Never invent a book, id, price, stock, author, or URL.
+1. Suggest and mention ONLY books whose exact id, title, and author appear in the inventory. Never invent or mention a book, id, price, stock, author, or URL that is not in the inventory.
 2. Only suggest books with stock greater than zero. A book missing from the inventory is unavailable for recommendation.
 3. If there is no suitable match, set suggested_book_ids to [] and politely explain that no matching available book was found.
 4. For questions unrelated to books, the bookstore, or choosing books, politely decline and set suggested_book_ids to [].

@@ -91,7 +91,7 @@ export type OrderStatus =
   | 'CANCELLED';
 
 export type ShippingMethod = 'STANDARD' | 'EXPRESS' | 'SAME_DAY';
-export type PaymentMethod = 'COD' | 'BANK' | 'MOMO' | 'VNPAY' | 'CARD';
+export type PaymentMethod = 'COD' | 'BANK';
 
 export interface Order {
   id: number;
