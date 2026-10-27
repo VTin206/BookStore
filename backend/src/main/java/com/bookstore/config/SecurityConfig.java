@@ -30,10 +30,19 @@ public class SecurityConfig {
         }))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(
-                        "/api/auth/**",
+                auth.dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
+                    .permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/books",
                         "/api/books/**",
+                        "/api/categories",
                         "/api/categories/**",
+                        "/api/authors",
+                        "/api/authors/**",
+                        "/api/publishers",
+                        "/api/publishers/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**")
                     .permitAll()
