@@ -21,7 +21,7 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim() || !fullName.trim() || !email.trim()) {
+    if (!username.trim() || !password || !fullName.trim() || !email.trim()) {
       error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
       return;
     }
@@ -30,7 +30,7 @@ export const RegisterPage: React.FC = () => {
       setIsLoading(true);
       await register({
         username: username.trim(),
-        password: password.trim(),
+        password,
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,

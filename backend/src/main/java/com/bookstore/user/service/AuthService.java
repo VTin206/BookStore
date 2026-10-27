@@ -26,22 +26,24 @@ public class AuthService {
   @Transactional
   public AuthResponse register(RegisterRequest request) {
     PasswordPolicy.validate(request.password());
-    if (userRepository.existsByUsernameIgnoreCase(request.username()))
+    var username = request.username().trim();
+    var email = request.email().trim();
+    if (userRepository.existsByUsernameIgnoreCase(username))
       throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
-    if (userRepository.existsByEmailIgnoreCase(request.email()))
+    if (userRepository.existsByEmailIgnoreCase(email))
       throw new IllegalArgumentException("Email đã tồn tại");
     var user = new User();
-    user.setUsername(request.username());
+    user.setUsername(username);
     user.setPassword(passwordEncoder.encode(request.password()));
-    user.setFullName(request.fullName());
-    user.setEmail(request.email());
-    user.setPhone(request.phone());
+    user.setFullName(request.fullName().trim());
+    user.setEmail(email);
+    user.setPhone(request.phone() == null ? null : request.phone().trim());
     userRepository.save(user);
     return new AuthResponse(jwtService.create(user.getUsername(), user.getRole(), user.getTokenVersion()), user.getUsername(), user.getRole());
   }
 
   public AuthResponse login(AuthRequest request) {
-    var user = userRepository.findByUsername(request.username()).orElse(null);
+    var user = userRepository.findByUsername(request.username().trim()).orElse(null);
     boolean matches = passwordEncoder.matches(request.password(), user == null ? dummyPasswordHash : user.getPassword());
     if (user == null || !matches)
       throw new UnauthorizedException("Tên đăng nhập hoặc mật khẩu không đúng.");

@@ -18,14 +18,14 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
+    if (!username.trim() || !password) {
       error('Vui lòng nhập tên đăng nhập và mật khẩu.');
       return;
     }
 
     try {
       setIsLoading(true);
-      const res = await login({ username: username.trim(), password: password.trim() });
+      const res = await login({ username: username.trim(), password });
       success(`Chào mừng bạn quay trở lại, ${res.username}!`);
       if (res.role === 'ADMIN') {
         navigate('/admin');

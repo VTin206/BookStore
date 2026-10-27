@@ -26,14 +26,15 @@ public class UserService {
   @Transactional
   public User updateProfile(String username, ProfileUpdateRequest request) {
     var user = getByUsername(username);
-    var emailChanged = !user.getEmail().equalsIgnoreCase(request.email());
-    if (emailChanged && userRepository.existsByEmailIgnoreCase(request.email())) {
+    var email = request.email().trim();
+    var emailChanged = !user.getEmail().equalsIgnoreCase(email);
+    if (emailChanged && userRepository.existsByEmailIgnoreCase(email)) {
       throw new IllegalArgumentException("Email đã tồn tại");
     }
-    user.setFullName(request.fullName());
-    user.setEmail(request.email());
-    user.setPhone(request.phone());
-    user.setAddress(request.address());
+    user.setFullName(request.fullName().trim());
+    user.setEmail(email);
+    user.setPhone(request.phone() == null ? null : request.phone().trim());
+    user.setAddress(request.address() == null ? null : request.address().trim());
     return userRepository.save(user);
   }
 
