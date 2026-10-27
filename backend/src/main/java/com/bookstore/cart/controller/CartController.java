@@ -2,7 +2,7 @@ package com.bookstore.cart.controller;
 
 import com.bookstore.cart.dto.CartItemRequest;
 import com.bookstore.cart.dto.CartItemUpdateRequest;
-import com.bookstore.cart.entity.Cart;
+import com.bookstore.cart.dto.CartResponse;
 import com.bookstore.cart.service.CartService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -18,17 +18,17 @@ public class CartController {
   }
 
   @GetMapping
-  public Cart get(Authentication authentication) {
+  public CartResponse get(Authentication authentication) {
     return cartService.get(authentication.getName());
   }
 
   @PostMapping("/items")
-  public Cart add(Authentication authentication, @Valid @RequestBody CartItemRequest request) {
+  public CartResponse add(Authentication authentication, @Valid @RequestBody CartItemRequest request) {
     return cartService.add(authentication.getName(), request);
   }
 
   @PatchMapping("/items/{id}")
-  public Cart update(
+  public CartResponse update(
       Authentication authentication,
       @PathVariable Long id,
       @Valid @RequestBody CartItemUpdateRequest request) {

@@ -2,6 +2,7 @@ package com.bookstore.cart.service;
 
 import com.bookstore.book.repository.BookRepository;
 import com.bookstore.cart.dto.CartItemRequest;
+import com.bookstore.cart.dto.CartResponse;
 import com.bookstore.cart.entity.Cart;
 import com.bookstore.cart.entity.CartItem;
 import com.bookstore.cart.repository.CartItemRepository;
@@ -25,17 +26,22 @@ public class CartService {
   }
 
   @Transactional
-  public Cart get(String username) {
+  public CartResponse get(String username) {
+    return CartResponse.from(getCart(username));
+  }
+
+  private Cart getCart(String username) {
     var user = userRepository.findByUsernameForUpdate(username).orElseThrow();
-    return cartRepository
+    var cart = cartRepository
         .findByUserUsername(username)
         .orElseGet(() -> cartRepository.save(new Cart(user)));
+    return cart;
   }
 
   @Transactional
-  public Cart add(String username, CartItemRequest request) {
+  public CartResponse add(String username, CartItemRequest request) {
     validateQuantity(request.quantity());
-    var cart = get(username);
+    var cart = getCart(username);
     var book = bookRepository.findById(request.bookId()).orElseThrow();
     if (!book.isActive()) {
       throw new IllegalStateException("Sách này hiện đã ngừng bán");
@@ -60,11 +66,12 @@ public class CartService {
       }
       item.setQuantity(newQuantity);
     }
-    return cartRepository.save(cart);
+    var savedCart = cartRepository.save(cart);
+    return CartResponse.from(savedCart);
   }
 
   @Transactional
-  public Cart update(String username, Long itemId, Integer quantity) {
+  public CartResponse update(String username, Long itemId, Integer quantity) {
     validateQuantity(quantity);
     var item = getOwnedItem(username, itemId);
     if (!item.getBook().isActive() || quantity > item.getBook().getStock()) {
@@ -83,7 +90,7 @@ public class CartService {
 
   @Transactional
   public void clear(String username) {
-    var cart = get(username);
+    var cart = getCart(username);
     cart.getItems().clear();
     cartRepository.save(cart);
   }
@@ -100,4 +107,5 @@ public class CartService {
   private void validateQuantity(Integer quantity) {
     if (quantity == null || quantity < 1 || quantity > 1000) throw new IllegalArgumentException("Số lượng phải từ 1 đến 1.000");
   }
+
 }

@@ -41,8 +41,7 @@ class CartServiceTest {
 
     var result = service.get("alice");
 
-    assertEquals(user, result.getUser());
-    assertEquals(0, result.getItems().size());
+    assertEquals(0, result.items().size());
   }
 
   @Test
@@ -56,8 +55,8 @@ class CartServiceTest {
 
     var result = service.add("alice", new CartItemRequest(10L, 3));
 
-    assertEquals(1, result.getItems().size());
-    assertEquals(3, result.getItems().get(0).getQuantity());
+    assertEquals(1, result.items().size());
+    assertEquals(3, result.items().get(0).quantity());
   }
 
   @Test
