@@ -4,6 +4,7 @@ import com.bookstore.book.entity.Book;
 import com.bookstore.book.repository.BookRepository;
 import com.bookstore.catalog.entity.Publisher;
 import com.bookstore.catalog.repository.PublisherRepository;
+import com.bookstore.inventory.dto.InventoryRequests;
 import com.bookstore.inventory.dto.InventoryRequests.*;
 import com.bookstore.inventory.dto.InventoryResponses.*;
 import com.bookstore.inventory.entity.*;
