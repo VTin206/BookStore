@@ -51,8 +51,9 @@ Services:
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - PostgreSQL: localhost:5432
 
-For separate development, set a private `JWT_SECRET` (at least 32 bytes) in the
-environment before starting the backend. Never use the placeholder in `.env.example`.
+For separate development, set `POSTGRES_PASSWORD`, `DB_PASSWORD` and a private
+`JWT_SECRET` (at least 32 bytes) in the environment before starting the backend.
+Never use the placeholders in `.env.example` for a deployed environment.
 Then start PostgreSQL with `docker compose up -d postgres`, run `mvn spring-boot:run`
 in `backend/`, and `npm install && npm run dev` in `frontend/`.
 
