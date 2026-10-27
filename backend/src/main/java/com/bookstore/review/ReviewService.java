@@ -2,8 +2,10 @@ package com.bookstore.review;
 
 import com.bookstore.book.repository.BookRepository;
 import com.bookstore.order.repository.OrderRepository;
+import com.bookstore.user.entity.User;
 import com.bookstore.user.repository.UserRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,13 @@ public class ReviewService {
   public List<Review> byBook(Long bookId) {
     bookRepository.findById(bookId).orElseThrow();
     var result = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
-    result.forEach(this::attachUserName);
+    var userNames = userRepository.findAllById(result.stream()
+        .map(Review::getUserId)
+        .distinct()
+        .toList())
+        .stream()
+        .collect(Collectors.toMap(User::getId, User::getFullName, (first, ignored) -> first));
+    result.forEach(review -> review.setUserName(userNames.get(review.getUserId())));
     return result;
   }
 
@@ -54,7 +62,4 @@ public class ReviewService {
     return reviewRepository.save(review);
   }
 
-  private void attachUserName(Review review) {
-    userRepository.findById(review.getUserId()).ifPresent(user -> review.setUserName(user.getFullName()));
-  }
 }

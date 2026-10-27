@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -62,13 +63,36 @@ class ReviewServiceTest {
   @Test
   void byBookAttachesUserName() {
     var user = new User();
+    ReflectionTestUtils.setField(user, "id", 3L);
     user.setFullName("Alice");
     var review = new Review();
     review.setUserId(3L);
     when(bookRepository.findById(7L)).thenReturn(Optional.of(new Book()));
     when(reviews.findByBookIdOrderByCreatedAtDesc(7L)).thenReturn(List.of(review));
-    when(users.findById(3L)).thenReturn(Optional.of(user));
+    when(users.findAllById(List.of(3L))).thenReturn(List.of(user));
 
     assertEquals("Alice", service.byBook(7L).getFirst().getUserName());
+  }
+
+  @Test
+  void byBookLoadsDistinctReviewAuthorsInOneBatch() {
+    var firstUser = new User();
+    ReflectionTestUtils.setField(firstUser, "id", 3L);
+    firstUser.setFullName("Alice");
+    var secondUser = new User();
+    ReflectionTestUtils.setField(secondUser, "id", 4L);
+    secondUser.setFullName("Bob");
+    var firstReview = new Review();
+    firstReview.setUserId(3L);
+    var secondReview = new Review();
+    secondReview.setUserId(4L);
+    when(bookRepository.findById(7L)).thenReturn(Optional.of(new Book()));
+    when(reviews.findByBookIdOrderByCreatedAtDesc(7L)).thenReturn(List.of(firstReview, secondReview));
+    when(users.findAllById(List.of(3L, 4L))).thenReturn(List.of(firstUser, secondUser));
+
+    var result = service.byBook(7L);
+
+    assertEquals(List.of("Alice", "Bob"), result.stream().map(Review::getUserName).toList());
+    org.mockito.Mockito.verify(users).findAllById(List.of(3L, 4L));
   }
 }
