@@ -37,8 +37,12 @@ public class BookController {
   }
 
   @GetMapping("/{id}/cover")
-  public org.springframework.http.ResponseEntity<byte[]> cover(@PathVariable Long id) {
-    var cover = bookService.cover(id);
+  public org.springframework.http.ResponseEntity<byte[]> cover(
+      @PathVariable Long id, Authentication authentication) {
+    boolean isAdmin = authentication != null
+        && authentication.getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    var cover = bookService.cover(id, isAdmin);
     return org.springframework.http.ResponseEntity.ok()
         .contentType(org.springframework.http.MediaType.parseMediaType(cover.contentType()))
         .header("X-Content-Type-Options", "nosniff")

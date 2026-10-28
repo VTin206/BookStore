@@ -73,7 +73,15 @@ public class BookService {
   }
 
   public BookCover cover(Long id) {
-    return BookCover.decode(byId(id).getImageUrl());
+    return cover(id, false);
+  }
+
+  public BookCover cover(Long id, boolean allowInactive) {
+    var book = byId(id);
+    if (!book.isActive() && !allowInactive) {
+      throw new ResourceNotFoundException("Sách không tồn tại");
+    }
+    return BookCover.decode(book.getImageUrl());
   }
 
   @Transactional

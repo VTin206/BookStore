@@ -173,6 +173,26 @@ class BookServiceTest {
   }
 
   @Test
+  void coverRejectsInactiveBookForPublicAccess() {
+    var book = new Book();
+    book.setActive(false);
+    book.setImageUrl("data:image/png;base64,AA==");
+    when(books.findById(1L)).thenReturn(Optional.of(book));
+
+    assertThrows(ResourceNotFoundException.class, () -> service.cover(1L, false));
+  }
+
+  @Test
+  void coverAllowsInactiveBookForAdminAccess() {
+    var book = new Book();
+    book.setActive(false);
+    book.setImageUrl("data:image/png;base64,AA==");
+    when(books.findById(1L)).thenReturn(Optional.of(book));
+
+    assertEquals("image/png", service.cover(1L, true).contentType());
+  }
+
+  @Test
   void adjustStockPersistsValidValue() {
     var book = new Book();
     book.setStock(2);
