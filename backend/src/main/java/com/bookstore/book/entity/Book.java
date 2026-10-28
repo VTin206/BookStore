@@ -114,8 +114,10 @@ public class Book {
     this.stock = stock;
   }
 
+  @com.fasterxml.jackson.annotation.JsonIgnore
   public BigDecimal getCostPrice() { return costPrice; }
   public void setCostPrice(BigDecimal costPrice) { this.costPrice = costPrice == null ? BigDecimal.ZERO : costPrice; }
+  @com.fasterxml.jackson.annotation.JsonIgnore
   public Integer getMinimumStock() { return minimumStock; }
   public void setMinimumStock(Integer minimumStock) { this.minimumStock = minimumStock == null ? 10 : minimumStock; }
 
