@@ -60,6 +60,25 @@ public class InventoryService {
   }
 
   @Transactional
+  public Book adjustDelta(Long bookId, int quantityDelta, String username) {
+    if (quantityDelta == 0) throw new IllegalArgumentException("Số lượng điều chỉnh không được bằng 0");
+    var book = books.findByIdForUpdate(bookId).orElseThrow();
+    var before = book.getStock();
+    final int after;
+    try {
+      after = Math.addExact(before, quantityDelta);
+    } catch (ArithmeticException exception) {
+      throw new IllegalArgumentException("Tồn kho vượt giới hạn cho phép", exception);
+    }
+    if (after < 0) throw new IllegalArgumentException("Tồn kho không thể âm");
+    book.setStock(after);
+    books.save(book);
+    record(book, "ADJUSTMENT", quantityDelta, before, after, book.getCostPrice(),
+        "Điều chỉnh nhanh từ danh mục sách", "MANUAL", null, username);
+    return book;
+  }
+
+  @Transactional
   public void recordExistingChange(Book book, int delta, String type, String reason, String referenceType, Long referenceId, String username) {
     record(book, type, delta, book.getStock() - delta, book.getStock(), book.getCostPrice(), reason, referenceType, referenceId, username);
   }
