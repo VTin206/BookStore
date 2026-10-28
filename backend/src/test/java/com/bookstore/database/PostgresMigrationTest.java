@@ -42,6 +42,9 @@ class PostgresMigrationTest {
     assertEquals(1, indexCount("uk_users_username_lower"));
     assertEquals(1, indexCount("uk_users_email_lower"));
     assertEquals(1, constraintCount("uk_order_idempotency_scope_key"));
+    assertEquals(1, indexCount("idx_orders_user_created"));
+    assertEquals(1, indexCount("idx_reviews_book_created"));
+    assertEquals(1, indexCount("idx_wishlist_items_user_created"));
   }
 
   @Test
