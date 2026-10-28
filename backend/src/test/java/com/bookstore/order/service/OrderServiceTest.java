@@ -103,6 +103,26 @@ class OrderServiceTest {
   }
 
   @Test
+  void guestCannotUseIdempotencyKey() {
+    var request =
+        new OrderRequest(
+            "Guest",
+            "guest@example.com",
+            "Address",
+            "0900000000",
+            null,
+            BigDecimal.ZERO,
+            "COD",
+            List.of(new OrderRequest.Item(7L, 1)));
+
+    var exception = assertThrows(
+        IllegalArgumentException.class, () -> service.create(null, request, "guest-attempt-1"));
+
+    assertEquals("Idempotency-Key chỉ được dùng khi đã đăng nhập", exception.getMessage());
+    org.mockito.Mockito.verifyNoInteractions(orders, books, payments, idempotency);
+  }
+
+  @Test
   void createRejectsInsufficientStockBeforeSavingOrder() {
     var user = new User();
     var book = book(7L, "Book", 1, BigDecimal.TEN);

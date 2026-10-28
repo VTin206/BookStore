@@ -40,10 +40,9 @@ export const orderService = {
     return res.data;
   },
 
-  async create(data: CreateOrderRequest, idempotencyKey: string = crypto.randomUUID()): Promise<Order> {
-    const res = await apiClient.post<Order>('/orders', data, {
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
+  async create(data: CreateOrderRequest, idempotencyKey?: string): Promise<Order> {
+    const config = idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined;
+    const res = await apiClient.post<Order>('/orders', data, config);
     return res.data;
   },
 };

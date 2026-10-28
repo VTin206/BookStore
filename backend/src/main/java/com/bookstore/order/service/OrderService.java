@@ -77,6 +77,9 @@ public class OrderService {
   @Transactional
   public Order create(String username, OrderRequest request, String idempotencyKey) {
     var normalizedIdempotencyKey = normalizeIdempotencyKey(idempotencyKey);
+    if (normalizedIdempotencyKey != null && (username == null || username.isBlank())) {
+      throw new IllegalArgumentException("Idempotency-Key chỉ được dùng khi đã đăng nhập");
+    }
     var requestHash = normalizedIdempotencyKey == null ? null : requestHash(request);
     var scopeKey = normalizedIdempotencyKey == null ? null : scopeKey(username);
     if (normalizedIdempotencyKey != null) {

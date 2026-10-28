@@ -174,11 +174,15 @@ export const CheckoutPage: React.FC = () => {
         })),
       };
 
-      const fingerprint = JSON.stringify(orderPayload);
-      if (orderIdempotency.current?.fingerprint !== fingerprint) {
-        orderIdempotency.current = { fingerprint, key: crypto.randomUUID() };
+      let idempotencyKey: string | undefined;
+      if (isAuthenticated) {
+        const fingerprint = JSON.stringify(orderPayload);
+        if (orderIdempotency.current?.fingerprint !== fingerprint) {
+          orderIdempotency.current = { fingerprint, key: crypto.randomUUID() };
+        }
+        idempotencyKey = orderIdempotency.current.key;
       }
-      const createdOrder = await orderService.create(orderPayload, orderIdempotency.current.key);
+      const createdOrder = await orderService.create(orderPayload, idempotencyKey);
       success('Đặt hàng thành công! Mã đơn: #' + createdOrder.id);
       if (isAuthenticated) {
         navigate('/orders');

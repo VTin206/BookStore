@@ -111,6 +111,15 @@ describe('API services', () => {
     });
   });
 
+  it('does not send an idempotency header when no key is provided', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 10, status: 'PENDING' } });
+    const payload = { items: [{ bookId: 1, quantity: 1 }] } as never;
+
+    await orderService.create(payload);
+
+    expect(apiClient.post).toHaveBeenCalledWith('/orders', payload, undefined);
+  });
+
   it('rejects an invalid cart response before it reaches React state', async () => {
     vi.mocked(apiClient.post).mockResolvedValue({ data: { items: null } });
 
