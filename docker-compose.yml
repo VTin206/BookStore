@@ -35,10 +35,24 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+        VITE_RAG_API_URL: ${VITE_RAG_API_URL:-http://localhost:3000}
     depends_on:
       - backend
     ports:
       - "5173:80"
+
+  rag-api:
+    build:
+      context: ./rag-api
+    environment:
+      PORT: 3000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      BOOKSTORE_BOOKS_URL: http://backend:8080/api/books
+      RAG_ALLOWED_ORIGINS: ${RAG_ALLOWED_ORIGINS:-http://localhost:5173}
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
 
 volumes:
   bookstore-postgres:

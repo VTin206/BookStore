@@ -1,6 +1,6 @@
 # BookStore Lightweight RAG API
 
-Context-ingestion RAG service for bookstore recommendations. It reads the available books from `src/db/books.json`, injects that snapshot into Gemini's `systemInstruction`, and returns only inventory-backed recommendations.
+Context-ingestion RAG service for bookstore recommendations. It loads the current available books from the BookStore backend API, injects that snapshot into Gemini's `systemInstruction`, and returns only inventory-backed recommendations.
 
 ## Run locally
 
@@ -13,6 +13,8 @@ copy .env.example .env
 npm install
 npm run dev
 ```
+
+`BOOKSTORE_BOOKS_URL` defaults to `http://localhost:8080/api/books`. In Docker Compose it must point to `http://backend:8080/api/books`. Set `RAG_ALLOWED_ORIGINS` to the frontend origin and provide `GEMINI_API_KEY` before using chat.
 
 Production build:
 
