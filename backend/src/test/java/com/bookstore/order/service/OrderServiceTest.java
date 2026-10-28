@@ -331,6 +331,23 @@ class OrderServiceTest {
     org.junit.jupiter.api.Assertions.assertTrue(payment.isPaid());
   }
 
+  @Test
+  void cannotCancelPaidBankOrderWithoutRefund() {
+    var order = new Order();
+    setId(order, 4L);
+    order.setStatus("CONFIRMED");
+    var payment = new Payment();
+    payment.setMethod("BANK");
+    payment.setStatus("PAID");
+    payment.setPaid(true);
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
+    when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
+
+    assertThrows(IllegalStateException.class, () -> service.updateStatus(4L, "CANCELLED"));
+    assertEquals("CONFIRMED", order.getStatus());
+    org.mockito.Mockito.verifyNoInteractions(books, vouchers);
+  }
+
   private static Object readField(Object target, String name) throws Exception {
     Field field = target.getClass().getDeclaredField(name);
     field.setAccessible(true);

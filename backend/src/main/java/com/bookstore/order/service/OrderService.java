@@ -313,6 +313,12 @@ public class OrderService {
         && !payment.get().isPaid()) {
       throw new IllegalStateException("Chưa thể giao đơn chuyển khoản khi thanh toán chưa được xác nhận");
     }
+    if ("CANCELLED".equals(normalized)
+        && payment.isPresent()
+        && "BANK".equals(payment.get().getMethod())
+        && payment.get().isPaid()) {
+      throw new IllegalStateException("Không thể hủy đơn đã thanh toán chuyển khoản khi chưa có quy trình hoàn tiền");
+    }
     if ("CANCELLED".equals(normalized) && !"CANCELLED".equals(order.getStatus())) {
       order.getItems().stream().sorted(java.util.Comparator.comparing(item -> item.getBook().getId())).forEach(item -> {
         var book = bookRepository.findByIdForUpdate(item.getBook().getId()).orElseThrow();
