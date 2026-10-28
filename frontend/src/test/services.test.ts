@@ -100,6 +100,17 @@ describe('API services', () => {
     });
   });
 
+  it('reuses the caller-provided idempotency key when creating an order', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 9, status: 'PENDING' } });
+    const payload = { items: [{ bookId: 1, quantity: 2 }] } as never;
+
+    await orderService.create(payload, 'checkout-attempt-1');
+
+    expect(apiClient.post).toHaveBeenCalledWith('/orders', payload, {
+      headers: { 'Idempotency-Key': 'checkout-attempt-1' },
+    });
+  });
+
   it('rejects an invalid cart response before it reaches React state', async () => {
     vi.mocked(apiClient.post).mockResolvedValue({ data: { items: null } });
 

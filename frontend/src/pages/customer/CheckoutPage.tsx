@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -42,6 +42,7 @@ export const CheckoutPage: React.FC = () => {
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('STANDARD');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const orderIdempotency = useRef<{ fingerprint: string; key: string } | null>(null);
 
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -173,7 +174,11 @@ export const CheckoutPage: React.FC = () => {
         })),
       };
 
-      const createdOrder = await orderService.create(orderPayload);
+      const fingerprint = JSON.stringify(orderPayload);
+      if (orderIdempotency.current?.fingerprint !== fingerprint) {
+        orderIdempotency.current = { fingerprint, key: crypto.randomUUID() };
+      }
+      const createdOrder = await orderService.create(orderPayload, orderIdempotency.current.key);
       success('Đặt hàng thành công! Mã đơn: #' + createdOrder.id);
       if (isAuthenticated) {
         navigate('/orders');

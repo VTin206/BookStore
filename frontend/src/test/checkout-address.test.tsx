@@ -81,7 +81,8 @@ describe('Checkout address', () => {
     await waitFor(() => expect(orderService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         shippingAddress: '12 Đường A, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh',
-      })
+      }),
+      expect.any(String),
     ));
   });
 });
