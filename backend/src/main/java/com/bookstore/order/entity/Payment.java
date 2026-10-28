@@ -45,6 +45,12 @@ public class Payment {
     this.paid = paid;
   }
 
+  public String getTransactionCode() { return transactionCode; }
+
+  public void setTransactionCode(String transactionCode) {
+    this.transactionCode = transactionCode;
+  }
+
   public String getStatus() {
     return status;
   }

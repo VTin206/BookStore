@@ -306,6 +306,13 @@ public class OrderService {
 
   private Order transition(Order order, String normalized) {
     validateTransition(order.getStatus(), normalized);
+    var payment = paymentRepository.findByOrderId(order.getId());
+    if ("DELIVERED".equals(normalized)
+        && payment.isPresent()
+        && "BANK".equals(payment.get().getMethod())
+        && !payment.get().isPaid()) {
+      throw new IllegalStateException("Chưa thể giao đơn chuyển khoản khi thanh toán chưa được xác nhận");
+    }
     if ("CANCELLED".equals(normalized) && !"CANCELLED".equals(order.getStatus())) {
       order.getItems().stream().sorted(java.util.Comparator.comparing(item -> item.getBook().getId())).forEach(item -> {
         var book = bookRepository.findByIdForUpdate(item.getBook().getId()).orElseThrow();
@@ -316,17 +323,41 @@ public class OrderService {
     }
     order.setStatus(normalized);
     var saved = orderRepository.save(order);
-    paymentRepository.findByOrderId(order.getId()).ifPresent(payment -> {
+    payment.ifPresent(paymentRecord -> {
       if ("CANCELLED".equals(normalized)) {
-        payment.setStatus("CANCELLED");
-        payment.setPaid(false);
-      } else if ("DELIVERED".equals(normalized) && "COD".equals(payment.getMethod())) {
-        payment.setStatus("PAID");
-        payment.setPaid(true);
+        paymentRecord.setStatus("CANCELLED");
+        paymentRecord.setPaid(false);
+      } else if ("DELIVERED".equals(normalized) && "COD".equals(paymentRecord.getMethod())) {
+        paymentRecord.setStatus("PAID");
+        paymentRecord.setPaid(true);
       }
-      paymentRepository.save(payment);
+      paymentRepository.save(paymentRecord);
     });
     return saved;
+  }
+
+  @Transactional
+  public com.bookstore.order.dto.OrderResponse confirmBankPayment(Long id, String transactionCode) {
+    var normalizedCode = transactionCode == null ? "" : transactionCode.trim();
+    if (normalizedCode.isBlank()) {
+      throw new IllegalArgumentException("Mã giao dịch không được để trống");
+    }
+    var order = orderRepository.findByIdForUpdate(id).orElseThrow();
+    if ("CANCELLED".equals(order.getStatus())) {
+      throw new IllegalStateException("Không thể xác nhận thanh toán cho đơn đã hủy");
+    }
+    var payment = paymentRepository.findByOrderId(id).orElseThrow();
+    if (!"BANK".equals(payment.getMethod())) {
+      throw new IllegalArgumentException("Đơn hàng này không sử dụng thanh toán chuyển khoản");
+    }
+    if (payment.isPaid() && !normalizedCode.equals(payment.getTransactionCode())) {
+      throw new IllegalStateException("Thanh toán của đơn hàng đã được xác nhận với mã giao dịch khác");
+    }
+    payment.setTransactionCode(normalizedCode);
+    payment.setStatus("PAID");
+    payment.setPaid(true);
+    paymentRepository.save(payment);
+    return com.bookstore.order.dto.OrderResponse.from(order);
   }
 
   @Transactional

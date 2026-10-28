@@ -2,6 +2,7 @@ package com.bookstore.order.controller;
 
 import com.bookstore.order.dto.OrderRequest;
 import com.bookstore.order.dto.OrderTrackingResponse;
+import com.bookstore.order.dto.PaymentConfirmationRequest;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -60,6 +61,13 @@ public class OrderController {
   @PatchMapping("/admin/{id}/status")
   public com.bookstore.order.dto.OrderResponse updateStatus(@PathVariable Long id, @RequestParam("orderStatus") String orderStatus) {
     return orderService.updateStatusResponse(id, orderStatus);
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("/admin/{id}/payment")
+  public com.bookstore.order.dto.OrderResponse confirmBankPayment(
+      @PathVariable Long id, @Valid @RequestBody PaymentConfirmationRequest request) {
+    return orderService.confirmBankPayment(id, request.transactionCode());
   }
 
   private org.springframework.data.domain.PageRequest pageRequest(int page, int size) {

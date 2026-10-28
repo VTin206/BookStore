@@ -297,7 +297,7 @@ class OrderServiceTest {
   }
 
   @Test
-  void legacyBankPaymentIsNotMarkedPaidOnDelivery() {
+  void bankPaymentCannotBeDeliveredBeforeConfirmation() {
     var order = new Order();
     setId(order, 4L);
     order.setStatus("SHIPPING");
@@ -305,11 +305,30 @@ class OrderServiceTest {
     payment.setMethod("BANK");
     payment.setStatus("PENDING");
     when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
-    when(orders.save(order)).thenReturn(order);
     when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
-    service.updateStatus(4L, "DELIVERED");
+    assertThrows(IllegalStateException.class, () -> service.updateStatus(4L, "DELIVERED"));
+    assertEquals("SHIPPING", order.getStatus());
     assertEquals("PENDING", payment.getStatus());
     org.junit.jupiter.api.Assertions.assertFalse(payment.isPaid());
+  }
+
+  @Test
+  void confirmsBankPaymentWithTransactionCode() {
+    var order = new Order();
+    setId(order, 4L);
+    order.setStatus("SHIPPING");
+    var payment = new Payment();
+    payment.setMethod("BANK");
+    when(orders.findByIdForUpdate(4L)).thenReturn(Optional.of(order));
+    when(payments.findByOrderId(4L)).thenReturn(Optional.of(payment));
+    when(payments.save(payment)).thenReturn(payment);
+
+    var result = service.confirmBankPayment(4L, "  BANK-123  ");
+
+    assertEquals(order.getId(), result.id());
+    assertEquals("BANK-123", payment.getTransactionCode());
+    assertEquals("PAID", payment.getStatus());
+    org.junit.jupiter.api.Assertions.assertTrue(payment.isPaid());
   }
 
   private static Object readField(Object target, String name) throws Exception {

@@ -65,8 +65,9 @@ cd frontend && npm test && npm run build
 ~~~
 
 Order lists are paginated. Checkout supports COD end to end; BANK orders remain
-pending manual verification until a real payment integration is added. The
-database migration invalidates existing JWT sessions.
+pending until an administrator confirms the transfer with the payment endpoint
+and transaction code. Provider webhooks and automatic refunds are not included
+yet. The database migration invalidates existing JWT sessions.
 
 
 
