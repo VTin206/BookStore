@@ -54,6 +54,7 @@ export const AdminBooksPage: React.FC = () => {
     description: '',
     imageUrl: '',
     publicationDate: '',
+    condition: 'NEW',
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -113,6 +114,7 @@ export const AdminBooksPage: React.FC = () => {
       description: '',
       imageUrl: '',
       publicationDate: '',
+      condition: 'NEW',
     });
     setIsModalOpen(true);
   };
@@ -132,6 +134,7 @@ export const AdminBooksPage: React.FC = () => {
       description: book.description || '',
       imageUrl: book.imageUrl || '',
       publicationDate: book.publicationDate ? book.publicationDate.slice(0, 4) : '',
+      condition: book.condition || 'NEW',
     });
     setIsModalOpen(true);
   };
@@ -211,6 +214,7 @@ export const AdminBooksPage: React.FC = () => {
         description: form.description?.trim() || undefined,
         imageUrl: form.imageUrl?.trim() || undefined,
         publicationDate: form.publicationDate ? (/^\d{4}$/.test(form.publicationDate) ? form.publicationDate + '-01-01' : form.publicationDate) : undefined,
+        condition: form.condition || 'NEW',
       };
 
       if (editingBook) {
@@ -591,6 +595,16 @@ export const AdminBooksPage: React.FC = () => {
               onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })}
             />
           </div>
+
+          <Select
+            label="Tình trạng sách"
+            value={form.condition || 'NEW'}
+            onChange={(e) => setForm({ ...form, condition: e.target.value as 'NEW' | 'USED' })}
+            options={[
+              { value: 'NEW', label: 'Sách mới' },
+              { value: 'USED', label: 'Sách cũ' },
+            ]}
+          />
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <Input

@@ -18,6 +18,7 @@ export interface Book {
   author: string;
   price: number;
   stock: number;
+  condition?: 'NEW' | 'USED';
   costPrice?: number;
   minimumStock?: number;
   active?: boolean;
@@ -48,6 +49,7 @@ export interface BookRequest {
   description?: string;
   imageUrl?: string;
   publicationDate?: string;
+  condition?: 'NEW' | 'USED';
 }
 
 export interface Author {

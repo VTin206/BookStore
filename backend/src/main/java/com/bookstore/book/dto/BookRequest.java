@@ -24,17 +24,18 @@ public record BookRequest(
     @Size(max = 20000) String description,
     @Size(max = 2800000) String imageUrl,
     LocalDate publicationDate,
-    @Size(max = 50) List<@NotNull @Positive Long> categoryIds) {
+    @Size(max = 50) List<@NotNull @Positive Long> categoryIds,
+    String condition) {
   public BookRequest(
       String title, String author, BigDecimal price, Integer stock, Long categoryId, Long authorId,
       Long publisherId, String isbn, String description, String imageUrl, LocalDate publicationDate) {
-    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, null);
+    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, null, null);
   }
 
   public BookRequest(
       String title, String author, BigDecimal price, Integer stock, Long categoryId, Long authorId,
       Long publisherId, String isbn, String description, String imageUrl, LocalDate publicationDate,
       List<@NotNull @Positive Long> categoryIds) {
-    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, categoryIds);
+    this(title, author, price, stock, null, null, categoryId, authorId, publisherId, isbn, description, imageUrl, publicationDate, categoryIds, null);
   }
 }

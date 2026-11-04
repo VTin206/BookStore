@@ -146,6 +146,13 @@ public class BookService {
     book.setAuthor(request.author());
     book.setPrice(request.price());
     book.setStock(request.stock());
+    if (request.condition() != null) {
+      var normalizedCondition = request.condition().trim().toUpperCase();
+      if (!List.of("NEW", "USED").contains(normalizedCondition)) {
+        throw new IllegalArgumentException("Condition must be NEW or USED");
+      }
+      book.setCondition(normalizedCondition);
+    }
     if (request.costPrice() != null) book.setCostPrice(request.costPrice());
     if (request.minimumStock() != null) book.setMinimumStock(request.minimumStock());
     var selectedCategoryIds = new LinkedHashSet<Long>();

@@ -149,6 +149,17 @@ class BookServiceTest {
   }
 
   @Test
+  void createMapsBookCondition() {
+    when(books.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = service.create(new BookRequest(
+        "Book", "Author", BigDecimal.TEN, 1, null, null, null, null, null, null, null, null, null,
+        List.of(), "USED"));
+
+    assertEquals("USED", result.getCondition());
+  }
+
+  @Test
   void createDeduplicatesPrimaryAndAdditionalCategories() {
     var category = new Category();
     category.setName("Fiction");

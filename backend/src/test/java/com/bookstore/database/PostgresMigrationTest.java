@@ -45,6 +45,7 @@ class PostgresMigrationTest {
     assertEquals(1, indexCount("idx_orders_user_created"));
     assertEquals(1, indexCount("idx_reviews_book_created"));
     assertEquals(1, indexCount("idx_wishlist_items_user_created"));
+    assertEquals(1, columnCount("books", "book_condition"));
   }
 
   @Test
@@ -77,5 +78,13 @@ class PostgresMigrationTest {
         "SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_name = ?",
         Integer.class,
         name);
+  }
+
+  private int columnCount(String table, String column) {
+    return jdbc.queryForObject(
+        "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND column_name = ?",
+        Integer.class,
+        table,
+        column);
   }
 }

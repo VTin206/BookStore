@@ -43,6 +43,9 @@ public class Book {
   @Column(nullable = false)
   private boolean active = true;
 
+  @Column(name = "book_condition", nullable = false, length = 10)
+  private String condition = "NEW";
+
   @Column private String isbn;
 
   @Column(columnDefinition = "TEXT")
@@ -127,6 +130,14 @@ public class Book {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public String getCondition() {
+    return condition;
+  }
+
+  public void setCondition(String condition) {
+    this.condition = condition;
   }
 
   public Set<Category> getCategories() {

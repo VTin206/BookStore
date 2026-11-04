@@ -73,7 +73,7 @@ export const BookListPage: React.FC = () => {
       );
     }
     if (maxPrice > 0) result = result.filter((b) => Number(b.price) <= maxPrice * 1000);
-    if (condition !== 'all') result = result.filter((b) => ((b as Book & { condition?: string }).condition || 'new') === condition);
+    if (condition !== 'all') result = result.filter((b) => b.condition?.toLowerCase() === condition);
 
     // In-stock only filter
     if (inStockOnly) {
