@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { Review } from '../types';
+import { PageResponse, Review } from '../types';
 
 export const reviewService = {
   async getByBook(bookId: number | string): Promise<Review[]> {
@@ -9,6 +9,13 @@ export const reviewService = {
     } catch {
       return [];
     }
+  },
+
+  async getPage(bookId: number | string, page = 0, size = 10): Promise<PageResponse<Review>> {
+    const res = await apiClient.get<PageResponse<Review>>(`/reviews/book/${bookId}/page`, {
+      params: { page, size },
+    });
+    return res.data;
   },
 
 

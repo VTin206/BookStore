@@ -7,6 +7,7 @@ import { cartService } from '../services/cartService';
 import { orderService } from '../services/orderService';
 import { userService } from '../services/userService';
 import { voucherService } from '../services/voucherService';
+import { reviewService } from '../services/reviewService';
 
 vi.mock('../services/apiClient', () => ({
   apiClient: {
@@ -146,5 +147,13 @@ describe('API services', () => {
 
     expect(apiClient.get).toHaveBeenNthCalledWith(1, '/users/page', { params: { page: 1, size: 20 } });
     expect(apiClient.get).toHaveBeenNthCalledWith(2, '/vouchers/page', { params: { page: 1, size: 20 } });
+  });
+
+  it('loads paginated book reviews', async () => {
+    const page = { content: [{ id: 1, bookId: 3, rating: 5 }], number: 0, size: 10, totalElements: 1, totalPages: 1, first: true, last: true };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: page });
+
+    await expect(reviewService.getPage(3, 0, 10)).resolves.toEqual(page);
+    expect(apiClient.get).toHaveBeenCalledWith('/reviews/book/3/page', { params: { page: 0, size: 10 } });
   });
 });

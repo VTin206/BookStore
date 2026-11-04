@@ -18,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -94,5 +96,23 @@ class ReviewServiceTest {
 
     assertEquals(List.of("Alice", "Bob"), result.stream().map(Review::getUserName).toList());
     org.mockito.Mockito.verify(users).findAllById(List.of(3L, 4L));
+  }
+
+  @Test
+  void pageByBookAttachesNamesWithoutLoadingAllReviews() {
+    var user = new User();
+    ReflectionTestUtils.setField(user, "id", 3L);
+    user.setFullName("Alice");
+    var review = new Review();
+    review.setUserId(3L);
+    var pageable = PageRequest.of(0, 10);
+    when(bookRepository.findById(7L)).thenReturn(Optional.of(new Book()));
+    when(reviews.findByBookId(7L, pageable)).thenReturn(new PageImpl<>(List.of(review), pageable, 21));
+    when(users.findAllById(List.of(3L))).thenReturn(List.of(user));
+
+    var result = service.pageByBook(7L, pageable);
+
+    assertEquals(21, result.getTotalElements());
+    assertEquals("Alice", result.getContent().getFirst().getUserName());
   }
 }

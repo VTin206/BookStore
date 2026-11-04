@@ -102,6 +102,19 @@ class ReviewController {
     return reviewService.byBook(bookId);
   }
 
+  @GetMapping("/book/{bookId}/page")
+  org.springframework.data.domain.Page<Review> pageByBook(
+      @PathVariable Long bookId,
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
+    if (page < 0 || size < 1 || size > 100) {
+      throw new IllegalArgumentException("Phân trang không hợp lệ");
+    }
+    var pageable = org.springframework.data.domain.PageRequest.of(
+        page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+    return reviewService.pageByBook(bookId, pageable);
+  }
+
   @GetMapping("/book/{bookId}/can-review")
   boolean canReview(Authentication authentication, @PathVariable Long bookId) {
     return authentication != null && reviewService.canReview(authentication.getName(), bookId);

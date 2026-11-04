@@ -11,6 +11,7 @@ import { getBookCover } from '../../utils/bookCovers';
 import { Button } from '../../components/ui/Button';
 import { BookCard } from '../../components/book/BookCard';
 import { BookCardSkeleton } from '../../components/ui/LoadingSkeleton';
+import { Pagination } from '../../components/ui/Pagination';
 import {
   Star,
   ShoppingBag,
@@ -37,6 +38,9 @@ export const BookDetailPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewPage, setReviewPage] = useState(0);
+  const [reviewTotalPages, setReviewTotalPages] = useState(0);
+  const [reviewTotalElements, setReviewTotalElements] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [quantity, setQuantity] = useState<number>(1);
   const [pendingCartAction, setPendingCartAction] = useState<'add' | 'buy' | null>(null);
@@ -57,8 +61,11 @@ export const BookDetailPage: React.FC = () => {
         setBook(data);
 
         // Fetch reviews
-        const revs = await reviewService.getByBook(id);
-        setReviews(revs);
+        const reviewResponse = await reviewService.getPage(id, 0, 10);
+        setReviews(reviewResponse.content);
+        setReviewPage(reviewResponse.number);
+        setReviewTotalPages(reviewResponse.totalPages);
+        setReviewTotalElements(reviewResponse.totalElements);
 
         // Fetch related books
         const allBooks = await bookService.getAll();
@@ -198,8 +205,11 @@ export const BookDetailPage: React.FC = () => {
       success('Cảm ơn bạn đã gửi đánh giá cho cuốn sách!');
       setComment('');
       // Reload reviews
-      const revs = await reviewService.getByBook(book.id);
-      setReviews(revs);
+      const reviewResponse = await reviewService.getPage(book.id, 0, 10);
+      setReviews(reviewResponse.content);
+      setReviewPage(reviewResponse.number);
+      setReviewTotalPages(reviewResponse.totalPages);
+      setReviewTotalElements(reviewResponse.totalElements);
     } catch (err: any) {
       error('Không thể gửi đánh giá vào lúc này.');
     } finally {
@@ -563,7 +573,7 @@ export const BookDetailPage: React.FC = () => {
           </section>
 
           <section>
-            <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Đánh giá từ độc giả ({reviews.length})</h3>
+            <h3 style={{ marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>Đánh giá từ độc giả ({reviewTotalElements})</h3>
             <div>
               {isAuthenticated && canReviewBook && (
                 <>
@@ -679,6 +689,18 @@ export const BookDetailPage: React.FC = () => {
                   </p>
                 )}
               </div>
+              <Pagination
+                currentPage={reviewPage + 1}
+                totalPages={reviewTotalPages}
+                onPageChange={(page) => {
+                  reviewService.getPage(book.id, page - 1, 10).then((response) => {
+                    setReviews(response.content);
+                    setReviewPage(response.number);
+                    setReviewTotalPages(response.totalPages);
+                    setReviewTotalElements(response.totalElements);
+                  }).catch(() => error('Không thể tải trang đánh giá này.'));
+                }}
+              />
             </div>
           </section>
         </div>

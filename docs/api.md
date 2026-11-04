@@ -18,6 +18,7 @@ Authentication:
 - `PATCH /api/orders/admin/{id}/payment` (administrator confirms a BANK transfer)
 - `GET/DELETE /api/cart`
 - `GET /api/reviews/book/{bookId}` (public)
+- `GET /api/reviews/book/{bookId}/page?page=0&size=10` (public, paginated)
 - `POST /api/reviews` (requires login)
 
 Authenticated clients may send a unique `Idempotency-Key` header with

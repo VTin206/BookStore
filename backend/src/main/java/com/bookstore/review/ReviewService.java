@@ -6,6 +6,8 @@ import com.bookstore.user.entity.User;
 import com.bookstore.user.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,19 @@ public class ReviewService {
   public List<Review> byBook(Long bookId) {
     bookRepository.findById(bookId).orElseThrow();
     var result = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
+    attachUserNames(result);
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Review> pageByBook(Long bookId, Pageable pageable) {
+    bookRepository.findById(bookId).orElseThrow();
+    var result = reviewRepository.findByBookId(bookId, pageable);
+    attachUserNames(result.getContent());
+    return result;
+  }
+
+  private void attachUserNames(List<Review> result) {
     var userNames = userRepository.findAllById(result.stream()
         .map(Review::getUserId)
         .distinct()
@@ -34,7 +49,6 @@ public class ReviewService {
         .stream()
         .collect(Collectors.toMap(User::getId, User::getFullName, (first, ignored) -> first));
     result.forEach(review -> review.setUserName(userNames.get(review.getUserId())));
-    return result;
   }
 
   @Transactional(readOnly = true)
