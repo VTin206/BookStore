@@ -18,10 +18,12 @@ Authentication:
 - `GET /api/reviews/book/{bookId}` (public)
 - `POST /api/reviews` (requires login)
 
-Clients should send a unique `Idempotency-Key` header with `POST /api/orders`.
-Reusing the same key with the same request returns the original order; reusing
-it with a different request is rejected. Requests without the header remain
-supported for backwards compatibility.
+Authenticated clients may send a unique `Idempotency-Key` header with
+`POST /api/orders`. Reusing the same key with the same request returns the
+original order; reusing it with a different request is rejected. Guest
+checkout does not use idempotency keys because there is no authenticated scope
+to isolate keys between clients. Requests without the header remain supported
+for backwards compatibility.
 
 Roles are `CUSTOMER` and `ADMIN`; new registrations are `CUSTOMER` by default.
 
