@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { isAxiosError } from 'axios';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
@@ -37,6 +37,8 @@ export const AdminBooksPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [totalBooks, setTotalBooks] = useState<number>(0);
 
   // Modal create/edit
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -78,13 +80,15 @@ export const AdminBooksPage: React.FC = () => {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [booksData, catsData, authorsData, publishersData] = await Promise.all([
-        bookService.getAll(undefined, undefined, true),
+      const [booksPage, catsData, authorsData, publishersData] = await Promise.all([
+        bookService.getPage(search, categoryFilter ? Number(categoryFilter) : undefined, currentPage - 1, ITEMS_PER_PAGE, true),
         categoryService.getAll(),
         authorService.getAll(),
         publisherService.getAll(),
       ]);
-      setBooks(booksData);
+      setBooks(booksPage.content);
+      setTotalPages(booksPage.totalPages);
+      setTotalBooks(booksPage.totalElements);
       setCategories(catsData);
       setAuthors(authorsData);
       setPublishers(publishersData);
@@ -97,7 +101,7 @@ export const AdminBooksPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [search, categoryFilter, currentPage]);
 
   const openCreateModal = () => {
     setEditingBook(null);
@@ -263,22 +267,7 @@ export const AdminBooksPage: React.FC = () => {
     }
   };
 
-  // Filter & Search
-  const filteredBooks = useMemo(() => {
-    return books.filter((b) => {
-      const matchSearch =
-        b.title.toLowerCase().includes(search.toLowerCase()) ||
-        b.author.toLowerCase().includes(search.toLowerCase());
-      const matchCat = categoryFilter ? b.category?.id?.toString() === categoryFilter : true;
-      return matchSearch && matchCat;
-    });
-  }, [books, search, categoryFilter]);
-
-  const totalPages = Math.ceil(filteredBooks.length / ITEMS_PER_PAGE);
-  const paginatedBooks = filteredBooks.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedBooks = books;
 
   const currentPageIds = paginatedBooks.map((book) => book.id);
   const allCurrentPageSelected = currentPageIds.length > 0 && currentPageIds.every((id) => selectedBookIds.includes(id));
@@ -324,7 +313,7 @@ export const AdminBooksPage: React.FC = () => {
         <div>
           <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý kho sách</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
-            Tổng cộng <strong>{books.length}</strong> đầu sách trong hệ thống
+            Tổng cộng <strong>{totalBooks}</strong> đầu sách trong hệ thống
           </p>
         </div>
 

@@ -2,6 +2,8 @@ package com.bookstore.book.repository;
 
 import com.bookstore.book.entity.Book;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +11,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
   List<Book> findAllByActiveTrue();
+  @Query("""
+      select distinct b from Book b
+      left join b.authorRef a
+      left join b.categories c
+      where (:includeInactive = true or b.active = true)
+        and (:search = '' or lower(b.title) like lower(concat('%', :search, '%'))
+          or lower(b.author) like lower(concat('%', :search, '%'))
+          or lower(a.name) like lower(concat('%', :search, '%')))
+        and (:categoryId is null or b.category.id = :categoryId or c.id = :categoryId)
+      """)
+  Page<Book> pageForCatalog(
+      @Param("search") String search,
+      @Param("categoryId") Long categoryId,
+      @Param("includeInactive") boolean includeInactive,
+      Pageable pageable);
   List<Book> findAllByOrderByStockAscTitleAsc();
   List<Book> findAllByActiveTrueOrderByPublicationDateDescCreatedAtDesc();
   @Query(value = "select exists(select 1 from order_items where book_id = :bookId)", nativeQuery = true)

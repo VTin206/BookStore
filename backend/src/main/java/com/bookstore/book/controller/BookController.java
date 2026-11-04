@@ -30,6 +30,22 @@ public class BookController {
     return includeInactive ? bookService.allIncludingInactive() : bookService.byFilter(search, filter);
   }
 
+  @GetMapping("/page")
+  @PreAuthorize("!#includeInactive or hasRole('ADMIN')")
+  public org.springframework.data.domain.Page<Book> page(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) Long categoryId,
+      @RequestParam(defaultValue = "false") boolean includeInactive,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    if (page < 0 || size < 1 || size > 100) {
+      throw new IllegalArgumentException("Phân trang không hợp lệ");
+    }
+    var pageable = org.springframework.data.domain.PageRequest.of(
+        page, size, org.springframework.data.domain.Sort.by("id").descending());
+    return bookService.page(search, categoryId, includeInactive, pageable);
+  }
+
   @GetMapping("/{id}")
   @org.springframework.security.access.prepost.PostAuthorize("returnObject.active or hasRole('ADMIN')")
   public Book byId(@PathVariable Long id) {

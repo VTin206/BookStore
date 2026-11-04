@@ -54,6 +54,16 @@ describe('API services', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/books', { params: { search: '  java  ' } });
   });
 
+  it('loads a paginated book catalog with safe query parameters', async () => {
+    const page = { content: [], number: 0, size: 8, totalElements: 0, totalPages: 0, first: true, last: true };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: page });
+
+    await expect(bookService.getPage('  java  ', 4, 0, 8, true)).resolves.toEqual(page);
+    expect(apiClient.get).toHaveBeenCalledWith('/books/page', {
+      params: { search: 'java', categoryId: 4, page: 0, size: 8, includeInactive: true },
+    });
+  });
+
   it('sends full book metadata when creating a book', async () => {
     const payload = {
       title: 'Book',

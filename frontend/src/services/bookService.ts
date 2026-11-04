@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { Book, BookRequest } from '../types';
+import { Book, BookRequest, PageResponse } from '../types';
 
 export const bookService = {
   async getAll(search?: string, filter?: string, includeInactive = false): Promise<Book[]> {
@@ -9,6 +9,24 @@ export const bookService = {
       ...(includeInactive ? { includeInactive: true } : {}),
     };
     const res = await apiClient.get<Book[]>('/books', { params });
+    return res.data;
+  },
+
+  async getPage(
+    search?: string,
+    categoryId?: number,
+    page = 0,
+    size = 20,
+    includeInactive = false,
+  ): Promise<PageResponse<Book>> {
+    const params = {
+      ...(search?.trim() ? { search: search.trim() } : {}),
+      ...(categoryId ? { categoryId } : {}),
+      page,
+      size,
+      ...(includeInactive ? { includeInactive: true } : {}),
+    };
+    const res = await apiClient.get<PageResponse<Book>>('/books/page', { params });
     return res.data;
   },
 

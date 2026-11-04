@@ -10,6 +10,7 @@ Authentication:
 
 - `GET/POST /api/categories`
 - `GET/POST/PUT/DELETE /api/books`
+- `GET /api/books/page?page=0&size=20` (catalog pagination; `includeInactive=true` is admin-only)
 - `GET /api/users` (legacy unpaginated response)
 - `GET /api/users/page?page=0&size=20` (admin paginated response)
 - `GET /api/vouchers/page?page=0&size=20` (admin paginated response)

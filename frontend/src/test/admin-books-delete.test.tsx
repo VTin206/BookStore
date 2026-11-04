@@ -6,16 +6,22 @@ import { bookService } from '../services/bookService';
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('../context/ToastContext', () => ({ useToast: () => toast }));
-vi.mock('../services/bookService', () => ({ bookService: { getAll: vi.fn(), setActive: vi.fn() } }));
+vi.mock('../services/bookService', () => ({ bookService: { getPage: vi.fn(), setActive: vi.fn() } }));
 vi.mock('../services/categoryService', () => ({ categoryService: { getAll: vi.fn().mockResolvedValue([]) } }));
 vi.mock('../services/authorService', () => ({ authorService: { getAll: vi.fn().mockResolvedValue([]) } }));
 vi.mock('../services/publisherService', () => ({ publisherService: { getAll: vi.fn().mockResolvedValue([]) } }));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(bookService.getAll).mockResolvedValue([
-    { id: 1, title: 'Test Book', author: 'Author', price: 100, stock: 2, active: true },
-  ]);
+  vi.mocked(bookService.getPage).mockResolvedValue({
+    content: [{ id: 1, title: 'Test Book', author: 'Author', price: 100, stock: 2, active: true }],
+    number: 0,
+    size: 8,
+    totalElements: 1,
+    totalPages: 1,
+    first: true,
+    last: true,
+  });
   vi.mocked(bookService.setActive).mockResolvedValue({ id: 1, title: 'Test Book', author: 'Author', price: 100, stock: 2, active: false });
 });
 
