@@ -10,7 +10,9 @@ Authentication:
 
 - `GET/POST /api/categories`
 - `GET/POST/PUT/DELETE /api/books`
-- `GET /api/users`
+- `GET /api/users` (legacy unpaginated response)
+- `GET /api/users/page?page=0&size=20` (admin paginated response)
+- `GET /api/vouchers/page?page=0&size=20` (admin paginated response)
 - `GET/POST /api/orders` (order lists return a paginated `Page`)
 - `POST /api/orders/quote` (re-checks current prices, stock, shipping and voucher)
 - `PATCH /api/orders/admin/{id}/payment` (administrator confirms a BANK transfer)
