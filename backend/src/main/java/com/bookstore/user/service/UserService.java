@@ -7,6 +7,8 @@ import com.bookstore.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class UserService {
@@ -71,6 +73,11 @@ public class UserService {
   @Transactional(readOnly = true)
   public java.util.List<User> all() {
     return userRepository.findAll();
+  }
+
+  @Transactional(readOnly = true)
+  public Page<User> page(Pageable pageable) {
+    return userRepository.findAll(pageable);
   }
 
   @Transactional

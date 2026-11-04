@@ -4,6 +4,7 @@ import { User } from '../../types';
 import { Badge } from '../../components/ui/Badge';
 import { TableSkeleton } from '../../components/ui/LoadingSkeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { Pagination } from '../../components/ui/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { Mail, Phone, Users } from 'lucide-react';
 
@@ -11,14 +12,19 @@ export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
   const { success, error } = useToast();
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
-        const data = await userService.getAll();
-        setUsers(data);
+        const data = await userService.getPage(currentPage - 1, 20);
+        setUsers(data.content);
+        setTotalPages(data.totalPages);
+        setTotalUsers(data.totalElements);
       } catch (err) {
         console.error('Failed to load users', err);
         error('Không thể tải danh sách người dùng.');
@@ -27,7 +33,7 @@ export const AdminUsersPage: React.FC = () => {
       }
     };
     fetchUsers();
-  }, [error]);
+  }, [currentPage, error]);
 
   const handleRoleChange = async (userId: number, role: 'ADMIN' | 'CUSTOMER') => {
     try {
@@ -50,7 +56,7 @@ export const AdminUsersPage: React.FC = () => {
       <div>
         <h1 style={{ fontSize: '1.6rem', marginBottom: '4px' }}>Quản lý người dùng</h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
-          Danh sách tài khoản độc giả và quản trị viên ({users.length} tài khoản)
+          Danh sách tài khoản độc giả và quản trị viên ({totalUsers} tài khoản)
         </p>
       </div>
 
@@ -125,6 +131,11 @@ export const AdminUsersPage: React.FC = () => {
           description="Người dùng đăng ký qua trang web sẽ xuất hiện tại danh sách này."
         />
       )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

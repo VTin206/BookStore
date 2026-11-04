@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class VoucherService {
@@ -24,6 +26,11 @@ public class VoucherService {
 
   public List<Voucher> findAll() {
     return voucherRepository.findAll();
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Voucher> findPage(Pageable pageable) {
+    return voucherRepository.findAll(pageable);
   }
 
   public Voucher create(VoucherRequest request) {

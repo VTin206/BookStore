@@ -164,3 +164,13 @@ export interface ToastMessage {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
 }
+
+export interface PageResponse<T> {
+  content: T[];
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}

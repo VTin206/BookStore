@@ -6,6 +6,7 @@ import { categoryService } from '../services/categoryService';
 import { cartService } from '../services/cartService';
 import { orderService } from '../services/orderService';
 import { userService } from '../services/userService';
+import { voucherService } from '../services/voucherService';
 
 vi.mock('../services/apiClient', () => ({
   apiClient: {
@@ -134,5 +135,16 @@ describe('API services', () => {
     expect(apiClient.patch).toHaveBeenCalledWith('/users/4/role', null, {
       params: { role: 'ADMIN' },
     });
+  });
+
+  it('loads paginated admin users and vouchers', async () => {
+    const page = { content: [], number: 1, size: 20, totalElements: 0, totalPages: 0, first: true, last: true };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: page });
+
+    await expect(userService.getPage(1, 20)).resolves.toEqual(page);
+    await expect(voucherService.getPage(1, 20)).resolves.toEqual(page);
+
+    expect(apiClient.get).toHaveBeenNthCalledWith(1, '/users/page', { params: { page: 1, size: 20 } });
+    expect(apiClient.get).toHaveBeenNthCalledWith(2, '/vouchers/page', { params: { page: 1, size: 20 } });
   });
 });

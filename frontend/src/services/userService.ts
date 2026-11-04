@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { User, WishlistItem } from '../types';
+import { PageResponse, User, WishlistItem } from '../types';
 
 export interface ProfileUpdateRequest {
   fullName: string;
@@ -16,6 +16,11 @@ export interface ChangePasswordRequest {
 export const userService = {
   async getAll(): Promise<User[]> {
     const res = await apiClient.get<User[]>('/users');
+    return res.data;
+  },
+
+  async getPage(page = 0, size = 20): Promise<PageResponse<User>> {
+    const res = await apiClient.get<PageResponse<User>>('/users/page', { params: { page, size } });
     return res.data;
   },
 

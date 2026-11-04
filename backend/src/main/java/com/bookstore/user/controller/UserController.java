@@ -72,6 +72,14 @@ public class UserController {
   }
 
   @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping("/page")
+  public org.springframework.data.domain.Page<User> page(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    return userService.page(pageRequest(page, size));
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping
   public List<User> all() {
     return userService.all();
@@ -80,5 +88,13 @@ public class UserController {
   @PostMapping("/me/logout")
   public void logout(Authentication authentication) {
     userService.revokeSessions(authentication.getName());
+  }
+
+  private org.springframework.data.domain.PageRequest pageRequest(int page, int size) {
+    if (page < 0 || size < 1 || size > 100) {
+      throw new IllegalArgumentException("Phân trang không hợp lệ");
+    }
+    return org.springframework.data.domain.PageRequest.of(
+        page, size, org.springframework.data.domain.Sort.by("id").descending());
   }
 }
